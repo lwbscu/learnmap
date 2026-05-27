@@ -1,0 +1,7 @@
+interface:
+  display_name: "AI 10x Learning Coach"
+  short_description: "Adaptive maps, lessons, and mastery checks."
+  default_prompt: "Use $ai-10x-learning-coach to help me learn a new domain from zero with a concept map, chapter-by-chapter teaching, quizzes, and mistake-based review."
+
+policy:
+  allow_implicit_invocation: true
