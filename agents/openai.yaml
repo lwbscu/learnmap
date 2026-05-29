@@ -1,6 +1,6 @@
 interface:
   display_name: "AI 10x Learning Coach"
-  short_description: "Adaptive maps, interactive HTML lessons, and mastery checks. Asks language (CN/EN) first."
+  short_description: "Adaptive maps, interactive HTML lessons, mastery checks, and language-specific artifact names. Asks CN/EN first."
   default_prompt: "Use $ai-10x-learning-coach to help me learn a new domain from zero with a concept map, chapter-by-chapter interactive lessons, quizzes, and mistake-based review."
 
 policy:

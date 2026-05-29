@@ -1,11 +1,37 @@
 # Learning Session Artifact Templates
 
 Use these templates when the user wants an ongoing learning workspace.
-Language-specific naming: use Chinese folder/file names in Chinese mode, English in English mode.
+
+Language-specific naming is mandatory:
+
+- Chinese mode: generated learning artifacts use Chinese folder and file names.
+- English mode: generated learning artifacts use English folder and file names.
+- Repository/skill functional files keep required names: `SKILL.md`, `README*.md`, `LICENSE`, `agents/openai.yaml`, and `references/*.md`.
+- Technical terms such as MDP, Q-Learning, PPO, DQN, and Bellman equation stay in English in both modes.
 
 ---
 
 ## Workspace Directory Structure
+
+### Chinese Mode
+
+```text
+学习/<主题>/
+├── 元数据/
+│   ├── 学习档案.md          # 学习背景、目标、语言选择
+│   ├── 学习进度.md          # 当前课程、测验结果、薄弱点
+│   └── 错题记录.md          # 误区与纠正
+├── 第01课-全局地图/
+│   ├── 笔记.md              # 全局地图 + 第1课笔记
+│   └── 掌握检查.html        # 独立交互式测验
+├── 第02课-MDP详解/
+│   └── 课件.html            # 交互式课件 + 嵌入式测验
+├── 第03课-价值函数/
+│   └── 课件.html
+└── ...
+```
+
+### English Mode
 
 ```text
 learning/<topic-slug>/
@@ -25,16 +51,19 @@ learning/<topic-slug>/
 
 **Naming examples by language:**
 
-| Mode | Lesson folder | Notes file | Quiz title |
-|------|--------------|------------|------------|
-| Chinese | `lesson-01-全局地图/` | `notes.md` | 掌握检查 |
-| Chinese | `lesson-02-mdp详解/` | *(in HTML)* | 掌握检查 |
-| English | `lesson-01-global-map/` | `notes.md` | Mastery Check |
-| English | `lesson-02-mdp/` | *(in HTML)* | Mastery Check |
+| Mode | Workspace | Lesson folder | Notes file | Quiz file | Lesson HTML |
+|------|-----------|--------------|------------|-----------|-------------|
+| Chinese | `学习/强化学习/` | `第01课-全局地图/` | `笔记.md` | `掌握检查.html` | `课件.html` |
+| Chinese | `学习/强化学习/` | `第02课-MDP详解/` | *(in HTML)* | *(embedded)* | `课件.html` |
+| English | `learning/reinforcement-learning/` | `lesson-01-global-map/` | `notes.md` | `quiz.html` | `index.html` |
+| English | `learning/reinforcement-learning/` | `lesson-02-mdp/` | *(in HTML)* | *(embedded)* | `index.html` |
 
 ---
 
-## `_meta/profile.md`
+## Profile File
+
+Chinese mode path: `元数据/学习档案.md`
+English mode path: `_meta/profile.md`
 
 ```markdown
 # Learner Profile / 学习者档案
@@ -50,7 +79,10 @@ learning/<topic-slug>/
 
 ---
 
-## `_meta/progress.md`
+## Progress File
+
+Chinese mode path: `元数据/学习进度.md`
+English mode path: `_meta/progress.md`
 
 ```markdown
 # Progress / 进度追踪
@@ -65,7 +97,10 @@ learning/<topic-slug>/
 
 ---
 
-## `_meta/mistakes.md`
+## Mistake Log
+
+Chinese mode path: `元数据/错题记录.md`
+English mode path: `_meta/mistakes.md`
 
 ```markdown
 # Mistake Log / 错题记录
@@ -77,7 +112,10 @@ learning/<topic-slug>/
 
 ---
 
-## `lesson-01-<slug>/notes.md` (Global Map)
+## Global Map Notes
+
+Chinese mode path: `第01课-全局地图/笔记.md`
+English mode path: `lesson-01-global-map/notes.md`
 
 ```markdown
 # Lesson 1: [Domain Name] Global Map / 全局地图
@@ -346,7 +384,10 @@ For Lesson 2 and beyond, generate an interactive HTML page. Below is the **minim
 
 ---
 
-## Standalone Quiz HTML (`quiz.html`)
+## Standalone Quiz HTML
+
+Chinese mode path: `第01课-全局地图/掌握检查.html`
+English mode path: `lesson-01-global-map/quiz.html`
 
 For Lesson 1, generate a separate quiz with:
 

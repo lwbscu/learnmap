@@ -77,7 +77,9 @@ The Skill's first message will ask:
 
 > 🌐 **中文版还是 English version?**
 
-Once you choose, all lesson content, folder names, quiz questions, and navigation prompts will be in your chosen language. **Technical terms (MDP, Q-Learning, Bellman equation, etc.) remain in English regardless.**
+Once you choose, all lesson content, generated learning folder names, note file names, quiz file names, and navigation prompts will be in your chosen language. **Technical terms (MDP, Q-Learning, Bellman equation, etc.) remain in English regardless.**
+
+In Chinese mode, generated learner-facing artifacts use Chinese names such as `第01课-全局地图/笔记.md`, `掌握检查.html`, and `课件.html`. Required repository files such as `SKILL.md`, `README*.md`, `LICENSE`, `agents/openai.yaml`, and `references/*.md` keep their required names.
 
 ---
 
@@ -175,7 +177,7 @@ learning/<topic-slug>/
 └── ...
 ```
 
-Folder names follow the chosen language (Chinese pinyin/characters for CN mode, English slugs for EN mode). Technical acronyms (mdp, ppo, etc.) remain in English in both modes.
+Folder and file names follow the chosen language. Chinese mode uses names like `学习/强化学习/第01课-全局地图/笔记.md`, `掌握检查.html`, and `课件.html`; English mode uses the structure shown above. Technical acronyms (MDP, PPO, etc.) remain in English in both modes.
 
 ---
 
@@ -214,7 +216,7 @@ Direct prompting typically produces a single large text dump — information wit
 
 ### Q: What's the difference between Chinese and English modes?
 
-Language choice only affects: UI text, folder naming, quiz question wording. **Technical terms (MDP, Q-Learning, policy gradient) remain in English in both modes** — ensuring conceptual precision and alignment with the global research community.
+Language choice affects: UI text, generated folder naming, note file naming, quiz file naming, lesson file naming, and quiz question wording. **Technical terms (MDP, Q-Learning, policy gradient) remain in English in both modes** — ensuring conceptual precision and alignment with the global research community.
 
 ### Q: Why start with a global map instead of diving into content?
 
