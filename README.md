@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Claude Code Skill](https://img.shields.io/badge/Claude%20Code-Skill-38bdf8)](https://claude.com/claude-code)
-[![Version](https://img.shields.io/badge/version-2.0-a78bfa)]()
+[![Version](https://img.shields.io/badge/version-2.1-a78bfa)]()
 
 **把 Claude Code/Codex 变成一个耐心的、自适应的领域导师。**  
 **Turn Claude Code/Codex into a patient, adaptive domain tutor.**
@@ -34,13 +34,14 @@ git clone https://github.com/lwbscu/ai-10x-learning-coach.git ~/.claude/skills/a
 
 ---
 
-## 核心特性 / Key Features (v2.0)
+## 核心特性 / Key Features (v2.1)
 
 | 特性 Feature | 说明 Description |
 |-------------|-----------------|
 | 🌐 双语分发 | 启动时询问语言，学习产物目录/文件名/课件/测验都用所选语言输出，术语保留英文 |
 | 📚 交互式 HTML 课件 | 从第1课开始每章一个完整 HTML 页面：多视角切换、即学即练、折叠深读、悬浮注释 |
 | ✅ 掌握检查 | 2-4 题自动评判：正确/部分正确/概念误区/边界不清/应用脱节 |
+| 💾 学习记录 | 自动保存网页交互状态，并支持复制给 AI / 下载 JSON 供后续读取 |
 | 📋 防迷路导航 | 完结卡片 + 自检清单 + 底部悬浮条 + 下一步指令 |
 | 📊 错题追踪 | 记录每个理解偏差，针对性复测，进度可随时恢复 |
 

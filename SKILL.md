@@ -46,6 +46,7 @@ This skill is distilled from the workflow in the article "如何用 Claude Code 
 - Explain concepts from at least three perspectives when useful: end user, business/operator, implementer/builder.
 - Use concrete examples immediately after abstract concepts.
 - Embed "learn-and-practice" mini-quizzes inside lessons, not just at the end.
+- Persist lesson interactions in the browser with `localStorage`, and provide copy/download learning-record actions for AI follow-up.
 - Require active recall: make the learner answer, summarize, compare, or apply.
 - Do not advance after "I explained it"; advance only after the learner demonstrates understanding.
 - Keep a mistake log and use it to adapt future explanations and questions.
@@ -149,17 +150,24 @@ Each HTML lesson MUST include:
 - **Inline mini-quizzes (即学即练 / Learn & Practice)** — embedded multiple-choice questions that highlight green (correct) or red (wrong) with explanatory feedback. Must guard against double-click content duplication (use a `_mqAnswered` dictionary).
 - **Hover annotations** — key terms with dashed underline; hover to reveal a tooltip with deeper insight
 - **MDP card click-to-scroll** — when using concept tuple cards, clicking scrolls to the detail section. Use manual position calculation (`getBoundingClientRect().top + pageYOffset - offset`) instead of `scroll-margin-top` for cross-browser reliability.
+- **Learning record persistence** — save quiz results, checklist state, viewed lesson, completion percentage, weak spots, and last updated time to `localStorage` under a stable key such as `ai10x:<topic>:lesson-01`.
+- **AI handoff actions** — include buttons to copy a compact learning summary to clipboard and to download a JSON record. Chinese mode downloads `学习记录.json`; English mode downloads `learning-record.json`.
 
 **Bottom-of-lesson navigation (REQUIRED):**
 - **End-of-lesson card** — a visually distinct card at the bottom containing:
   - Lesson completion heading
   - **Self-check checklist** — clickable ☐ items that toggle to ☑ (green when checked). Example items: "I can name all 5 MDP components", "I understand the Markov property", etc. Implemented via `toggleCheck()` function.
+  - **Learning record panel** — shows completion percentage, quiz score, checked self-assessment items, and weak spots.
+  - **Export actions** — buttons for `复制学习记录给AI` / `Copy learning record for AI` and `下载学习记录.json` / `Download learning-record.json`.
   - **Next-step command** — a styled `<code>` block showing exactly what to type in Claude Code to continue (e.g., `继续第3课 价值函数` / `Continue Lesson 3: Value Functions`)
   - Brief preview of the next lesson's content
 - **Floating bottom bar** — a fixed bar that slides up from the bottom when the user scrolls the end-card into view (use `IntersectionObserver`). Contains a summary message and the next command. Dismisses on click.
 
 **Functionality:**
 - **Reset button** in top bar — resets all quizzes, accordions, tabs, checklists to initial state and scrolls to top
+- **Save-on-interaction** — every quiz answer and checklist toggle calls `saveRecord()` and `updateRecordUI()`.
+- **Restore-on-load** — when the page loads, call `loadRecord()` to restore previous quiz/checklist state from `localStorage`.
+- **Export format** — exported JSON MUST include `topic`, `lessonId`, `lessonTitle`, `language`, `updatedAt`, `completion`, `quiz`, `checklist`, `weakSpots`, and `nextCommand`.
 - **Tab switching** — MUST query panels from the parent section (`section.querySelectorAll(".tab-panel")`), NOT from the tabs container (`.tabs` only contains buttons, not panels — this is a verified bug pattern to avoid)
 - **All JS uses `function` keyword and `var`** (not arrow functions or `const`/`let`) for maximum browser compatibility
 
@@ -207,6 +215,7 @@ After each module:
 
 - Chinese mode: update `元数据/学习进度.md` and append mistakes to `元数据/错题记录.md`
 - English mode: update `_meta/progress.md` and append mistakes to `_meta/mistakes.md`
+- If a lesson folder contains exported learning records (`学习记录.json` in Chinese mode or `learning-record.json` in English mode), read them before deciding whether to advance, reteach, or update weak spots.
 - update the map if the learner discovered a better structure
 - add a short retrieval prompt for later review
 

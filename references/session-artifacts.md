@@ -166,6 +166,7 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
   <div class="topbar">
     <div class="breadcrumb">[Domain] / <span>Lesson N</span></div>
     <h1>[Lesson Title]</h1>
+    <span class="record-pill" id="recordPill">[0% complete]</span>
     <button onclick="resetAll()">[Reset Text]</button>
   </div>
 
@@ -215,6 +216,15 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
         <!-- ... -->
       </div>
 
+      <!-- [REQUIRED] Learning record panel for AI handoff -->
+      <div class="record-panel">
+        <h4>[Learning Record / 学习记录]</h4>
+        <p id="recordSummary">[Progress summary]</p>
+        <button onclick="copyLearningRecord()">[Copy for AI / 复制学习记录给AI]</button>
+        <button onclick="downloadLearningRecord()">[Download JSON / 下载学习记录.json]</button>
+        <small>[Place the downloaded JSON beside this lesson if you want the AI to read it later.]</small>
+      </div>
+
       <!-- [REQUIRED] Next-step command -->
       <div class="next-step">
         <p>[Prompt text]</p>
@@ -234,6 +244,16 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
 
   <script>
   // [REQUIRED] All functions below must be present
+
+  var LESSON_RECORD_KEY = "ai10x:[topic-slug]:lesson-N";
+  var LESSON_META = {
+    topic: "[Domain]",
+    lessonId: "lesson-N",
+    lessonTitle: "[Lesson Title]",
+    language: "zh-CN", // or "en"
+    nextCommand: "[Command to type in Claude Code]",
+    recordFileName: "学习记录.json" // English mode: "learning-record.json"
+  };
 
   // Scroll to detail element with sticky header offset
   function scrollToDetail(id) {
@@ -260,9 +280,11 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
 
   // Mini-quiz answer handler (guards against double-click)
   var _mqAnswered = {};
+  var _mqState = {};
   function checkMQ(mqId, optIdx, isCorrect) {
     if (_mqAnswered[mqId]) return;
     _mqAnswered[mqId] = true;
+    _mqState[mqId] = { choiceIndex: optIdx, correct: isCorrect };
     var mq = document.getElementById(mqId);
     var explain = document.getElementById(mqId + "-explain");
     var opts = mq.querySelectorAll(".opt");
@@ -276,6 +298,8 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
       explain.className = "explain show no";
       explain.innerHTML = "[Wrong explanation text]";
     }
+    saveRecord();
+    updateRecordUI();
   }
 
   // Self-check checklist toggle
@@ -287,11 +311,137 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
       el.classList.add("done");
       el.textContent = el.textContent.replace("☐", "☑");
     }
+    saveRecord();
+    updateRecordUI();
+  }
+
+  // Build a portable record that AI can read after copy/download.
+  function buildLearningRecord() {
+    var quizItems = [];
+    document.querySelectorAll(".mini-quiz").forEach(function(q) {
+      var id = q.id || "";
+      var chosen = q.querySelector(".chosen-correct, .chosen-wrong");
+      var state = _mqState[id] || null;
+      quizItems.push({
+        id: id,
+        answered: !!chosen || !!state,
+        correct: state ? !!state.correct : !!(chosen && chosen.classList.contains("chosen-correct")),
+        choiceIndex: state ? state.choiceIndex : null,
+        choiceText: chosen ? chosen.textContent.trim() : ""
+      });
+    });
+    var checklist = [];
+    document.querySelectorAll(".check-item").forEach(function(c) {
+      checklist.push({
+        text: c.textContent.replace("☑", "").replace("☐", "").trim(),
+        checked: c.classList.contains("done")
+      });
+    });
+    var answered = quizItems.filter(function(q) { return q.answered; }).length;
+    var correct = quizItems.filter(function(q) { return q.correct; }).length;
+    var checked = checklist.filter(function(c) { return c.checked; }).length;
+    var totalTasks = quizItems.length + checklist.length;
+    var doneTasks = answered + checked;
+    var completion = totalTasks ? Math.round(doneTasks * 100 / totalTasks) : 0;
+    var weakSpots = quizItems.filter(function(q) { return q.answered && !q.correct; }).map(function(q) { return q.id; });
+    return {
+      schema: "ai-10x-learning-record/v1",
+      topic: LESSON_META.topic,
+      lessonId: LESSON_META.lessonId,
+      lessonTitle: LESSON_META.lessonTitle,
+      language: LESSON_META.language,
+      updatedAt: new Date().toISOString(),
+      completion: {
+        percent: completion,
+        quizAnswered: answered,
+        quizCorrect: correct,
+        checklistChecked: checked,
+        checklistTotal: checklist.length
+      },
+      quiz: quizItems,
+      checklist: checklist,
+      weakSpots: weakSpots,
+      nextCommand: LESSON_META.nextCommand
+    };
+  }
+
+  function saveRecord() {
+    try {
+      localStorage.setItem(LESSON_RECORD_KEY, JSON.stringify(buildLearningRecord()));
+    } catch (e) {}
+  }
+
+  function loadRecord() {
+    try {
+      var raw = localStorage.getItem(LESSON_RECORD_KEY);
+      if (!raw) return;
+      var record = JSON.parse(raw);
+      if (!record || !record.checklist) return;
+      if (record.quiz) {
+        record.quiz.forEach(function(item) {
+          if (!item.answered || item.choiceIndex === null || item.choiceIndex === undefined) return;
+          var mq = document.getElementById(item.id);
+          if (!mq) return;
+          var opts = mq.querySelectorAll(".opt");
+          if (!opts[item.choiceIndex]) return;
+          _mqAnswered[item.id] = true;
+          _mqState[item.id] = { choiceIndex: item.choiceIndex, correct: !!item.correct };
+          opts[item.choiceIndex].classList.add(item.correct ? "chosen-correct" : "chosen-wrong");
+          var explain = document.getElementById(item.id + "-explain");
+          if (explain) explain.className = item.correct ? "explain show ok" : "explain show no";
+        });
+      }
+      document.querySelectorAll(".check-item").forEach(function(c, idx) {
+        if (record.checklist[idx] && record.checklist[idx].checked && !c.classList.contains("done")) {
+          c.classList.add("done");
+          c.textContent = c.textContent.replace("☐", "☑");
+        }
+      });
+    } catch (e) {}
+  }
+
+  function updateRecordUI() {
+    var record = buildLearningRecord();
+    var pill = document.getElementById("recordPill");
+    var summary = document.getElementById("recordSummary");
+    if (pill) pill.textContent = record.completion.percent + "% complete";
+    if (summary) {
+      summary.textContent = "[Progress] " + record.completion.percent + "% | [Quiz] " +
+        record.completion.quizCorrect + "/" + record.quiz.length + " | [Checklist] " +
+        record.completion.checklistChecked + "/" + record.completion.checklistTotal;
+    }
+  }
+
+  function copyLearningRecord() {
+    var text = JSON.stringify(buildLearningRecord(), null, 2);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text);
+      return;
+    }
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+  }
+
+  function downloadLearningRecord() {
+    var text = JSON.stringify(buildLearningRecord(), null, 2);
+    var blob = new Blob([text], { type: "application/json" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = LESSON_META.recordFileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
   }
 
   // Reset all interactive state
   function resetAll() {
     _mqAnswered = {};
+    _mqState = {};
     document.querySelectorAll(".accordion").forEach(function(a) {
       if (a.id !== "accWhy") a.classList.remove("open");
     });
@@ -305,6 +455,7 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
       c.classList.remove("done");
       if (c.textContent.indexOf("☑") !== -1) c.textContent = c.textContent.replace("☑", "☐");
     });
+    try { localStorage.removeItem(LESSON_RECORD_KEY); } catch (e) {}
     // Reset tabs to first
     var section = document.getElementById("sN");
     if (section) {
@@ -313,8 +464,13 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
       if (section.querySelectorAll(".tab-btn")[0]) section.querySelectorAll(".tab-btn")[0].classList.add("active");
       if (section.querySelectorAll(".tab-panel")[0]) section.querySelectorAll(".tab-panel")[0].classList.add("active");
     }
+    updateRecordUI();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
+
+  // Restore saved checklist/progress state and initialize record UI.
+  loadRecord();
+  updateRecordUI();
 
   // [REQUIRED] IntersectionObserver for floating bottom bar
   (function() {
@@ -343,6 +499,7 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
 | Class | Purpose |
 |-------|---------|
 | `.topbar` | Sticky header with breadcrumb, title, reset button |
+| `.record-pill` | Small progress indicator in the top bar |
 | `.toc` | Fixed sidebar TOC (hidden < 1300px) |
 | `.section` | Content card with rounded corners, margin-bottom |
 | `.def-box` | Left-bordered definition block (blue accent) |
@@ -356,9 +513,62 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
 | `.loop-diagram`, `.loop-node`, `.loop-arrow` | Agent-Environment flow |
 | `.end-card` | Dashed-border completion card |
 | `.checklist`, `.check-item`, `.check-item.done` | Self-assessment checklist |
+| `.record-panel`, `#recordSummary` | Learning record summary and AI handoff buttons |
 | `.next-cmd` | Monospace code block for next command |
 | `.bottom-bar` | Floating slide-up bar on scroll-to-end |
 | `.annotate`, `.annotate .tooltip` | Hover annotation tooltips |
+
+---
+
+## Learning Record Export
+
+Every lesson must support both local persistence and AI handoff:
+
+- Save state to `localStorage` on every quiz answer and checklist toggle.
+- Restore saved quiz/checklist state when the page is opened again.
+- Provide a copy button that copies the JSON record to clipboard.
+- Provide a download button for a portable JSON file.
+- Chinese mode download name: `学习记录.json`.
+- English mode download name: `learning-record.json`.
+
+Required JSON shape:
+
+```json
+{
+  "schema": "ai-10x-learning-record/v1",
+  "topic": "强化学习",
+  "lessonId": "lesson-01",
+  "lessonTitle": "第01课：全局地图",
+  "language": "zh-CN",
+  "updatedAt": "2026-05-29T00:00:00.000Z",
+  "completion": {
+    "percent": 75,
+    "quizAnswered": 4,
+    "quizCorrect": 3,
+    "checklistChecked": 3,
+    "checklistTotal": 4
+  },
+  "quiz": [
+    {
+      "id": "mq1",
+      "answered": true,
+      "correct": false,
+      "choiceIndex": 1,
+      "choiceText": "..."
+    }
+  ],
+  "checklist": [
+    {
+      "text": "我能解释 RL 和监督学习的区别",
+      "checked": true
+    }
+  ],
+  "weakSpots": ["mq1"],
+  "nextCommand": "继续第02课 MDP详解"
+}
+```
+
+When resuming a learning session, read any downloaded `学习记录.json` / `learning-record.json` files found in lesson folders before updating progress and mistake logs.
 
 ---
 

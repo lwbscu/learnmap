@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Claude Code Skill](https://img.shields.io/badge/Claude%20Code-Skill-38bdf8)](https://claude.com/claude-code)
-[![Version](https://img.shields.io/badge/version-2.0-a78bfa)]()
+[![Version](https://img.shields.io/badge/version-2.1-a78bfa)]()
 
 **Turn Claude Code/Codex into a patient, adaptive domain tutor.**
 
@@ -105,7 +105,7 @@ In Chinese mode, generated learner-facing course artifacts use Chinese names and
 
 ---
 
-## Interactive HTML Lesson Features (v2.0)
+## Interactive HTML Lesson Features (v2.1)
 
 From Lesson 1 onward, each lesson is a self-contained interactive HTML page with these standard features:
 
@@ -129,10 +129,13 @@ From Lesson 1 onward, each lesson is a self-contained interactive HTML page with
   - *Scope bug fix* — Uses `section.querySelectorAll` not `tabs.querySelectorAll` for panel queries
 - 💬 **Hover annotations** — Dashed underline on key terms, tooltip on hover
 - 🎯 **Precise scroll-to-detail** — Manual `getBoundingClientRect` calculation instead of unreliable `scroll-margin-top`
+- 💾 **Learning record persistence** — Saves quiz answers, checklist state, self-assessment, and completion percent with `localStorage`
+- 📤 **AI handoff export** — Copy the learning record for AI or download `learning-record.json` so future sessions can read learning outcomes
 
 ### Bottom Navigation (Anti-Lost)
 - 🏁 **End-of-lesson card** — Dashed-border completion card containing:
   - ✅ **Self-check checklist** — Click ☐ → ☑ to mark concepts as mastered
+  - 💾 **Learning record panel** — Shows completion percent, quiz score, checked items, and weak spots
   - 📋 **Next-step command** — Monospace code block, ready to copy-paste back to Claude Code
   - 🔮 **Next lesson preview** — One-line preview of what's coming
 - 🔔 **Floating bottom bar** — Slides up from bottom when end-card scrolls into view (`IntersectionObserver`), shows next action
@@ -155,6 +158,7 @@ The Skill includes a complete HTML lesson scaffold (see `references/session-arti
 | Tab queries | Query `.tab-panel` from parent `section`, not from `.tabs` container |
 | Scroll calculation | `getBoundingClientRect().top + pageYOffset - 85` for header offset |
 | Quiz guard | `_mqAnswered[quizId]` dictionary for double-click prevention |
+| Learning record | `localStorage` auto-save plus copy/download JSON handoff |
 | Bottom bar trigger | `IntersectionObserver` with threshold 0.3 |
 
 ---
