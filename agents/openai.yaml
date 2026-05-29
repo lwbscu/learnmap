@@ -1,6 +1,6 @@
 interface:
   display_name: "AI 10x Learning Coach"
-  short_description: "Interactive HTML lessons from Lesson 1 with mastery checks, saved learning records, and CN/EN artifact names."
+  short_description: "Interactive HTML lessons with mastery checks, detailed AI learning reports, JSON records, and CN/EN artifact names."
   default_prompt: "Use $ai-10x-learning-coach to help me learn a new domain from zero with a concept map, chapter-by-chapter interactive lessons, quizzes, and mistake-based review."
 
 policy:

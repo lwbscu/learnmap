@@ -126,7 +126,7 @@ Skill 启动后，第一条消息会问你：
 - 💬 **悬浮注释** — 关键词有虚线底划线，悬停弹出深度提示
 - 🎯 **MDP 卡片精准滚动** — 手动计算 `getBoundingClientRect` 而非依赖 `scroll-margin-top`
 - 💾 **学习记录持久化** — 使用 `localStorage` 保存答题、勾选、自评和完成度；刷新页面后仍可恢复
-- 📤 **AI 接力导出** — 一键复制学习记录给 AI，或下载 `学习记录.json` 放回课程目录，方便后续读取学习效果
+- 📤 **AI 接力导出** — 一键复制详细学习报告给 AI（逐题对错、你的选择、正确答案、反馈建议、自检勾选明细），或下载 `学习记录.json` 放回课程目录，方便后续读取学习效果
 
 ### 底部导航（防迷路）
 - 🏁 **完结卡片** — 虚线边框收尾卡，包含：
@@ -154,7 +154,7 @@ Skill 内置了完整的 HTML 课件脚手架（见 `references/session-artifact
 | Tab 查询 | 从 `section` 范围查 `.tab-panel`，不从 `.tabs` 容器查 |
 | 滚动计算 | `getBoundingClientRect().top + pageYOffset - 85` 偏移 header |
 | 测验防重复 | `_mqAnswered[quizId]` 字典守卫 |
-| 学习记录 | `localStorage` 自动保存，支持复制摘要和下载 `学习记录.json` |
+| 学习记录 | `localStorage` 自动保存，支持复制详细 Markdown 报告和下载 `学习记录.json` |
 | 底部条触发 | `IntersectionObserver`，threshold 0.3 |
 
 ---

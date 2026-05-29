@@ -201,7 +201,16 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
     <div class="section" id="sN" style="border-color: var(--accent2);">
       <h2>[Check Icon] Lesson N [Mastery Check / 掌握检查]</h2>
       <p class="subtitle">[N questions, pass to proceed]</p>
-      <!-- mini-quiz blocks -->
+      <!--
+        [REQUIRED] Each .mini-quiz must include diagnostic metadata:
+        data-question: exact question text
+        data-concept: tested concept or skill
+        data-correct: correct answer text or key
+        data-retry: what to review if wrong
+      -->
+      <div class="mini-quiz" id="mq1" data-question="[Question text]" data-concept="[Concept]" data-correct="[Correct answer]" data-retry="[Review suggestion]">
+        <!-- .opt answer options and #mq1-explain feedback -->
+      </div>
     </div>
 
     <!-- [REQUIRED] End-of-lesson card -->
@@ -322,12 +331,18 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
       var id = q.id || "";
       var chosen = q.querySelector(".chosen-correct, .chosen-wrong");
       var state = _mqState[id] || null;
+      var explain = document.getElementById(id + "-explain");
       quizItems.push({
         id: id,
+        question: q.getAttribute("data-question") || "",
+        concept: q.getAttribute("data-concept") || "",
         answered: !!chosen || !!state,
         correct: state ? !!state.correct : !!(chosen && chosen.classList.contains("chosen-correct")),
         choiceIndex: state ? state.choiceIndex : null,
-        choiceText: chosen ? chosen.textContent.trim() : ""
+        choiceText: chosen ? chosen.textContent.trim() : "",
+        correctAnswer: q.getAttribute("data-correct") || "",
+        feedback: explain ? explain.textContent.trim() : "",
+        retrySuggestion: q.getAttribute("data-retry") || ""
       });
     });
     var checklist = [];
@@ -412,8 +427,50 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
     }
   }
 
+  function buildLearningReport() {
+    var record = buildLearningRecord();
+    var lines = [];
+    var isZh = record.language.indexOf("zh") === 0;
+    lines.push((isZh ? "# 学习记录" : "# Learning Record") + " — " + record.topic + " / " + record.lessonTitle);
+    lines.push("");
+    lines.push((isZh ? "- 完成度: " : "- Completion: ") + record.completion.percent + "%");
+    lines.push((isZh ? "- 测验: " : "- Quiz: ") + record.completion.quizCorrect + "/" + record.quiz.length);
+    lines.push((isZh ? "- 自检: " : "- Checklist: ") + record.completion.checklistChecked + "/" + record.completion.checklistTotal);
+    lines.push((isZh ? "- 更新时间: " : "- Updated: ") + record.updatedAt);
+    lines.push("");
+    lines.push(isZh ? "## 答题明细" : "## Quiz Details");
+    record.quiz.forEach(function(q, idx) {
+      lines.push("");
+      lines.push((idx + 1) + ". [" + q.id + "] " + (q.question || (isZh ? "未填写题干" : "Question text missing")));
+      lines.push("   - " + (isZh ? "考察概念: " : "Concept: ") + (q.concept || "-"));
+      lines.push("   - " + (isZh ? "状态: " : "Status: ") + (q.answered ? (q.correct ? (isZh ? "正确" : "Correct") : (isZh ? "错误" : "Wrong")) : (isZh ? "未作答" : "Unanswered")));
+      lines.push("   - " + (isZh ? "我的选择: " : "Selected answer: ") + (q.choiceText || "-"));
+      lines.push("   - " + (isZh ? "正确答案: " : "Correct answer: ") + (q.correctAnswer || "-"));
+      lines.push("   - " + (isZh ? "反馈/建议: " : "Feedback / suggestion: ") + (q.feedback || q.retrySuggestion || "-"));
+    });
+    lines.push("");
+    lines.push(isZh ? "## 自检清单" : "## Self-Check Checklist");
+    record.checklist.forEach(function(c) {
+      lines.push("- [" + (c.checked ? "x" : " ") + "] " + c.text);
+    });
+    lines.push("");
+    lines.push(isZh ? "## 薄弱点" : "## Weak Spots");
+    var weak = record.quiz.filter(function(q) { return q.answered && !q.correct; });
+    if (weak.length === 0) {
+      lines.push(isZh ? "- 暂无已发现薄弱点。" : "- No weak spots detected yet.");
+    } else {
+      weak.forEach(function(q) {
+        lines.push("- " + q.id + ": " + (q.concept || q.question || "-") + " — " + (q.retrySuggestion || q.feedback || (isZh ? "建议复习相关概念。" : "Review this concept.")));
+      });
+    }
+    lines.push("");
+    lines.push(isZh ? "## 下一步" : "## Next Step");
+    lines.push("`" + record.nextCommand + "`");
+    return lines.join("\n");
+  }
+
   function copyLearningRecord() {
-    var text = JSON.stringify(buildLearningRecord(), null, 2);
+    var text = buildLearningReport();
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text);
       return;
@@ -526,7 +583,7 @@ Every lesson must support both local persistence and AI handoff:
 
 - Save state to `localStorage` on every quiz answer and checklist toggle.
 - Restore saved quiz/checklist state when the page is opened again.
-- Provide a copy button that copies the JSON record to clipboard.
+- Provide a copy button that copies a detailed Markdown report to clipboard. The report must include every quiz question, selected answer, correct/wrong status, correct answer when available, feedback, retry suggestion, all checked/unchecked self-check items, weak spots, and next command.
 - Provide a download button for a portable JSON file.
 - Chinese mode download name: `学习记录.json`.
 - English mode download name: `learning-record.json`.
@@ -551,10 +608,15 @@ Required JSON shape:
   "quiz": [
     {
       "id": "mq1",
+      "question": "强化学习和监督学习最大的区别是什么？",
+      "concept": "RL vs supervised learning",
       "answered": true,
       "correct": false,
       "choiceIndex": 1,
-      "choiceText": "..."
+      "choiceText": "监督学习也可以试错",
+      "correctAnswer": "RL learns from interaction and delayed reward; supervised learning learns from labeled answers.",
+      "feedback": "你混淆了标签监督和奖励反馈。",
+      "retrySuggestion": "复习数据来源、反馈形式、单步预测 vs 序列决策。"
     }
   ],
   "checklist": [

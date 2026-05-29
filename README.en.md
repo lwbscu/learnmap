@@ -130,7 +130,7 @@ From Lesson 1 onward, each lesson is a self-contained interactive HTML page with
 - 💬 **Hover annotations** — Dashed underline on key terms, tooltip on hover
 - 🎯 **Precise scroll-to-detail** — Manual `getBoundingClientRect` calculation instead of unreliable `scroll-margin-top`
 - 💾 **Learning record persistence** — Saves quiz answers, checklist state, self-assessment, and completion percent with `localStorage`
-- 📤 **AI handoff export** — Copy the learning record for AI or download `learning-record.json` so future sessions can read learning outcomes
+- 📤 **AI handoff export** — Copy a detailed Markdown learning report for AI (per-question correctness, selected answers, correct answers, feedback, retry suggestions, and checklist details) or download `learning-record.json`
 
 ### Bottom Navigation (Anti-Lost)
 - 🏁 **End-of-lesson card** — Dashed-border completion card containing:
@@ -158,7 +158,7 @@ The Skill includes a complete HTML lesson scaffold (see `references/session-arti
 | Tab queries | Query `.tab-panel` from parent `section`, not from `.tabs` container |
 | Scroll calculation | `getBoundingClientRect().top + pageYOffset - 85` for header offset |
 | Quiz guard | `_mqAnswered[quizId]` dictionary for double-click prevention |
-| Learning record | `localStorage` auto-save plus copy/download JSON handoff |
+| Learning record | `localStorage` auto-save plus detailed Markdown copy and JSON download |
 | Bottom bar trigger | `IntersectionObserver` with threshold 0.3 |
 
 ---

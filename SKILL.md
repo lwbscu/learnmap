@@ -151,7 +151,8 @@ Each HTML lesson MUST include:
 - **Hover annotations** — key terms with dashed underline; hover to reveal a tooltip with deeper insight
 - **MDP card click-to-scroll** — when using concept tuple cards, clicking scrolls to the detail section. Use manual position calculation (`getBoundingClientRect().top + pageYOffset - offset`) instead of `scroll-margin-top` for cross-browser reliability.
 - **Learning record persistence** — save quiz results, checklist state, viewed lesson, completion percentage, weak spots, and last updated time to `localStorage` under a stable key such as `ai10x:<topic>:lesson-01`.
-- **AI handoff actions** — include buttons to copy a compact learning summary to clipboard and to download a JSON record. Chinese mode downloads `学习记录.json`; English mode downloads `learning-record.json`.
+- **Detailed diagnostic records** — each mini-quiz MUST expose enough metadata for later AI diagnosis: question text, tested concept, chosen answer, correct answer (when available), correctness, feedback, and retry recommendation.
+- **AI handoff actions** — include buttons to copy a detailed Markdown learning report to clipboard and to download a JSON record. Chinese mode downloads `学习记录.json`; English mode downloads `learning-record.json`.
 
 **Bottom-of-lesson navigation (REQUIRED):**
 - **End-of-lesson card** — a visually distinct card at the bottom containing:
@@ -167,7 +168,8 @@ Each HTML lesson MUST include:
 - **Reset button** in top bar — resets all quizzes, accordions, tabs, checklists to initial state and scrolls to top
 - **Save-on-interaction** — every quiz answer and checklist toggle calls `saveRecord()` and `updateRecordUI()`.
 - **Restore-on-load** — when the page loads, call `loadRecord()` to restore previous quiz/checklist state from `localStorage`.
-- **Export format** — exported JSON MUST include `topic`, `lessonId`, `lessonTitle`, `language`, `updatedAt`, `completion`, `quiz`, `checklist`, `weakSpots`, and `nextCommand`.
+- **Copy format** — clipboard text MUST be a detailed Markdown report, not a terse dashboard. It must list every quiz question, whether it was correct, the learner's selected answer, the correct answer when available, feedback/retry notes, every checked/unchecked checklist item, weak spots, and next command.
+- **Export format** — exported JSON MUST include `topic`, `lessonId`, `lessonTitle`, `language`, `updatedAt`, `completion`, `quiz`, `checklist`, `weakSpots`, and `nextCommand`. Each `quiz` item MUST include `id`, `question`, `concept`, `answered`, `correct`, `choiceIndex`, `choiceText`, `correctAnswer`, `feedback`, and `retrySuggestion`.
 - **Tab switching** — MUST query panels from the parent section (`section.querySelectorAll(".tab-panel")`), NOT from the tabs container (`.tabs` only contains buttons, not panels — this is a verified bug pattern to avoid)
 - **All JS uses `function` keyword and `var`** (not arrow functions or `const`/`let`) for maximum browser compatibility
 
