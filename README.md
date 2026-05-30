@@ -8,7 +8,7 @@
 
 **Turn Claude Code/Codex into a patient, adaptive domain tutor — it draws knowledge maps, generates interactive HTML lessons, checks mastery, logs mistakes, and re-teaches weak spots until you actually understand.**
 
-📖 [中文文档](README.cn.md) | [English Docs](README.en.md) | [知乎 Demo](https://zhuanlan.zhihu.com/p/2044006519017035140) | [掘金 Demo](https://juejin.cn/spost/7645137278329126964)
+🌐 [Live Demo / 宣传页](https://lwbscu.github.io/ai-10x-learning-coach/) | 📖 [中文文档](README.cn.md) | [English Docs](README.en.md) | [知乎 Demo](https://zhuanlan.zhihu.com/p/2044006519017035140) | [掘金 Demo](https://juejin.cn/spost/7645137278329126964)
 
 ---
 
