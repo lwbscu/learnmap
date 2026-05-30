@@ -666,9 +666,9 @@
           <span>AI 10x Learning Coach</span>
         </a>
         <div class="nav-links">
-          <a href="#demo">交互演示</a>
-          <a href="#features">能力</a>
-          <a href="#install">安装</a>
+          <a id="navDemo" href="#demo">交互演示</a>
+          <a id="navFeatures" href="#features">能力</a>
+          <a id="navInstall" href="#install">安装</a>
           <a href="https://github.com/lwbscu/ai-10x-learning-coach">GitHub</a>
           <div class="nav-lang" aria-label="Language switch">
             <button class="pill active" id="langCn" type="button">中文</button>
@@ -682,18 +682,18 @@
       <canvas id="mapCanvas" aria-hidden="true"></canvas>
       <div class="hero-content">
         <span class="kicker"><span class="status-dot"></span> Claude Code Skill · v2.1 · interactive learning system</span>
-        <h1>把 AI 从答题机器变成真正的学习教练</h1>
-        <p class="hero-subtitle">AI 10x Learning Coach 会先画知识地图，再逐章生成交互式 HTML 课件，通过测验和自检记录你的掌握情况，并把薄弱点交还给 AI 继续复教。</p>
+        <h1 id="heroTitle">把 AI 从答题机器变成真正的学习教练</h1>
+        <p class="hero-subtitle" id="heroSubtitle">AI 10x Learning Coach 会先画知识地图，再逐章生成交互式 HTML 课件，通过测验和自检记录你的掌握情况，并把薄弱点交还给 AI 继续复教。</p>
         <div class="hero-actions">
           <a class="btn primary" href="https://github.com/lwbscu/ai-10x-learning-coach">Star on GitHub</a>
-          <a class="btn" href="#demo">体验交互演示</a>
-          <a class="btn green" href="#install">复制安装命令</a>
+          <a class="btn" id="heroDemoLink" href="#demo">体验交互演示</a>
+          <a class="btn green" id="heroInstallLink" href="#install">复制安装命令</a>
         </div>
         <div class="hero-proof" aria-label="Project highlights">
-          <div class="metric"><strong>HTML-first</strong><span>每课可交互网页</span></div>
-          <div class="metric"><strong>CN / EN</strong><span>双语课件与文件名</span></div>
-          <div class="metric"><strong>Record</strong><span>学习记录可导出</span></div>
-          <div class="metric"><strong>Retest</strong><span>错题驱动复教</span></div>
+          <div class="metric"><strong>HTML-first</strong><span id="metricHtml">每课可交互网页</span></div>
+          <div class="metric"><strong>CN / EN</strong><span id="metricBilingual">双语课件与文件名</span></div>
+          <div class="metric"><strong>Record</strong><span id="metricRecord">学习记录可导出</span></div>
+          <div class="metric"><strong>Retest</strong><span id="metricRetest">错题驱动复教</span></div>
         </div>
       </div>
     </header>
@@ -701,8 +701,8 @@
     <section class="section alt" id="demo">
       <div class="inner">
         <div class="section-head">
-          <h2>不是 README 里的承诺，而是可感知的学习体验</h2>
-          <p>下面这个小演示模拟了真实课件的关键环节：语言选择、知识地图、多视角解释、即时测验、自检清单和可复制给 AI 的学习记录。</p>
+          <h2 id="demoTitle">不是 README 里的承诺，而是可感知的学习体验</h2>
+          <p id="demoIntro">下面这个小演示模拟了真实课件的关键环节：语言选择、知识地图、多视角解释、即时测验、自检清单和可复制给 AI 的学习记录。</p>
         </div>
 
         <div class="simulator">
@@ -714,26 +714,26 @@
             <div class="flow">
               <div class="flow-step">
                 <div class="step-index">1</div>
-                <div><h3>校准学习者</h3><p>背景、目标、时间预算和语言偏好先确定。</p></div>
+                <div><h3 id="flow1Title">校准学习者</h3><p id="flow1Body">背景、目标、时间预算和语言偏好先确定。</p></div>
               </div>
               <div class="flow-step">
                 <div class="step-index">2</div>
-                <div><h3>全局地图</h3><p>先知道这门知识的结构，再进入细节。</p></div>
+                <div><h3 id="flow2Title">全局地图</h3><p id="flow2Body">先知道这门知识的结构，再进入细节。</p></div>
               </div>
               <div class="flow-step">
                 <div class="step-index">3</div>
-                <div><h3>交互课件</h3><p>每课都是 HTML：tabs、测验、清单、记录面板。</p></div>
+                <div><h3 id="flow3Title">交互课件</h3><p id="flow3Body">每课都是 HTML：tabs、测验、清单、记录面板。</p></div>
               </div>
               <div class="flow-step">
                 <div class="step-index">4</div>
-                <div><h3>错题复教</h3><p>把学习记录交给 AI，让下一课从薄弱点开始。</p></div>
+                <div><h3 id="flow4Title">错题复教</h3><p id="flow4Body">把学习记录交给 AI，让下一课从薄弱点开始。</p></div>
               </div>
             </div>
           </div>
 
           <div class="panel">
             <div class="panel-head">
-              <span class="panel-title">第01课-全局地图 / 课件.html</span>
+              <span class="panel-title" id="lessonFileTitle">第01课-全局地图 / 课件.html</span>
               <span class="pill muted" id="lessonModePill">轻量选择题为主</span>
             </div>
             <div class="demo-body">
@@ -765,9 +765,9 @@
 
                   <div>
                     <div class="tabs" role="tablist" aria-label="Perspective tabs">
-                      <button class="tab-btn active" data-tab="user" type="button">学习者视角</button>
-                      <button class="tab-btn" data-tab="builder" type="button">工程视角</button>
-                      <button class="tab-btn" data-tab="ai" type="button">AI 复教视角</button>
+                      <button class="tab-btn active" id="tabUser" data-tab="user" type="button">学习者视角</button>
+                      <button class="tab-btn" id="tabBuilder" data-tab="builder" type="button">工程视角</button>
+                      <button class="tab-btn" id="tabAi" data-tab="ai" type="button">AI 复教视角</button>
                     </div>
                     <div class="tab-panel" id="tabPanel">你不是在读长文，而是在一个课件里点击、回答、勾选，然后把学习记录交回给 AI。</div>
                   </div>
@@ -803,7 +803,7 @@
                   </div>
 
                   <div class="record-box">
-                    <strong>学习记录面板</strong>
+                    <strong id="recordBoxTitle">学习记录面板</strong>
                     <p id="recordSummary">完成度: 20% | 测验: 0/1 | 自检: 0/4</p>
                     <button class="btn green" id="copyRecord" type="button">复制详细学习记录</button>
                     <pre id="recordPreview"># 学习记录
@@ -823,39 +823,39 @@
     <section class="section" id="features">
       <div class="inner">
         <div class="section-head">
-          <h2>它解决的是“我看过了，但没学会”</h2>
-          <p>Skill 的价值不只是生成内容，而是强制走完从地图、互动、检测到复教的闭环。</p>
+          <h2 id="featuresTitle">它解决的是“我看过了，但没学会”</h2>
+          <p id="featuresIntro">Skill 的价值不只是生成内容，而是强制走完从地图、互动、检测到复教的闭环。</p>
         </div>
         <div class="feature-grid">
           <div class="feature-card">
             <div class="feature-label">HTML lessons</div>
-            <h3>从第 1 课开始就是网页课件</h3>
-            <p>每课都是自包含 HTML，带目录、tabs、折叠深读、即时测验、自检清单和底部导航。</p>
+            <h3 id="feature1Title">从第 1 课开始就是网页课件</h3>
+            <p id="feature1Body">每课都是自包含 HTML，带目录、tabs、折叠深读、即时测验、自检清单和底部导航。</p>
           </div>
           <div class="feature-card">
             <div class="feature-label">Mastery checks</div>
-            <h3>不会让模糊理解直接进入下一章</h3>
-            <p>测验结果会被诊断为正确、部分正确、概念误区、边界不清或应用脱节。</p>
+            <h3 id="feature2Title">不会让模糊理解直接进入下一章</h3>
+            <p id="feature2Body">测验结果会被诊断为正确、部分正确、概念误区、边界不清或应用脱节。</p>
           </div>
           <div class="feature-card">
             <div class="feature-label">Learning record</div>
-            <h3>网页行为可以交回给 AI</h3>
-            <p>复制详细 Markdown 报告，或下载 JSON，让下一轮教学知道你错在哪、勾了什么。</p>
+            <h3 id="feature3Title">网页行为可以交回给 AI</h3>
+            <p id="feature3Body">复制详细 Markdown 报告，或下载 JSON，让下一轮教学知道你错在哪、勾了什么。</p>
           </div>
           <div class="feature-card">
             <div class="feature-label">Bilingual artifacts</div>
-            <h3>中文模式下连文件名也中文</h3>
-            <p>例如 `学习/强化学习/第01课-全局地图/课件.html`，但 MDP、PPO 等术语保留英文。</p>
+            <h3 id="feature4Title">中文模式下连文件名也中文</h3>
+            <p id="feature4Body">例如 `学习/强化学习/第01课-全局地图/课件.html`，但 MDP、PPO 等术语保留英文。</p>
           </div>
           <div class="feature-card">
             <div class="feature-label">Mistake-driven reteach</div>
-            <h3>错题不是结束，而是下一轮教学入口</h3>
-            <p>AI 会读取学习进度、错题记录和导出的学习记录，针对薄弱点补讲和复测。</p>
+            <h3 id="feature5Title">错题不是结束，而是下一轮教学入口</h3>
+            <p id="feature5Body">AI 会读取学习进度、错题记录和导出的学习记录，针对薄弱点补讲和复测。</p>
           </div>
           <div class="feature-card">
             <div class="feature-label">No build step</div>
-            <h3>安装的是一个 Skill，不是复杂平台</h3>
-            <p>仓库只有 Markdown 指令、引用模板和元数据；课件生成在你的本地学习目录里。</p>
+            <h3 id="feature6Title">安装的是一个 Skill，不是复杂平台</h3>
+            <p id="feature6Body">仓库只有 Markdown 指令、引用模板和元数据；课件生成在你的本地学习目录里。</p>
           </div>
         </div>
       </div>
@@ -864,24 +864,24 @@
     <section class="section alt">
       <div class="inner">
         <div class="section-head">
-          <h2>为什么它值得 Star</h2>
-          <p>很多 AI 学习提示词只负责“讲”，这个 Skill 负责把学习过程变成可追踪、可复盘、可继续的系统。</p>
+          <h2 id="proofTitle">为什么它值得 Star</h2>
+          <p id="proofIntro">很多 AI 学习提示词只负责“讲”，这个 Skill 负责把学习过程变成可追踪、可复盘、可继续的系统。</p>
         </div>
         <div class="proof-grid">
           <div class="terminal">
-            <p class="terminal-line">你: 使用 ai-10x-learning-coach 教我强化学习</p>
-            <p class="terminal-line muted">AI: 中文版还是 English version?</p>
-            <p class="terminal-line">你: 中文版。我没有机器学习基础，慢慢扎实学。</p>
-            <p class="terminal-line muted">AI: 已创建 学习/强化学习/第01课-全局地图/课件.html</p>
-            <p class="terminal-line muted">AI: 学完后复制学习记录，我会根据错题继续第02课。</p>
+            <p class="terminal-line" id="terminal1">你: 使用 ai-10x-learning-coach 教我强化学习</p>
+            <p class="terminal-line muted" id="terminal2">AI: 中文版还是 English version?</p>
+            <p class="terminal-line" id="terminal3">你: 中文版。我没有机器学习基础，慢慢扎实学。</p>
+            <p class="terminal-line muted" id="terminal4">AI: 已创建 学习/强化学习/第01课-全局地图/课件.html</p>
+            <p class="terminal-line muted" id="terminal5">AI: 学完后复制学习记录，我会根据错题继续第02课。</p>
           </div>
           <div class="terminal">
-            <p class="terminal-line muted"># AI 可以读取的学习记录片段</p>
-            <p class="terminal-line">题目: RL 和监督学习最大的区别是什么?</p>
-            <p class="terminal-line">状态: 错误</p>
-            <p class="terminal-line">我的选择: 两者没有本质区别</p>
-            <p class="terminal-line">正确答案: RL 通过环境交互和延迟奖励学习决策序列</p>
-            <p class="terminal-line">复习建议: 对比“标签答案”和“奖励反馈”</p>
+            <p class="terminal-line muted" id="recordLine1"># AI 可以读取的学习记录片段</p>
+            <p class="terminal-line" id="recordLine2">题目: RL 和监督学习最大的区别是什么?</p>
+            <p class="terminal-line" id="recordLine3">状态: 错误</p>
+            <p class="terminal-line" id="recordLine4">我的选择: 两者没有本质区别</p>
+            <p class="terminal-line" id="recordLine5">正确答案: RL 通过环境交互和延迟奖励学习决策序列</p>
+            <p class="terminal-line" id="recordLine6">复习建议: 对比“标签答案”和“奖励反馈”</p>
           </div>
         </div>
       </div>
@@ -890,15 +890,15 @@
     <section class="cta-band" id="install">
       <div class="inner">
         <div class="section-head">
-          <h2>安装后，用一句话开始学任何领域</h2>
-          <p>适合新领域入门、代码库理解、面试复习、项目预研和写作准备。</p>
+          <h2 id="installTitle">安装后，用一句话开始学任何领域</h2>
+          <p id="installIntro">适合新领域入门、代码库理解、面试复习、项目预研和写作准备。</p>
         </div>
         <div class="install">
           <div>
             <span class="code-block">git clone https://github.com/lwbscu/ai-10x-learning-coach.git ~/.claude/skills/ai-10x-learning-coach</span>
           </div>
           <div>
-            <span class="code-block">使用 ai-10x-learning-coach 教我强化学习<br>Use ai-10x-learning-coach to teach me reinforcement learning</span>
+            <span class="code-block" id="triggerCommand">使用 ai-10x-learning-coach 教我强化学习<br>Use ai-10x-learning-coach to teach me reinforcement learning</span>
           </div>
         </div>
         <div class="trust">
@@ -913,7 +913,7 @@
     <footer>
       <div class="inner">
         <span>AI 10x Learning Coach</span>
-        <span><a href="https://github.com/lwbscu/ai-10x-learning-coach/blob/main/README.cn.md">中文文档</a> · <a href="https://github.com/lwbscu/ai-10x-learning-coach/blob/main/README.en.md">English Docs</a> · <a href="https://github.com/lwbscu/ai-10x-learning-coach">GitHub</a></span>
+        <span><a id="footerCn" href="https://github.com/lwbscu/ai-10x-learning-coach/blob/main/README.cn.md">中文文档</a> · <a id="footerEn" href="https://github.com/lwbscu/ai-10x-learning-coach/blob/main/README.en.md">English Docs</a> · <a href="https://github.com/lwbscu/ai-10x-learning-coach">GitHub</a></span>
       </div>
     </footer>
   </div>
@@ -1033,6 +1033,145 @@
       var modeLabels = {
         cn: { choice: "选择题", short: "简答题", code: "简单编程" },
         en: { choice: "Multiple choice", short: "Short answer", code: "Tiny coding" }
+      };
+
+      var uiText = {
+        cn: {
+          title: "AI 10x Learning Coach | 交互式 AI 学习教练",
+          description: "AI 10x Learning Coach turns Claude Code/Codex into an adaptive tutor with interactive HTML lessons, mastery checks, mistake tracking, and exportable learning records.",
+          navDemo: "交互演示",
+          navFeatures: "能力",
+          navInstall: "安装",
+          heroTitle: "把 AI 从答题机器变成真正的学习教练",
+          heroSubtitle: "AI 10x Learning Coach 会先画知识地图，再逐章生成交互式 HTML 课件，通过测验和自检记录你的掌握情况，并把薄弱点交还给 AI 继续复教。",
+          heroDemoLink: "体验交互演示",
+          heroInstallLink: "复制安装命令",
+          metricHtml: "每课可交互网页",
+          metricBilingual: "双语课件与文件名",
+          metricRecord: "学习记录可导出",
+          metricRetest: "错题驱动复教",
+          demoTitle: "不是 README 里的承诺，而是可感知的学习体验",
+          demoIntro: "下面这个小演示模拟了真实课件的关键环节：语言选择、知识地图、多视角解释、即时测验、自检清单和可复制给 AI 的学习记录。",
+          flow1Title: "校准学习者",
+          flow1Body: "背景、目标、时间预算和语言偏好先确定。",
+          flow2Title: "全局地图",
+          flow2Body: "先知道这门知识的结构，再进入细节。",
+          flow3Title: "交互课件",
+          flow3Body: "每课都是 HTML：tabs、测验、清单、记录面板。",
+          flow4Title: "错题复教",
+          flow4Body: "把学习记录交给 AI，让下一课从薄弱点开始。",
+          lessonFileTitle: "第01课-全局地图 / 课件.html",
+          tabUser: "学习者视角",
+          tabBuilder: "工程视角",
+          tabAi: "AI 复教视角",
+          recordBoxTitle: "学习记录面板",
+          featuresTitle: "它解决的是“我看过了，但没学会”",
+          featuresIntro: "Skill 的价值不只是生成内容，而是强制走完从地图、互动、检测到复教的闭环。",
+          feature1Title: "从第 1 课开始就是网页课件",
+          feature1Body: "每课都是自包含 HTML，带目录、tabs、折叠深读、即时测验、自检清单和底部导航。",
+          feature2Title: "不会让模糊理解直接进入下一章",
+          feature2Body: "测验结果会被诊断为正确、部分正确、概念误区、边界不清或应用脱节。",
+          feature3Title: "网页行为可以交回给 AI",
+          feature3Body: "复制详细 Markdown 报告，或下载 JSON，让下一轮教学知道你错在哪、勾了什么。",
+          feature4Title: "中文模式下连文件名也中文",
+          feature4Body: "例如 `学习/强化学习/第01课-全局地图/课件.html`，但 MDP、PPO 等术语保留英文。",
+          feature5Title: "错题不是结束，而是下一轮教学入口",
+          feature5Body: "AI 会读取学习进度、错题记录和导出的学习记录，针对薄弱点补讲和复测。",
+          feature6Title: "安装的是一个 Skill，不是复杂平台",
+          feature6Body: "仓库只有 Markdown 指令、引用模板和元数据；课件生成在你的本地学习目录里。",
+          proofTitle: "为什么它值得 Star",
+          proofIntro: "很多 AI 学习提示词只负责“讲”，这个 Skill 负责把学习过程变成可追踪、可复盘、可继续的系统。",
+          terminal1: "你: 使用 ai-10x-learning-coach 教我强化学习",
+          terminal2: "AI: 中文版还是 English version?",
+          terminal3: "你: 中文版。我没有机器学习基础，慢慢扎实学。",
+          terminal4: "AI: 已创建 学习/强化学习/第01课-全局地图/课件.html",
+          terminal5: "AI: 学完后复制学习记录，我会根据错题继续第02课。",
+          recordLine1: "# AI 可以读取的学习记录片段",
+          recordLine2: "题目: RL 和监督学习最大的区别是什么?",
+          recordLine3: "状态: 错误",
+          recordLine4: "我的选择: 两者没有本质区别",
+          recordLine5: "正确答案: RL 通过环境交互和延迟奖励学习决策序列",
+          recordLine6: "复习建议: 对比“标签答案”和“奖励反馈”",
+          installTitle: "安装后，用一句话开始学任何领域",
+          installIntro: "适合新领域入门、代码库理解、面试复习、项目预研和写作准备。",
+          triggerCommand: "使用 ai-10x-learning-coach 教我强化学习<br>Use ai-10x-learning-coach to teach me reinforcement learning",
+          footerCn: "中文文档",
+          footerEn: "English Docs",
+          checks: [
+            "我能解释 Agent / Environment / Reward",
+            "我能说出 MDP 的作用",
+            "我知道为什么先学全局地图",
+            "我能把学习记录交给 AI"
+          ]
+        },
+        en: {
+          title: "AI 10x Learning Coach | Interactive AI Learning Coach",
+          description: "AI 10x Learning Coach turns Claude Code/Codex into an adaptive tutor with interactive HTML lessons, mastery checks, mistake tracking, and exportable learning records.",
+          navDemo: "Interactive Demo",
+          navFeatures: "Features",
+          navInstall: "Install",
+          heroTitle: "Turn AI from an answer machine into a real learning coach",
+          heroSubtitle: "AI 10x Learning Coach starts with a knowledge map, then generates interactive HTML lessons chapter by chapter, checks mastery, records self-checks, and hands weak spots back to AI for targeted reteaching.",
+          heroDemoLink: "Try the demo",
+          heroInstallLink: "Copy install command",
+          metricHtml: "Interactive lesson pages",
+          metricBilingual: "Bilingual lessons and paths",
+          metricRecord: "Exportable learning records",
+          metricRetest: "Mistake-driven reteaching",
+          demoTitle: "Not a README promise, but a visible learning experience",
+          demoIntro: "This mini demo mirrors the real course flow: language choice, knowledge map, multi-perspective explanation, instant quiz, self-check list, and a record you can hand back to AI.",
+          flow1Title: "Calibrate the learner",
+          flow1Body: "Background, goal, time budget, and language preference come first.",
+          flow2Title: "Global map",
+          flow2Body: "Understand the structure before entering the details.",
+          flow3Title: "Interactive lessons",
+          flow3Body: "Every lesson is HTML with tabs, quizzes, checklists, and a record panel.",
+          flow4Title: "Mistake-driven reteaching",
+          flow4Body: "Give the learning record back to AI so the next lesson starts from weak spots.",
+          lessonFileTitle: "lesson-01-global-map / index.html",
+          tabUser: "Learner view",
+          tabBuilder: "Builder view",
+          tabAi: "AI reteaching view",
+          recordBoxTitle: "Learning record panel",
+          featuresTitle: "It solves “I read it, but I did not learn it”",
+          featuresIntro: "The Skill is not just content generation. It enforces a loop from map to interaction, mastery check, and reteaching.",
+          feature1Title: "Lesson 1 is already an interactive web page",
+          feature1Body: "Each lesson is self-contained HTML with navigation, tabs, deep dives, instant quizzes, self-checks, and bottom guidance.",
+          feature2Title: "Fuzzy understanding does not pass silently",
+          feature2Body: "Quiz answers are diagnosed as correct, partially correct, misconception, missing boundary, or application gap.",
+          feature3Title: "Page behavior can go back to AI",
+          feature3Body: "Copy a detailed Markdown report or export JSON so the next round knows what was wrong and what was checked.",
+          feature4Title: "Chinese mode localizes file names too",
+          feature4Body: "For example: learning/reinforcement-learning/lesson-01-global-map/index.html. Technical terms such as MDP and PPO stay in English.",
+          feature5Title: "Wrong answers become the next teaching entry point",
+          feature5Body: "AI reads progress, mistakes, and exported learning records to reteach and retest weak spots.",
+          feature6Title: "It is a Skill, not a complex platform",
+          feature6Body: "The repo contains Markdown instructions, references, and metadata. Lessons are generated locally in your learning workspace.",
+          proofTitle: "Why it is worth starring",
+          proofIntro: "Many AI learning prompts only explain. This Skill turns learning into a trackable, reviewable, continuable system.",
+          terminal1: "You: Use ai-10x-learning-coach to teach me reinforcement learning",
+          terminal2: "AI: Chinese version or English version?",
+          terminal3: "You: English. I have no machine learning background, and I want to learn slowly and solidly.",
+          terminal4: "AI: Created learning/reinforcement-learning/lesson-01-global-map/index.html",
+          terminal5: "AI: After the lesson, copy the learning record and I will continue Lesson 2 from your mistakes.",
+          recordLine1: "# Learning record snippet AI can read",
+          recordLine2: "Question: What is the biggest difference between RL and supervised learning?",
+          recordLine3: "Status: Wrong",
+          recordLine4: "My choice: There is no core difference",
+          recordLine5: "Correct answer: RL learns decision sequences through environment interaction and delayed rewards",
+          recordLine6: "Review suggestion: Compare labeled answers with reward feedback",
+          installTitle: "Install it, then start learning any domain with one sentence",
+          installIntro: "Useful for new-domain onboarding, codebase understanding, interview review, project research, and writing preparation.",
+          triggerCommand: "Use ai-10x-learning-coach to teach me reinforcement learning",
+          footerCn: "Chinese Docs",
+          footerEn: "English Docs",
+          checks: [
+            "I can explain Agent / Environment / Reward",
+            "I can state what MDP is for",
+            "I know why the global map comes first",
+            "I can hand the learning record back to AI"
+          ]
+        }
       };
 
       var availableModes = {
@@ -1527,6 +1666,56 @@
         }
       };
 
+      function setText(id, value) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = value;
+      }
+
+      function setHtml(id, value) {
+        var el = document.getElementById(id);
+        if (el) el.innerHTML = value;
+      }
+
+      function renderStaticText() {
+        var t = uiText[lang];
+        document.title = t.title;
+        var meta = document.querySelector('meta[name="description"]');
+        if (meta) meta.setAttribute("content", t.description);
+
+        [
+          "navDemo", "navFeatures", "navInstall",
+          "heroTitle", "heroSubtitle", "heroDemoLink", "heroInstallLink",
+          "metricHtml", "metricBilingual", "metricRecord", "metricRetest",
+          "demoTitle", "demoIntro",
+          "flow1Title", "flow1Body", "flow2Title", "flow2Body",
+          "flow3Title", "flow3Body", "flow4Title", "flow4Body",
+          "lessonFileTitle", "tabUser", "tabBuilder", "tabAi",
+          "recordBoxTitle",
+          "featuresTitle", "featuresIntro",
+          "feature1Title", "feature1Body", "feature2Title", "feature2Body",
+          "feature3Title", "feature3Body", "feature4Title", "feature4Body",
+          "feature5Title", "feature5Body", "feature6Title", "feature6Body",
+          "proofTitle", "proofIntro",
+          "terminal1", "terminal2", "terminal3", "terminal4", "terminal5",
+          "recordLine1", "recordLine2", "recordLine3", "recordLine4", "recordLine5", "recordLine6",
+          "installTitle", "installIntro",
+          "footerCn", "footerEn"
+        ].forEach(function(id) {
+          setText(id, t[id]);
+        });
+
+        setHtml("triggerCommand", t.triggerCommand);
+
+        checkItems.forEach(function(item, index) {
+          item.textContent = t.checks[index];
+        });
+
+        langCn.textContent = "中文";
+        langEn.textContent = "English";
+        var activeTab = tabButtons.filter(function(btn) { return btn.classList.contains("active"); })[0] || tabButtons[0];
+        tabPanel.textContent = panels[activeTab.getAttribute("data-tab")][lang];
+      }
+
       function currentConcept() {
         return concepts[activeTopic][lang];
       }
@@ -1762,9 +1951,8 @@
         langPill.textContent = lang === "cn" ? "中文模式" : "English mode";
         crumb.textContent = lang === "cn" ? "强化学习 / 第01课" : "Reinforcement Learning / Lesson 01";
         document.documentElement.lang = lang === "cn" ? "zh-CN" : "en";
-        tabPanel.textContent = panels.user[lang];
         copyRecord.textContent = copyLabels[lang].ready;
-        document.querySelector(".section-head h2").textContent = lang === "cn" ? "不是 README 里的承诺，而是可感知的学习体验" : "Not a README promise, but a visible learning experience";
+        renderStaticText();
         resetAnswerState();
         renderConcept();
         renderQuestion();
