@@ -97,6 +97,13 @@
 
     .nav-links a:hover { color: var(--text); background: rgba(255, 255, 255, 0.06); }
 
+    .nav-lang {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      padding-left: 4px;
+    }
+
     .hero {
       position: relative;
       min-height: 92vh;
@@ -265,9 +272,11 @@
       border-radius: 999px;
       font-size: 0.79rem;
       background: rgba(15, 23, 42, 0.55);
+      cursor: pointer;
     }
 
     .pill.active { color: #06111f; background: var(--green); border-color: var(--green); }
+    .pill.muted { cursor: default; color: var(--muted); background: rgba(15, 23, 42, 0.55); border-color: rgba(230, 237, 247, 0.14); }
 
     .flow {
       padding: 18px;
@@ -376,6 +385,31 @@
     .concept-detail strong { color: var(--cyan); }
     .concept-detail p { margin: 0; color: #cbd5e1; font-size: 0.88rem; }
 
+    .trap-panel {
+      border: 1px solid rgba(251, 191, 36, 0.26);
+      background: rgba(251, 191, 36, 0.065);
+      border-radius: 8px;
+      padding: 12px;
+      display: grid;
+      gap: 9px;
+    }
+
+    .trap-panel h3 {
+      margin: 0;
+      color: var(--amber);
+      font-size: 0.98rem;
+    }
+
+    .trap-card {
+      border-left: 3px solid var(--amber);
+      background: rgba(255, 255, 255, 0.035);
+      border-radius: 0 8px 8px 0;
+      padding: 9px 11px;
+    }
+
+    .trap-card strong { color: #fde68a; display: block; font-size: 0.88rem; }
+    .trap-card span { color: #dbeafe; font-size: 0.84rem; }
+
     .tabs {
       display: flex;
       gap: 8px;
@@ -413,6 +447,7 @@
     }
 
     .quiz h3 { margin: 0 0 10px; font-size: 1rem; }
+    .quiz-note { margin: 0 0 10px; color: var(--muted); font-size: 0.84rem; }
     .quiz-mode {
       display: flex;
       flex-wrap: wrap;
@@ -431,8 +466,10 @@
     }
 
     .mode-btn.active { border-color: var(--purple); color: #ddd6fe; background: rgba(167, 139, 250, 0.12); }
+    .mode-btn.hidden { display: none; }
     .quiz-options { display: grid; gap: 8px; }
     .quiz-option { text-align: left; }
+    .quiz-option.selected { border-color: var(--purple); background: rgba(167, 139, 250, 0.12); }
     .quiz-option.correct { border-color: var(--green); background: rgba(74, 222, 128, 0.1); }
     .quiz-option.wrong { border-color: var(--red); background: rgba(251, 113, 133, 0.1); }
     .answer-input {
@@ -468,7 +505,7 @@
       font-size: 0.86rem;
     }
     .hint-box.show { display: block; }
-    .feedback { min-height: 26px; margin: 10px 0 0; color: var(--muted); }
+    .feedback { min-height: 26px; margin: 10px 0 0; color: var(--muted); white-space: pre-wrap; }
     .feedback.ok { color: #bbf7d0; }
     .feedback.no { color: #fecdd3; }
     .feedback.partial { color: #fde68a; }
@@ -633,6 +670,10 @@
           <a href="#features">能力</a>
           <a href="#install">安装</a>
           <a href="https://github.com/lwbscu/ai-10x-learning-coach">GitHub</a>
+          <div class="nav-lang" aria-label="Language switch">
+            <button class="pill active" id="langCn" type="button">中文</button>
+            <button class="pill" id="langEn" type="button">English</button>
+          </div>
         </div>
       </div>
     </nav>
@@ -693,10 +734,7 @@
           <div class="panel">
             <div class="panel-head">
               <span class="panel-title">第01课-全局地图 / 课件.html</span>
-              <div class="pill-row">
-                <button class="pill active" id="langCn" type="button">中文</button>
-                <button class="pill" id="langEn" type="button">English</button>
-              </div>
+              <span class="pill muted" id="lessonModePill">轻量选择题为主</span>
             </div>
             <div class="demo-body">
               <div class="lesson-shell">
@@ -720,6 +758,11 @@
                     <p>点击上面任意模块，课件会同步切换讲解、练习题和学习记录。</p>
                   </div>
 
+                  <div class="trap-panel">
+                    <h3 id="trapTitle">⚠ 常见陷阱与初学忽略项</h3>
+                    <div id="trapList"></div>
+                  </div>
+
                   <div>
                     <div class="tabs" role="tablist" aria-label="Perspective tabs">
                       <button class="tab-btn active" data-tab="user" type="button">学习者视角</button>
@@ -731,6 +774,7 @@
 
                   <div class="quiz">
                     <h3 id="quizTitle">即学即练：RL 和监督学习最大的区别是什么？</h3>
+                    <p class="quiz-note" id="quizNote">默认是轻量选择题，只有少数模块开放简答或小代码体验，不制造刷题压力。</p>
                     <div class="quiz-mode" aria-label="Question type">
                       <button class="mode-btn active" data-mode="choice" type="button">选择题</button>
                       <button class="mode-btn" data-mode="short" type="button">简答题</button>
@@ -949,143 +993,8 @@
       var recordPreview = document.getElementById("recordPreview");
       var recordPercent = document.getElementById("recordPercent");
       var recordSummary = document.getElementById("recordSummary");
-      var quizFeedback = document.getElementById("quizFeedback");
-      var quizOptions = Array.prototype.slice.call(document.querySelectorAll(".quiz-option"));
-      var checkItems = Array.prototype.slice.call(document.querySelectorAll(".check-item"));
-      var tabButtons = Array.prototype.slice.call(document.querySelectorAll(".tab-btn"));
-      var tabPanel = document.getElementById("tabPanel");
-      var langCn = document.getElementById("langCn");
-      var langEn = document.getElementById("langEn");
-      var langPill = document.getElementById("langPill");
-      var crumb = document.getElementById("crumb");
-      var quizCorrect = 0;
-      var quizAnswered = false;
-      var lang = "cn";
-      var optionTexts = {
-        cn: [
-          "监督学习也会试错，所以两者没有本质区别",
-          "RL 通过环境交互和延迟奖励学习一串决策"
-        ],
-        en: [
-          "Supervised learning also uses trial and error, so there is no core difference",
-          "RL learns decision sequences through environment interaction and delayed rewards"
-        ]
-      };
-
-      var panels = {
-        user: {
-          cn: "你不是在读长文，而是在一个课件里点击、回答、勾选，然后把学习记录交回给 AI。",
-          en: "You do not just read. You click, answer, check your understanding, then hand the record back to AI."
-        },
-        builder: {
-          cn: "每个课件都是自包含 HTML，不需要前端工程。生成后直接双击打开就能用。",
-          en: "Each lesson is a self-contained HTML file. No frontend project is needed."
-        },
-        ai: {
-          cn: "AI 读取你的错题、未勾选清单和学习记录，下一轮从薄弱点继续。",
-          en: "AI reads wrong answers, unchecked items, and learning records to reteach weak spots."
-        }
-      };
-
-      function updateRecord() {
-        var checked = checkItems.filter(function(item) { return item.classList.contains("done"); }).length;
-        var total = 1 + checkItems.length;
-        var done = (quizAnswered ? 1 : 0) + checked;
-        var percent = Math.round(done * 100 / total);
-        recordPercent.textContent = percent + "% complete";
-        recordSummary.textContent = (lang === "cn" ? "完成度: " : "Completion: ") + percent + "% | " +
-          (lang === "cn" ? "测验: " : "Quiz: ") + quizCorrect + "/1 | " +
-          (lang === "cn" ? "自检: " : "Checklist: ") + checked + "/" + checkItems.length;
-        var report = lang === "cn"
-          ? "# 学习记录\n- 题目: RL 和监督学习最大的区别是什么？\n- 状态: " + (quizAnswered ? (quizCorrect ? "正确" : "错误") : "未作答") + "\n- 我的选择: " + selectedAnswer() + "\n- 正确答案: RL 通过环境交互和延迟奖励学习一串决策\n- 自检: " + checked + "/" + checkItems.length + "\n- 下一步: 继续第02课 MDP详解"
-          : "# Learning Record\n- Question: What is the key difference between RL and supervised learning?\n- Status: " + (quizAnswered ? (quizCorrect ? "Correct" : "Wrong") : "Unanswered") + "\n- Selected: " + selectedAnswer() + "\n- Correct answer: RL learns decision sequences from interaction and delayed rewards\n- Checklist: " + checked + "/" + checkItems.length + "\n- Next: Continue Lesson 2: MDP";
-        recordPreview.textContent = report;
-      }
-
-      function selectedAnswer() {
-        var chosen = quizOptions.filter(function(btn) { return btn.classList.contains("correct") || btn.classList.contains("wrong"); })[0];
-        return chosen ? chosen.textContent.trim() : "-";
-      }
-
-      quizOptions.forEach(function(btn) {
-        btn.addEventListener("click", function() {
-          quizOptions.forEach(function(o) { o.classList.remove("correct", "wrong"); });
-          var correct = btn.getAttribute("data-correct") === "true";
-          btn.classList.add(correct ? "correct" : "wrong");
-          quizAnswered = true;
-          quizCorrect = correct ? 1 : 0;
-          quizFeedback.textContent = correct
-            ? (lang === "cn" ? "正确。你抓住了交互、延迟奖励和决策序列这三个关键词。" : "Correct. You caught interaction, delayed reward, and decision sequence.")
-            : (lang === "cn" ? "这就是 AI 下轮会补讲的薄弱点：不要把标注答案和奖励反馈混在一起。" : "This becomes a weak spot for reteaching: labels and reward feedback are not the same.");
-          quizFeedback.className = "feedback " + (correct ? "ok" : "no");
-          updateRecord();
-        });
-      });
-
-      checkItems.forEach(function(btn) {
-        btn.addEventListener("click", function() {
-          btn.classList.toggle("done");
-          updateRecord();
-        });
-      });
-
-      tabButtons.forEach(function(btn) {
-        btn.addEventListener("click", function() {
-          tabButtons.forEach(function(b) { b.classList.remove("active"); });
-          btn.classList.add("active");
-          tabPanel.textContent = panels[btn.getAttribute("data-tab")][lang];
-        });
-      });
-
-      function setLanguage(next) {
-        lang = next;
-        langCn.classList.toggle("active", lang === "cn");
-        langEn.classList.toggle("active", lang === "en");
-        langPill.textContent = lang === "cn" ? "中文模式" : "English mode";
-        crumb.textContent = lang === "cn" ? "强化学习 / 第01课" : "Reinforcement Learning / Lesson 01";
-        document.getElementById("quizTitle").textContent = lang === "cn"
-          ? "即学即练：RL 和监督学习最大的区别是什么？"
-          : "Learn & Practice: What is the key difference between RL and supervised learning?";
-        quizOptions.forEach(function(btn, idx) {
-          btn.textContent = optionTexts[lang][idx];
-        });
-        tabPanel.textContent = panels.user[lang];
-        updateRecord();
-      }
-
-      langCn.addEventListener("click", function() { setLanguage("cn"); });
-      langEn.addEventListener("click", function() { setLanguage("en"); });
-
-      copyRecord.addEventListener("click", function() {
-        var text = recordPreview.textContent;
-        function fallbackCopy() {
-          var area = document.createElement("textarea");
-          area.value = text;
-          document.body.appendChild(area);
-          area.select();
-          document.execCommand("copy");
-          document.body.removeChild(area);
-        }
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text).catch(fallbackCopy);
-        } else {
-          fallbackCopy();
-        }
-        copyRecord.textContent = lang === "cn" ? "已复制学习记录" : "Learning record copied";
-        setTimeout(function() {
-          copyRecord.textContent = lang === "cn" ? "复制详细学习记录" : "Copy detailed record";
-        }, 1500);
-      });
-
-      updateRecord();
-    })();
-
-    (function() {
-      var copyRecord = document.getElementById("copyRecord");
-      var recordPreview = document.getElementById("recordPreview");
-      var recordPercent = document.getElementById("recordPercent");
-      var recordSummary = document.getElementById("recordSummary");
       var quizTitle = document.getElementById("quizTitle");
+      var quizNote = document.getElementById("quizNote");
       var quizFeedback = document.getElementById("quizFeedback");
       var choiceArea = document.getElementById("choiceArea");
       var shortArea = document.getElementById("shortArea");
@@ -1104,7 +1013,10 @@
       var langCn = document.getElementById("langCn");
       var langEn = document.getElementById("langEn");
       var langPill = document.getElementById("langPill");
+      var lessonModePill = document.getElementById("lessonModePill");
       var crumb = document.getElementById("crumb");
+      var trapTitle = document.getElementById("trapTitle");
+      var trapList = document.getElementById("trapList");
 
       var lang = "cn";
       var activeTopic = "mdp";
@@ -1121,6 +1033,78 @@
       var modeLabels = {
         cn: { choice: "选择题", short: "简答题", code: "简单编程" },
         en: { choice: "Multiple choice", short: "Short answer", code: "Tiny coding" }
+      };
+
+      var availableModes = {
+        mdp: ["choice", "short"],
+        value: ["choice"],
+        policy: ["choice"],
+        explore: ["choice"],
+        qlearning: ["choice", "code"],
+        deep: ["choice"]
+      };
+
+      var traps = {
+        mdp: {
+          cn: [
+            { title: "陷阱 1：把 Reward 当成标准答案", body: "Reward 是环境反馈的分数，不是监督学习里的标签。它可能延迟、稀疏，甚至设计得不好。" },
+            { title: "陷阱 2：忽略 Transition", body: "同一个 Action 在不同 State 下会导致不同结果，MDP 的关键是状态转移概率 P。" }
+          ],
+          en: [
+            { title: "Trap 1: Treating Reward as a label", body: "Reward is a feedback score, not a supervised-learning label. It may be delayed, sparse, or poorly designed." },
+            { title: "Trap 2: Ignoring Transition", body: "The same Action can lead to different results in different States. Transition P is central to MDP." }
+          ]
+        },
+        value: {
+          cn: [
+            { title: "陷阱 1：只看眼前奖励", body: "Value 关心长期累计回报，眼前 Reward 高不代表最终更好。" },
+            { title: "陷阱 2：忘记 discount", body: "γ 决定未来奖励打几折，太高或太低都会改变 Agent 的偏好。" }
+          ],
+          en: [
+            { title: "Trap 1: Chasing immediate reward", body: "Value cares about long-term cumulative return. A high reward now may be worse later." },
+            { title: "Trap 2: Forgetting discount", body: "Gamma controls how much future rewards matter, changing the Agent's preference." }
+          ]
+        },
+        policy: {
+          cn: [
+            { title: "陷阱 1：把 Policy 和 Value 混在一起", body: "Policy 负责选动作，Value 负责评估好坏，它们经常配合但不是一回事。" },
+            { title: "陷阱 2：以为策略必须是确定的", body: "很多 RL 策略是概率分布 π(a|s)，同一状态也可能按概率选择不同动作。" }
+          ],
+          en: [
+            { title: "Trap 1: Mixing Policy and Value", body: "Policy chooses actions; Value evaluates goodness. They often cooperate but are not the same." },
+            { title: "Trap 2: Assuming policies are deterministic", body: "Many RL policies are probability distributions π(a|s), not fixed actions." }
+          ]
+        },
+        explore: {
+          cn: [
+            { title: "陷阱 1：太早停止探索", body: "当前最优只是已见过的最优，没试过的动作可能更好。" },
+            { title: "陷阱 2：一直随机探索", body: "探索需要逐步减少，否则 Agent 永远无法稳定利用学到的经验。" }
+          ],
+          en: [
+            { title: "Trap 1: Stopping exploration too early", body: "Current best only means best seen so far; untried actions may be better." },
+            { title: "Trap 2: Exploring forever", body: "Exploration should often decay; otherwise the Agent never stabilizes." }
+          ]
+        },
+        qlearning: {
+          cn: [
+            { title: "陷阱 1：误解“无模型”", body: "无模型不是没有模型文件，而是不显式学习环境转移模型 P(s'|s,a)。" },
+            { title: "陷阱 2：Q 表爆炸", body: "状态或动作一多，表格方法就不可行，这正是 DQN 登场的原因。" }
+          ],
+          en: [
+            { title: "Trap 1: Misreading model-free", body: "Model-free means not explicitly learning environment dynamics P(s'|s,a), not no model file." },
+            { title: "Trap 2: Q-table explosion", body: "When states/actions grow, tables break down. This is why DQN appears." }
+          ]
+        },
+        deep: {
+          cn: [
+            { title: "陷阱 1：以为深度 RL 必然更好", body: "深度方法更强但也更不稳定、更吃数据，简单问题上表格法反而更清楚。" },
+            { title: "陷阱 2：跳过基础直接学 PPO", body: "PPO 很实用，但不理解 MDP、Value、Policy 时很容易只背参数。" }
+          ],
+          en: [
+            { title: "Trap 1: Assuming deep RL is always better", body: "Deep methods are powerful but unstable and data-hungry; tables can be clearer for small problems." },
+            { title: "Trap 2: Jumping straight to PPO", body: "PPO is useful, but without MDP, Value, and Policy, it becomes parameter memorization." }
+          ]
+        }
       };
 
       var panels = {
@@ -1548,6 +1532,7 @@
       }
 
       function currentQuestion() {
+        if (availableModes[activeTopic].indexOf(activeMode) === -1) activeMode = "choice";
         return currentConcept().questions[activeMode];
       }
 
@@ -1578,6 +1563,15 @@
           "<strong>" + (lang === "cn" ? "当前选中：" : "Selected: ") + label + "</strong>" +
           "<p>" + c.detail + "</p>" +
           "<p>" + c.why + "</p>";
+        renderTraps();
+      }
+
+      function renderTraps() {
+        var items = traps[activeTopic][lang];
+        trapTitle.textContent = lang === "cn" ? "⚠ 常见陷阱与初学忽略项" : "⚠ Common Traps Beginners Miss";
+        trapList.innerHTML = items.map(function(item) {
+          return '<div class="trap-card"><strong>' + item.title + '</strong><span>' + item.body + '</span></div>';
+        }).join("");
       }
 
       function renderQuestion() {
@@ -1591,10 +1585,16 @@
         codeAnswer.placeholder = q.placeholder || "";
         checkButton.textContent = lang === "cn" ? "提交评判" : "Check answer";
         hintButton.textContent = lang === "cn" ? "提示 1" : "Hint 1";
+        quizNote.textContent = lang === "cn"
+          ? "默认是轻量选择题；只有少数模块开放简答或小代码体验，不制造刷题压力。"
+          : "Default is lightweight multiple choice; only a few concepts unlock short-answer or tiny coding.";
+        lessonModePill.textContent = lang === "cn" ? "轻量选择题为主" : "Choice-first";
 
         modeButtons.forEach(function(btn) {
           var mode = btn.getAttribute("data-mode");
+          var available = availableModes[activeTopic].indexOf(mode) !== -1;
           btn.textContent = modeLabels[lang][mode];
+          btn.classList.toggle("hidden", !available);
           btn.classList.toggle("active", mode === activeMode);
         });
 
@@ -1606,7 +1606,12 @@
             btn.textContent = opt.text;
             btn.addEventListener("click", function() {
               selectedChoice = idx;
-              gradeChoice(idx);
+              Array.prototype.slice.call(choiceArea.querySelectorAll(".quiz-option")).forEach(function(optionBtn) {
+                optionBtn.classList.remove("selected", "correct", "wrong");
+              });
+              btn.classList.add("selected");
+              quizFeedback.textContent = lang === "cn" ? "已选择，点击“提交评判”查看标准答案。" : "Selected. Click Check answer to see the standard answer.";
+              quizFeedback.className = "feedback";
             });
             choiceArea.appendChild(btn);
           });
@@ -1617,7 +1622,7 @@
       function gradeChoice(idx) {
         var q = currentQuestion();
         var options = Array.prototype.slice.call(choiceArea.querySelectorAll(".quiz-option"));
-        options.forEach(function(opt) { opt.classList.remove("correct", "wrong"); });
+        options.forEach(function(opt) { opt.classList.remove("selected", "correct", "wrong"); });
         var picked = q.options[idx];
         options[idx].classList.add(picked.ok ? "correct" : "wrong");
         lastResult = {
@@ -1626,7 +1631,7 @@
           feedback: picked.feedback,
           missing: picked.ok ? [] : [q.expected]
         };
-        quizFeedback.textContent = picked.feedback;
+        quizFeedback.textContent = picked.feedback + "\n" + (lang === "cn" ? "标准答案：" : "Standard answer: ") + q.expected;
         quizFeedback.className = "feedback " + (picked.ok ? "ok" : "no");
         updateRecord();
       }
@@ -1655,7 +1660,7 @@
           feedback: feedback,
           missing: missing
         };
-        quizFeedback.textContent = feedback + " " + (lang === "cn" ? "参考要点：" : "Expected: ") + q.expected;
+        quizFeedback.textContent = feedback + "\n" + (lang === "cn" ? "标准答案：" : "Standard answer: ") + q.expected;
         quizFeedback.className = "feedback " + (status === "correct" ? "ok" : (status === "partial" ? "partial" : "no"));
         updateRecord();
       }
@@ -1737,12 +1742,14 @@
 
       function selectTopic(topic) {
         activeTopic = topic;
+        if (availableModes[activeTopic].indexOf(activeMode) === -1) activeMode = "choice";
         resetAnswerState();
         renderConcept();
         renderQuestion();
       }
 
       function setMode(mode) {
+        if (availableModes[activeTopic].indexOf(mode) === -1) return;
         activeMode = mode;
         resetAnswerState();
         renderQuestion();
@@ -1757,6 +1764,7 @@
         document.documentElement.lang = lang === "cn" ? "zh-CN" : "en";
         tabPanel.textContent = panels.user[lang];
         copyRecord.textContent = copyLabels[lang].ready;
+        document.querySelector(".section-head h2").textContent = lang === "cn" ? "不是 README 里的承诺，而是可感知的学习体验" : "Not a README promise, but a visible learning experience";
         resetAnswerState();
         renderConcept();
         renderQuestion();
@@ -1793,12 +1801,15 @@
 
       checkItems.forEach(function(item) {
         item.addEventListener("click", function() {
+          item.classList.toggle("done");
           updateRecord();
         });
       });
 
       tabButtons.forEach(function(btn) {
         btn.addEventListener("click", function() {
+          tabButtons.forEach(function(b) { b.classList.remove("active"); });
+          btn.classList.add("active");
           tabPanel.textContent = panels[btn.getAttribute("data-tab")][lang];
         });
       });
