@@ -3,35 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="LearnMap usage walkthrough: install the skill, ask a learning question, generate realistic interactive courseware, practice, export, and continue.">
-  <title>LearnMap | Usage Walkthrough</title>
+  <meta name="description" content="LearnMap usage walkthrough video: install the skill, ask a real question, generate local HTML courseware, practice, export, and continue from weak spots.">
+  <title>LearnMap | Usage Walkthrough Video</title>
   <style>
     :root {
       --bg: #05070a;
-      --panel: #0a0f15;
-      --panel2: #101820;
-      --line: #27323c;
+      --panel: #0b1119;
+      --panel2: #111b2b;
+      --line: #26323d;
       --text: #eef5ff;
-      --muted: #7e8b9a;
+      --muted: #91a1b6;
       --cyan: #38bdf8;
       --green: #85f0b2;
-      --violet: #a855f7;
-      --amber: #f4c86a;
-      --red: #ff6b6b;
+      --violet: #a78bfa;
+      --max: 1160px;
     }
 
     * { box-sizing: border-box; }
-    html, body { min-height: 100%; background: var(--bg); }
+
+    html { background: var(--bg); }
+
     body {
       margin: 0;
+      min-height: 100vh;
       color: var(--text);
-      font-family: Inter, "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
       background:
-        radial-gradient(circle at 88% 12%, rgba(168, 85, 247, 0.11), transparent 27%),
-        radial-gradient(circle at 70% 18%, rgba(56, 189, 248, 0.1), transparent 30%),
-        radial-gradient(circle at 22% 36%, rgba(133, 240, 178, 0.08), transparent 28%),
-        #05070a;
-      overflow-x: hidden;
+        radial-gradient(circle at 76% 10%, rgba(167,139,250,.2), transparent 32%),
+        radial-gradient(circle at 22% 26%, rgba(56,189,248,.14), transparent 30%),
+        linear-gradient(180deg, #05070a 0%, #08111c 54%, #05070a 100%);
+      font-family: Inter, "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+      line-height: 1.55;
     }
 
     body::before {
@@ -39,1210 +40,288 @@
       position: fixed;
       inset: 0;
       pointer-events: none;
-      opacity: 0.42;
+      opacity: .34;
       background:
-        repeating-linear-gradient(0deg, rgba(255,255,255,0.035) 0 1px, transparent 1px 4px),
-        linear-gradient(rgba(255,255,255,0.032) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.026) 1px, transparent 1px);
-      background-size: auto, 80px 80px, 80px 80px;
-      mask-image: linear-gradient(180deg, black, transparent 92%);
+        linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+      background-size: 64px 64px;
+      mask-image: linear-gradient(180deg, black, rgba(0,0,0,.58), transparent 94%);
     }
 
-    a { color: var(--cyan); text-decoration: none; border-bottom: 1px solid rgba(56,189,248,0.55); }
-    code, pre { font-family: Consolas, "SFMono-Regular", ui-monospace, monospace; }
+    a { color: inherit; text-decoration: none; }
 
-    .topbar {
-      position: fixed;
+    .nav {
+      position: sticky;
       top: 0;
-      left: 0;
-      right: 0;
-      z-index: 30;
-      height: 54px;
+      z-index: 10;
+      border-bottom: 1px solid rgba(238,245,255,.08);
+      background: rgba(5,7,10,.78);
+      backdrop-filter: blur(18px);
+    }
+
+    .nav-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 14px 22px;
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
       gap: 16px;
-      padding: 0 22px;
-      background: rgba(5, 7, 10, 0.82);
-      border-bottom: 1px solid rgba(238,245,255,0.08);
-      backdrop-filter: blur(16px);
     }
 
     .brand {
-      color: var(--text);
-      font: 800 0.82rem/1 Consolas, ui-monospace, monospace;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
+      font-weight: 900;
+      letter-spacing: .08em;
+      font-size: .92rem;
     }
 
-    .links { display: flex; gap: 14px; font-size: 0.9rem; }
+    .links { display: flex; gap: 16px; flex-wrap: wrap; color: var(--cyan); }
 
-    .wrap {
+    main {
       position: relative;
-      width: min(1180px, calc(100vw - 32px));
+      max-width: var(--max);
       margin: 0 auto;
-      padding: 84px 0 24px;
-      display: grid;
-      grid-template-columns: minmax(250px, 300px) minmax(0, 1fr);
-      gap: 24px;
-      min-height: 100vh;
+      padding: 62px 22px 84px;
     }
 
-    .wrap > *,
-    .stage,
-    .window,
-    .thread,
-    .side,
-    .browser,
-    .course,
-    .lesson,
-    .tree {
-      min-width: 0;
-    }
-
-    .intro {
-      align-self: center;
+    .hero {
       display: grid;
-      gap: 22px;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: 26px;
+      align-items: end;
+      margin-bottom: 26px;
     }
 
     .eyebrow {
       color: var(--green);
-      font: 800 0.72rem/1 Consolas, ui-monospace, monospace;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
+      font-family: Consolas, ui-monospace, monospace;
+      letter-spacing: .22em;
+      font-size: .82rem;
+      font-weight: 900;
+      margin-bottom: 12px;
     }
 
     h1 {
+      margin: 0 0 12px;
+      font-size: clamp(3.2rem, 8vw, 6.6rem);
+      line-height: .88;
+      letter-spacing: -0.04em;
+    }
+
+    h1 em { color: var(--cyan); font-style: normal; }
+
+    .lead {
+      max-width: 720px;
       margin: 0;
-      font-size: clamp(2.55rem, 4.5vw, 3.85rem);
-      line-height: 0.94;
-      letter-spacing: -0.03em;
-      overflow-wrap: normal;
+      color: #cbd5e1;
+      font-size: 1.08rem;
     }
 
-    h1 em {
-      color: var(--cyan);
-      font-style: normal;
-      text-shadow: 0 0 34px rgba(168,85,247,0.22);
-    }
-
-    h1 span {
-      display: block;
-    }
-
-    .intro p {
-      margin: 0;
-      color: #c8d4e1;
-      font-size: 1rem;
-      overflow-wrap: normal;
-    }
-
-    .steps {
-      display: grid;
-      border: 1px solid rgba(238,245,255,0.11);
-      border-radius: 12px;
-      overflow: hidden;
-      background: rgba(10,15,21,0.72);
-    }
-
-    .step {
-      display: grid;
-      grid-template-columns: 46px 1fr;
-      gap: 10px;
-      padding: 11px 12px;
-      border-bottom: 1px solid rgba(238,245,255,0.08);
-      color: var(--muted);
-      font-size: 0.86rem;
-    }
-
-    .step:last-child { border-bottom: 0; }
-    .step strong {
+    .meta {
+      border: 1px solid rgba(148,163,184,.16);
+      border-radius: 14px;
+      background: rgba(4,8,12,.48);
+      padding: 16px;
       color: var(--muted);
       font-family: Consolas, ui-monospace, monospace;
+      font-size: .9rem;
     }
-    .step.active {
-      color: var(--text);
-      background: linear-gradient(90deg, rgba(56,189,248,0.09), rgba(168,85,247,0.07));
-    }
-    .step.active strong { color: var(--cyan); }
 
-    .stage {
-      align-self: center;
-      border: 1px solid rgba(238,245,255,0.12);
+    .meta b { color: var(--text); }
+
+    .player {
+      border: 1px solid rgba(238,245,255,.12);
       border-radius: 16px;
-      overflow: hidden;
-      background: rgba(7,10,14,0.88);
-      min-height: 650px;
-      box-shadow: 0 30px 120px rgba(0,0,0,0.52);
-      position: relative;
-    }
-
-    .stage-head {
-      height: 44px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 15px;
-      border-bottom: 1px solid rgba(238,245,255,0.1);
-      background: rgba(255,255,255,0.025);
-      color: var(--muted);
-      font: 0.78rem Consolas, ui-monospace, monospace;
-    }
-
-    .dots { display: flex; gap: 8px; }
-    .dots span {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: #34424e;
-    }
-
-    .scene {
-      position: absolute;
-      inset: 44px 0 118px;
-      padding: 22px;
-      opacity: 0;
-      transform: translateY(16px);
-      transition: opacity 0.24s ease, transform 0.24s ease;
-      pointer-events: none;
-      overflow: hidden;
-    }
-
-    .scene.active {
-      opacity: 1;
-      transform: translateY(0);
-      pointer-events: auto;
-    }
-
-    .scene-title {
-      color: var(--green);
-      font: 800 0.78rem/1 Consolas, ui-monospace, monospace;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      margin-bottom: 16px;
-    }
-
-    .window {
-      border: 1px solid rgba(238,245,255,0.12);
-      border-radius: 12px;
-      overflow: hidden;
-      background: #070b10;
-      min-height: 430px;
-    }
-
-    .window-head {
-      height: 38px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 14px;
-      border-bottom: 1px solid rgba(238,245,255,0.1);
-      color: var(--muted);
-      font: 0.76rem Consolas, ui-monospace, monospace;
-      background: rgba(255,255,255,0.025);
-    }
-
-    .terminal {
-      padding: 18px;
-      color: #d9e4ee;
-      font: 0.9rem/1.75 Consolas, ui-monospace, monospace;
-      overflow-wrap: break-word;
-      word-break: normal;
-    }
-
-    .cmd { color: var(--green); }
-    .dim { color: var(--muted); }
-    .cyan { color: var(--cyan); }
-    .ok { color: #b7f7ce; }
-    .warn { color: var(--amber); }
-
-    .chat {
-      display: grid;
-      grid-template-columns: 1fr 230px;
-      gap: 14px;
-      height: 100%;
-    }
-
-    .thread,
-    .side,
-    .browser,
-    .course {
-      border: 1px solid rgba(238,245,255,0.11);
-      border-radius: 12px;
-      background: rgba(16,24,32,0.72);
-      padding: 16px;
-      overflow: hidden;
-    }
-
-    .bubble {
-      max-width: 82%;
-      margin-bottom: 12px;
-      padding: 11px 13px;
-      border: 1px solid rgba(238,245,255,0.12);
-      border-radius: 12px;
-      color: #dce8f4;
-      background: rgba(255,255,255,0.04);
-      overflow-wrap: anywhere;
-    }
-
-    .bubble.user { margin-left: auto; border-color: rgba(56,189,248,0.3); background: linear-gradient(135deg, rgba(56,189,248,0.08), rgba(168,85,247,0.06)); }
-    .bubble.ai { border-color: rgba(133,240,178,0.22); background: rgba(133,240,178,0.06); }
-
-    .side strong,
-    .card strong {
-      display: block;
-      margin-bottom: 8px;
-      color: var(--text);
-    }
-
-    .side code {
-      display: block;
-      white-space: pre-wrap;
-      color: var(--muted);
-      line-height: 1.6;
-      font-size: 0.82rem;
-    }
-
-    .files {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-
-    .tree {
-      border: 1px solid rgba(238,245,255,0.1);
-      border-radius: 12px;
-      background: rgba(7,11,16,0.88);
-      padding: 16px;
-      font: 0.86rem/1.9 Consolas, ui-monospace, monospace;
-      color: #dce8f4;
-    }
-
-    .cards {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .card {
-      min-height: 110px;
-      border: 1px solid rgba(238,245,255,0.1);
-      border-radius: 12px;
-      background: rgba(16,24,32,0.72);
-      padding: 13px;
-      color: var(--muted);
-      font-size: 0.86rem;
-    }
-
-    .browser {
-      display: grid;
-      grid-template-columns: 160px 1fr;
-      gap: 14px;
-      min-height: 455px;
-    }
-
-    .toc {
-      display: grid;
-      align-content: start;
-      gap: 8px;
-      color: var(--muted);
-      font-size: 0.82rem;
-    }
-
-    .toc span {
-      border: 1px solid rgba(238,245,255,0.08);
-      border-radius: 8px;
-      padding: 9px;
-      background: rgba(255,255,255,0.035);
-    }
-
-    .toc .active { color: var(--cyan); border-color: rgba(56,189,248,0.36); }
-
-    .lesson {
-      border: 1px solid rgba(238,245,255,0.1);
-      border-radius: 12px;
-      background: #0d141d;
-      overflow: hidden;
-    }
-
-    .lesson-head {
-      height: 42px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 14px;
-      border-bottom: 1px solid rgba(238,245,255,0.09);
-      color: var(--muted);
-      font-size: 0.78rem;
-    }
-
-    .lesson-body {
-      padding: 18px;
-    }
-
-    .lesson h2 { margin: 0 0 8px; font-size: 1.7rem; }
-    .lesson p { color: var(--muted); margin: 0 0 15px; }
-
-    .map {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 9px;
-    }
-
-    .node {
-      min-height: 70px;
-      border: 1px solid rgba(56,189,248,0.22);
-      border-radius: 10px;
-      background: rgba(56,189,248,0.06);
-      display: grid;
-      place-items: center;
-      color: #dff4ff;
-      font-weight: 780;
-    }
-
-    .course {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      min-height: 455px;
-    }
-
-    .quiz,
-    .checklist {
-      border: 1px solid rgba(238,245,255,0.1);
-      border-radius: 12px;
-      background: #0d141d;
-      padding: 15px;
-    }
-
-    .quiz h3,
-    .checklist h3 { margin: 0 0 12px; }
-
-    .choice,
-    .check {
-      border: 1px solid rgba(238,245,255,0.11);
-      border-radius: 9px;
+      background: rgba(5,7,10,.7);
       padding: 10px;
-      margin-bottom: 9px;
-      color: #dce8f4;
-      background: rgba(255,255,255,0.035);
+      box-shadow: 0 34px 110px rgba(0,0,0,.5);
     }
 
-    .choice.good,
-    .check.done { border-color: rgba(133,240,178,0.36); background: rgba(133,240,178,0.07); }
-
-    .export {
-      margin-top: 12px;
-      border: 1px solid rgba(56,189,248,0.25);
-      border-radius: 9px;
-      padding: 11px;
-      color: var(--cyan);
-      background: rgba(56,189,248,0.06);
-      font: 0.82rem/1.55 Consolas, ui-monospace, monospace;
-    }
-
-    .courseware-frame {
-      border: 1px solid rgba(51,65,85,0.95);
+    video {
+      display: block;
+      width: 100%;
       border-radius: 12px;
-      overflow: hidden;
-      min-height: 455px;
-      background: #0f172a;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+      background: #05070a;
     }
 
-    .course-top {
-      height: 48px;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: center;
-      gap: 12px;
-      padding: 0 16px;
-      border-bottom: 1px solid #334155;
-      color: #94a3b8;
-      background: rgba(15,23,42,0.96);
-      font-size: 0.78rem;
-    }
+    .primary-video { aspect-ratio: 16 / 9; }
 
-    .course-top strong {
-      display: block;
-      color: #e2e8f0;
-      font-size: 0.94rem;
-      margin-top: 2px;
-    }
-
-    .course-top em {
-      color: #38bdf8;
-      font-style: normal;
-    }
-
-    .course-top button {
-      border: 1px solid #334155;
-      border-radius: 7px;
-      background: #1e293b;
-      color: #38bdf8;
-      padding: 7px 11px;
-      font-weight: 760;
-      font-size: 0.74rem;
-    }
-
-    .course-layout {
-      display: grid;
-      grid-template-columns: 175px 1fr;
-      min-height: 407px;
-    }
-
-    .course-sidebar {
-      border-right: 1px solid #334155;
-      padding: 16px 12px;
-      color: #94a3b8;
-      background: rgba(2,6,23,0.38);
-      font-size: 0.78rem;
-    }
-
-    .course-sidebar strong {
-      display: block;
-      margin-bottom: 12px;
-      color: #cbd5e1;
-      font-size: 0.82rem;
-    }
-
-    .course-sidebar span {
-      display: block;
-      padding: 6px 8px;
-      border-radius: 6px;
-      margin-bottom: 4px;
-    }
-
-    .course-sidebar span.active {
-      color: #38bdf8;
-      background: rgba(56,189,248,0.08);
-      border-left: 3px solid #38bdf8;
-    }
-
-    .course-main {
-      padding: 18px 20px;
-      overflow: hidden;
-    }
-
-    .course-card-real {
-      background: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 12px;
-      padding: 16px;
-      min-height: 348px;
-    }
-
-    .course-card-real h2 {
-      margin: 0 0 10px;
-      color: #38bdf8;
-      font-size: 1.35rem;
-      line-height: 1.12;
-    }
-
-    .course-card-real p {
-      margin: 0 0 12px;
-      color: #cbd5e1;
-      font-size: 0.86rem;
-      line-height: 1.55;
-    }
-
-    .def-box-real,
-    .warn-box-real {
-      border-left: 4px solid #38bdf8;
-      border-radius: 0 8px 8px 0;
-      background: rgba(56,189,248,0.06);
-      padding: 12px 14px;
-      color: #e2e8f0;
-      font-size: 0.83rem;
-      line-height: 1.55;
-      margin: 12px 0;
-    }
-
-    .warn-box-real {
-      border-left-color: #fbbf24;
-      background: rgba(251,191,36,0.08);
-    }
-
-    .label-real {
-      display: block;
-      color: #38bdf8;
-      font-weight: 850;
-      font-size: 0.72rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      margin-bottom: 5px;
-    }
-
-    .warn-box-real .label-real { color: #fbbf24; }
-
-    .lesson-cards {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
       gap: 10px;
-      margin-top: 12px;
+      margin: 18px 0 40px;
     }
 
-    .lesson-card {
-      min-height: 86px;
-      border: 1px solid rgba(51,65,85,0.95);
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 9px 14px;
+      border: 1px solid rgba(238,245,255,.14);
       border-radius: 8px;
-      background: #020617;
-      padding: 11px;
-      color: #94a3b8;
-      font-size: 0.75rem;
-      line-height: 1.45;
-    }
-
-    .lesson-card strong {
-      display: block;
-      color: #38bdf8;
-      margin-bottom: 4px;
-      font-size: 0.82rem;
-    }
-
-    .lesson-card.current {
-      border-color: #a78bfa;
-      box-shadow: inset 0 0 0 1px rgba(167,139,250,0.22);
-    }
-
-    .mini-quiz-real {
-      border: 1px solid #a78bfa;
-      border-radius: 10px;
-      background: rgba(167,139,250,0.06);
-      padding: 12px 14px;
-      margin-bottom: 10px;
-    }
-
-    .quiz-kicker {
-      color: #a78bfa;
-      font-size: 0.76rem;
-      font-weight: 850;
-      margin-bottom: 8px;
-    }
-
-    .quiz-question {
-      color: #eef5ff;
-      font-weight: 850;
-      margin-bottom: 9px;
-      font-size: 0.94rem;
-    }
-
-    .quiz-option-real {
-      border: 1px solid #334155;
-      border-radius: 7px;
-      background: #0f172a;
-      color: #e2e8f0;
-      padding: 7px 10px;
-      margin-bottom: 5px;
-      font-size: 0.82rem;
-    }
-
-    .quiz-option-real.correct {
-      border-color: #4ade80;
-      background: rgba(74,222,128,0.12);
-    }
-
-    .quiz-option-real.wrong {
-      border-color: #f87171;
-      background: rgba(248,113,113,0.11);
-    }
-
-    .feedback-real {
-      border-left: 4px solid #f87171;
-      border-radius: 0 7px 7px 0;
-      background: rgba(248,113,113,0.09);
-      color: #f8d6dc;
-      padding: 9px 12px;
-      font-size: 0.79rem;
-      line-height: 1.45;
-    }
-
-    .end-card-real {
-      border: 2px solid #a78bfa;
-      border-radius: 12px;
-      background: linear-gradient(135deg, rgba(56,189,248,0.08), rgba(167,139,250,0.10));
-      padding: 12px 14px;
-    }
-
-    .end-card-real h2 {
-      color: #a78bfa;
-      font-size: 1.18rem;
-      margin: 0 0 10px;
-    }
-
-    .record-panel-real {
-      background: rgba(0,0,0,0.28);
-      border: 1px solid #334155;
-      border-radius: 10px;
-      padding: 10px 12px;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .record-stats-real {
-      display: flex;
-      gap: 18px;
-      color: #94a3b8;
-      font-size: 0.74rem;
-    }
-
-    .record-stats-real strong {
-      display: block;
-      color: #a78bfa;
-      font-size: 1.35rem;
-      line-height: 1;
-      margin-bottom: 4px;
-    }
-
-    .record-buttons-real {
-      display: flex;
-      gap: 8px;
-    }
-
-    .record-buttons-real button {
-      border: 1px solid #334155;
-      border-radius: 7px;
-      background: #1e293b;
-      color: #38bdf8;
-      padding: 8px 10px;
-      font-size: 0.74rem;
+      background: rgba(16,24,33,.7);
+      color: var(--text);
       font-weight: 800;
     }
 
-    .record-buttons-real button:first-child {
-      color: #4ade80;
-      border-color: rgba(74,222,128,0.35);
+    .btn.primary {
+      color: #021016;
+      background: linear-gradient(90deg, var(--green), var(--cyan));
+      border-color: transparent;
     }
 
-    .float-real {
-      margin-top: 12px;
-      border-top: 1px solid #a78bfa;
-      background: rgba(30,41,59,0.96);
-      padding: 8px 12px;
-      color: #e2e8f0;
-      font-weight: 780;
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 310px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .card {
+      border: 1px solid rgba(238,245,255,.1);
+      border-radius: 14px;
+      background: rgba(16,24,33,.58);
+      padding: 18px;
+    }
+
+    .card h2 {
+      margin: 0 0 12px;
+      color: var(--cyan);
+      font-size: 1.25rem;
+    }
+
+    .card p { color: var(--muted); margin: 0 0 12px; }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .step {
+      border: 1px solid rgba(148,163,184,.13);
+      border-radius: 8px;
+      background: rgba(5,7,10,.4);
+      padding: 10px;
+      color: #dce8f5;
+      font-size: .94rem;
+    }
+
+    .step b {
+      display: block;
+      color: var(--green);
+      font-family: Consolas, ui-monospace, monospace;
+      font-size: .78rem;
+      margin-bottom: 4px;
+    }
+
+    .vertical-card video {
+      aspect-ratio: 9 / 16;
+      max-height: 520px;
+      object-fit: contain;
+    }
+
+    footer {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 30px 22px 54px;
+      border-top: 1px solid rgba(238,245,255,.08);
+      color: var(--muted);
       display: flex;
       justify-content: space-between;
-      gap: 10px;
-      font-size: 0.82rem;
+      gap: 18px;
     }
 
-    .caption {
-      position: absolute;
-      left: 22px;
-      right: 22px;
-      bottom: 54px;
-      min-height: 64px;
-      border-top: 1px solid rgba(238,245,255,0.09);
-      padding-top: 14px;
-    }
+    footer a { color: var(--cyan); }
 
-    .caption-cn { color: var(--text); font-weight: 800; }
-    .caption-en { color: var(--muted); font-size: 0.9rem; margin-top: 3px; }
-    .caption-cn,
-    .caption-en { overflow-wrap: anywhere; }
-
-    .progress {
-      position: absolute;
-      left: 0;
-      bottom: 0;
-      height: 3px;
-      width: 0%;
-      background: linear-gradient(90deg, var(--green), var(--cyan), var(--violet));
-    }
-
-    .controls {
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 45px;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      border-top: 1px solid rgba(238,245,255,0.09);
-      background: rgba(5,7,10,0.9);
-    }
-
-    .controls button {
-      border: 0;
-      border-right: 1px solid rgba(238,245,255,0.09);
-      background: transparent;
-      color: var(--text);
-      font: 800 0.84rem Inter, system-ui, sans-serif;
-      cursor: pointer;
-    }
-
-    .controls button:last-child { border-right: 0; }
-    .controls button:hover { background: rgba(56,189,248,0.08); color: var(--cyan); }
-
-    .embed .topbar { display: none; }
-    .embed .wrap {
-      width: 100%;
-      min-height: 100vh;
-      padding: 0;
-      grid-template-columns: minmax(250px, 280px) minmax(0, 1fr);
-    }
-    .embed .stage { min-height: 100vh; border-radius: 0; border-top: 0; border-bottom: 0; }
-    .embed .intro { padding-left: 18px; }
-
-    @media (max-width: 980px) {
-      .wrap,
-      .embed .wrap {
-        grid-template-columns: 1fr;
-        padding: 70px 14px 18px;
-      }
-      .embed .wrap { padding-top: 0; }
-      .intro { align-self: auto; }
-      .steps { display: none; }
-      .stage { min-height: 690px; }
-      .embed .stage { min-height: 760px; }
+    @media (max-width: 900px) {
+      .hero,
+      .grid { grid-template-columns: 1fr; }
+      .meta { max-width: 100%; }
+      .vertical-card video { max-height: none; }
     }
 
     @media (max-width: 620px) {
-      .topbar { position: static; height: auto; align-items: flex-start; flex-direction: column; padding: 14px; }
-      .wrap,
-      .embed .wrap {
-        width: 100%;
-        max-width: 100vw;
-        padding: 18px 14px;
-        overflow: hidden;
-      }
-      .embed .wrap { padding-top: 0; }
-      .intro,
-      .stage {
-        width: 86% !important;
-        max-width: 330px !important;
-      }
-      h1 { font-size: 3.05rem; }
-      .intro p { max-width: 100%; font-size: 0.94rem; overflow-wrap: break-word; }
-      .stage { min-height: 760px; }
-      .scene { padding: 14px; inset-bottom: 126px; }
-      .chat, .files, .browser, .course { grid-template-columns: 1fr; }
-      .side, .toc { display: none; }
-      .cards { grid-template-columns: 1fr 1fr; gap: 8px; }
-      .map { grid-template-columns: 1fr 1fr; gap: 8px; }
-      .node { min-height: 54px; }
-      .window, .browser, .course { min-height: 470px; }
-      .window-head span:last-child { display: none; }
-      .lesson-head span:last-child { display: none; }
-      .terminal { font-size: 0.68rem; line-height: 1.66; word-break: normal; }
-      .tree {
-        font-size: 0.66rem;
-        line-height: 1.52;
-        white-space: pre-wrap;
-        overflow-wrap: anywhere;
-        padding: 12px;
-      }
-      .courseware-frame { min-height: 470px; }
-      .course-top {
-        height: auto;
-        min-height: 54px;
-        grid-template-columns: 1fr;
-        padding: 10px 12px;
-      }
-      .course-top button { display: none; }
-      .course-layout {
-        grid-template-columns: 1fr;
-        min-height: 416px;
-      }
-      .course-sidebar { display: none; }
-      .course-main { padding: 12px; }
-      .course-card-real {
-        min-height: 388px;
-        padding: 14px;
-      }
-      .course-card-real h2 {
-        font-size: 1.24rem;
-      }
-      .course-card-real p,
-      .def-box-real,
-      .warn-box-real {
-        font-size: 0.78rem;
-        line-height: 1.45;
-      }
-      .lesson-cards {
-        grid-template-columns: 1fr;
-        gap: 7px;
-      }
-      .lesson-card {
-        min-height: auto;
-        padding: 8px 10px;
-      }
-      .mini-quiz-real {
-        padding: 10px;
-      }
-      .quiz-question,
-      .quiz-option-real {
-        font-size: 0.76rem;
-      }
-      .quiz-option-real {
-        padding: 6px 8px;
-      }
-      .feedback-real {
-        font-size: 0.72rem;
-        padding: 7px 9px;
-      }
-      .end-card-real {
-        padding: 10px;
-      }
-      .end-card-real h2 {
-        font-size: 0.96rem;
-      }
-      .record-panel-real {
-        grid-template-columns: 1fr;
-      }
-      .record-stats-real {
-        gap: 12px;
-      }
-      .record-stats-real strong {
-        font-size: 1.02rem;
-      }
-      .record-buttons-real button {
-        padding: 7px 8px;
-      }
-      .float-real {
-        display: block;
-        font-size: 0.72rem;
-      }
-      .card {
-        min-height: 84px;
-        padding: 10px;
-        font-size: 0.74rem;
-      }
-      .bubble { max-width: 92%; font-size: 0.9rem; }
-      .bubble.user { margin-left: 0; }
-      .caption-cn { font-size: 0.95rem; }
-      .caption-en { font-size: 0.8rem; }
-      .caption { left: 14px; right: 14px; bottom: 54px; }
+      .nav-inner { align-items: flex-start; flex-direction: column; }
+      main { padding-top: 42px; }
+      h1 { font-size: clamp(3rem, 16vw, 4.2rem); }
+      .steps { grid-template-columns: 1fr; }
+      .actions { flex-direction: column; }
+      .btn { width: 100%; }
+      footer { flex-direction: column; }
     }
   </style>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">LEARNMAP / USAGE WALKTHROUGH</div>
-    <nav class="links" aria-label="Page links">
-      <a href="./index.html">Home</a>
-      <a href="https://github.com/lwbscu/ai-10x-learning-coach">GitHub</a>
-      <a href="https://github.com/lwbscu/ai-10x-learning-coach/blob/main/README.md">README</a>
-    </nav>
-  </header>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="./index.html">LEARNMAP / WALKTHROUGH VIDEO</a>
+      <div class="links">
+        <a href="./index.html">Home</a>
+        <a href="https://github.com/lwbscu/ai-10x-learning-coach">GitHub</a>
+        <a href="https://github.com/lwbscu/ai-10x-learning-coach/blob/main/README.md">README</a>
+      </div>
+    </div>
+  </nav>
 
-  <main class="wrap">
-    <aside class="intro" aria-label="Walkthrough summary">
+  <main>
+    <section class="hero">
       <div>
-        <p class="eyebrow">FROM INSTALL TO FIRST LESSON</p>
-        <h1><span>Use</span><span><em>LearnMap</em></span></h1>
-        <p>Install, ask, generate courseware, practice, export, continue.</p>
+        <div class="eyebrow">REAL USAGE RECORDING</div>
+        <h1>Use <em>LearnMap</em></h1>
+        <p class="lead">A concise walkthrough of the complete workflow: install the skill, ask a real learning question, generate local HTML courseware, practice in the page, export a learning record, and continue from weak spots.</p>
       </div>
-      <div class="steps" id="steps">
-        <div class="step active"><strong>01</strong><span>Install skill</span></div>
-        <div class="step"><strong>02</strong><span>Ask a real question</span></div>
-        <div class="step"><strong>03</strong><span>Pick language and mode</span></div>
-        <div class="step"><strong>04</strong><span>Generate courseware</span></div>
-        <div class="step"><strong>05</strong><span>Open HTML lesson</span></div>
-        <div class="step"><strong>06</strong><span>Practice and export</span></div>
-        <div class="step"><strong>07</strong><span>Continue from weak spots</span></div>
-      </div>
-    </aside>
+      <aside class="meta">
+        <b>Format</b>: MP4 / H.264<br>
+        <b>Duration</b>: about 42 seconds<br>
+        <b>Captions</b>: Chinese + English<br>
+        <b>Voiceover</b>: none
+      </aside>
+    </section>
 
-    <section class="stage" aria-label="LearnMap usage walkthrough video">
-      <div class="stage-head">
-        <span id="sceneCounter">01 / 07</span>
-        <div class="dots"><span></span><span></span><span></span></div>
-      </div>
+    <section class="player" aria-label="LearnMap 16:9 walkthrough video">
+      <video class="primary-video" controls preload="metadata" playsinline poster="./assets/learnmap-demo-poster.png">
+        <source src="./assets/learnmap-demo-16x9.mp4" type="video/mp4">
+      </video>
+    </section>
 
-      <article class="scene active">
-        <div class="scene-title">01 / INSTALL LEARNMAP</div>
-        <div class="window">
-          <div class="window-head"><span>PowerShell</span><span>~/.claude/skills</span></div>
-          <div class="terminal">
-            <span class="dim"># User-level install, available across projects</span><br>
-            <span class="cmd">$</span> mkdir -p ~/.claude/skills<br>
-            <span class="cmd">$</span> git clone https://github.com/lwbscu/<br>
-            <span class="cmd">&gt;</span> ai-10x-learning-coach.git<br>
-            <span class="dim">target: ~/.claude/skills/learnmap-skill</span><br><br>
-            <span class="ok">Cloning into 'learnmap-skill'...</span><br>
-            <span class="ok">Skill installed: learnmap-skill</span><br>
-            <span class="dim">Ready inside Claude Code / Codex.</span>
-          </div>
+    <div class="actions">
+      <a class="btn primary" href="./assets/learnmap-demo-16x9.mp4">Download 16:9 MP4</a>
+      <a class="btn" href="./assets/learnmap-demo-vertical.mp4">Download vertical MP4</a>
+      <a class="btn" href="./index.html#walkthrough">Back to GitHub Pages demo</a>
+    </div>
+
+    <section class="grid">
+      <article class="card">
+        <h2>What The Video Shows</h2>
+        <p>The video is paced like a product walkthrough, not a slide deck. It keeps only the useful screen areas: terminal command, agent call, language/mode calibration, generated file tree, real courseware UI, quiz feedback, export, and continuation.</p>
+        <div class="steps">
+          <div class="step"><b>01</b>Install learnmap-skill</div>
+          <div class="step"><b>02</b>Ask a real question</div>
+          <div class="step"><b>03</b>Pick language and mode</div>
+          <div class="step"><b>04</b>Generate courseware files</div>
+          <div class="step"><b>05</b>Open interactive HTML lesson</div>
+          <div class="step"><b>06</b>Practice and export record</div>
+          <div class="step"><b>07</b>Continue from weak spots</div>
         </div>
       </article>
 
-      <article class="scene">
-        <div class="scene-title">02 / ASK A REAL QUESTION</div>
-        <div class="chat">
-          <div class="thread">
-            <div class="bubble user">使用 learnmap-skill 给我讲解 Loop Engineer。我知道 Claude Code 的 /loop，但想系统理解背后的工程方法。</div>
-            <div class="bubble ai">请选择教学语言 / Please choose your teaching language.</div>
-            <div class="bubble user">中文版，慢速模式。</div>
-            <div class="bubble ai">我会先做全局地图，再生成可交互 HTML 课件、测验和学习记录。</div>
-          </div>
-          <aside class="side">
-            <strong>Skill invoked</strong>
-            <code>name: learnmap-skill
-topic: Loop Engineer
-language: zh-CN
-outputMode: slow
-goal: understand loop design</code>
-          </aside>
-        </div>
+      <article class="card vertical-card">
+        <h2>Vertical Preview</h2>
+        <p>Use this version for blog cards, social posts, or mobile-first embeds.</p>
+        <video controls preload="metadata" playsinline poster="./assets/learnmap-demo-vertical-poster.png">
+          <source src="./assets/learnmap-demo-vertical.mp4" type="video/mp4">
+        </video>
       </article>
-
-      <article class="scene">
-        <div class="scene-title">03 / CHOOSE MODE</div>
-        <div class="chat">
-          <div class="thread">
-            <div class="bubble ai">课件输出模式：快速模式（一章浓缩全貌）还是慢速模式（逐章全貌+细节）？默认慢速。</div>
-            <div class="bubble user">慢速模式，先让我建立全局地图。</div>
-            <div class="bubble ai">确认。第 01 课会先讲 Loop Engineer 是什么、模块关系、术语和常见陷阱。</div>
-          </div>
-          <aside class="side">
-            <strong>Profile fields</strong>
-            <code>language: zh-CN
-outputMode: slow
-videoExplainer: offered
-mentorLens: none</code>
-          </aside>
-        </div>
-      </article>
-
-      <article class="scene">
-        <div class="scene-title">04 / GENERATE COURSEWARE</div>
-        <div class="files">
-          <div class="tree">
-学习/Loop-Engineer/
-├── _meta/
-│   ├── 学习档案.md
-│   ├── 进度.md
-│   └── 错题.md
-├── 第01课-全局地图/
-│   └── 课件.html
-└── 第02课-loop命令基础/
-          </div>
-          <div class="cards">
-            <div class="card"><strong>本课目录</strong><span>核心问题、模块地图、术语、陷阱、检查。</span></div>
-            <div class="card"><strong>真实课件页</strong><span>sticky 顶栏、左侧目录、section-card、提示框。</span></div>
-            <div class="card"><strong>即时测验</strong><span>正确/错误反馈，错误点回跳复习。</span></div>
-            <div class="card"><strong>学习记录</strong><span>复制 Markdown 或下载 JSON 给 AI 接力。</span></div>
-          </div>
-        </div>
-      </article>
-
-      <article class="scene">
-        <div class="scene-title">05 / OPEN THE LESSON</div>
-        <div class="courseware-frame">
-          <div class="course-top">
-            <div><span>学习 / Loop-Engineer / <em>第01课</em></span><strong>全局地图 — Loop Engineer 是什么？</strong></div>
-            <button type="button">重置课程</button>
-          </div>
-          <div class="course-layout">
-            <aside class="course-sidebar">
-              <strong>本课目录</strong>
-              <span class="active">1. Loop Engineer 是什么</span>
-              <span>2. 六大知识模块</span>
-              <span>3. 模块关系图</span>
-              <span>4. 核心术语表</span>
-              <span>5. 常见陷阱与误区</span>
-              <span>6. 学习路线图</span>
-              <span>7. 掌握检查</span>
-            </aside>
-            <main class="course-main">
-              <section class="course-card-real">
-                <h2>1. Loop Engineer 是什么</h2>
-                <p>把一次性提示改造成可验证、可复盘、可继续的工程循环。</p>
-                <div class="def-box-real"><span class="label-real">Definition</span>从“手动一次次输入命令”，变成设计自动化循环，让 AI 按周期执行、检查、记录和修正。</div>
-                <div class="lesson-cards">
-                  <div class="lesson-card current"><strong>第01课</strong>全局地图<br>你现在在这里</div>
-                  <div class="lesson-card"><strong>第02课</strong>/loop 命令基础<br>间隔、目标、退出条件</div>
-                  <div class="lesson-card"><strong>第03课</strong>反馈回路<br>记录、评估、修正</div>
-                </div>
-              </section>
-            </main>
-          </div>
-        </div>
-      </article>
-
-      <article class="scene">
-        <div class="scene-title">06 / PRACTICE AND EXPORT</div>
-        <div class="courseware-frame">
-          <div class="course-top">
-            <div><span>学习 / Loop-Engineer / <em>第01课</em></span><strong>8. 掌握检查 — 测验</strong></div>
-            <button type="button">67% 完成</button>
-          </div>
-          <div class="course-layout">
-            <aside class="course-sidebar">
-              <strong>本课目录</strong>
-              <span>1. Loop Engineer 是什么</span>
-              <span>2. 六大知识模块</span>
-              <span>3. 模块关系图</span>
-              <span>4. 核心术语表</span>
-              <span>5. 初学者该忽略什么</span>
-              <span>6. 常见陷阱与误区</span>
-              <span class="active">7. 掌握检查</span>
-            </aside>
-            <main class="course-main">
-              <section class="course-card-real">
-                <div class="mini-quiz-real">
-                  <div class="quiz-kicker">即时训练 01 — 概念理解</div>
-                  <div class="quiz-question">Loop Engineer 最核心的“范式转变”是什么？</div>
-                  <div class="quiz-option-real">A. 从写代码变成写文档</div>
-                  <div class="quiz-option-real correct">B. 从手动一次次输入命令，变成设计自动化循环</div>
-                  <div class="quiz-option-real wrong">C. 从用终端变成用网页</div>
-                  <div class="feedback-real">再想想。重点不在工具形式，而在执行模式从手动到自动循环。</div>
-                </div>
-                <div class="end-card-real">
-                  <h2>第01课完成 — 自我检查</h2>
-                  <div class="record-panel-real">
-                    <div class="record-stats-real">
-                      <span><strong>56%</strong>完成度</span>
-                      <span><strong>2/5</strong>自检打勾</span>
-                      <span><strong>mq2</strong>薄弱点</span>
-                    </div>
-                    <div class="record-buttons-real"><button type="button">复制学习记录</button><button type="button">下载 JSON</button></div>
-                  </div>
-                  <div class="float-real"><span>第01课完成</span><span>下一课：/loop 命令基础</span></div>
-                </div>
-              </section>
-            </main>
-          </div>
-        </div>
-      </article>
-
-      <article class="scene">
-        <div class="scene-title">07 / CONTINUE WITH MEMORY</div>
-        <div class="chat">
-          <div class="thread">
-            <div class="bubble user">这是导出的学习记录：薄弱点是“反馈回路”和“退出条件”。继续第 02 课。</div>
-            <div class="bubble ai">收到。我会先补一段反馈回路例子，再进入 /loop 命令基础。</div>
-            <div class="bubble ai">是否需要本课 HTML 视频可视化讲解？默认继续交互式课件。</div>
-            <div class="bubble user">不用，继续生成第 02 课。</div>
-          </div>
-          <aside class="side">
-            <strong>Next command</strong>
-            <code>继续第02课: /loop 命令基础
-weakSpots: feedback-loop, exit-condition
-outputMode: slow</code>
-          </aside>
-        </div>
-      </article>
-
-      <div class="caption" aria-live="polite">
-        <div class="caption-cn" id="captionCn">先安装 LearnMap。它会成为 Claude Code / Codex 可调用的学习 skill。</div>
-        <div class="caption-en" id="captionEn">Install LearnMap first. It becomes a reusable learning skill inside Claude Code / Codex.</div>
-      </div>
-      <div class="controls">
-        <button type="button" id="playBtn">Pause</button>
-        <button type="button" id="restartBtn">Restart</button>
-        <button type="button" id="nextBtn">Next</button>
-      </div>
-      <div class="progress" id="progress"></div>
     </section>
   </main>
 
-  <script>
-    var params = new URLSearchParams(window.location.search);
-    if (params.get("embed") === "1") {
-      document.body.classList.add("embed");
-    }
-
-    var duration = 42;
-    var sceneLength = 6;
-    var requestedScene = parseInt(params.get("scene"), 10);
-    var hasRequestedScene = !isNaN(requestedScene);
-    var requestedIndex = hasRequestedScene ? Math.max(0, Math.min(6, requestedScene - 1)) : 0;
-    var currentTime = requestedIndex * sceneLength;
-    var lastTick = 0;
-    var playing = !hasRequestedScene;
-    var scenes = document.querySelectorAll(".scene");
-    var steps = document.querySelectorAll(".step");
-    var captionCn = document.getElementById("captionCn");
-    var captionEn = document.getElementById("captionEn");
-    var counter = document.getElementById("sceneCounter");
-    var progress = document.getElementById("progress");
-    var playBtn = document.getElementById("playBtn");
-    var restartBtn = document.getElementById("restartBtn");
-    var nextBtn = document.getElementById("nextBtn");
-
-    var captions = [
-      ["先安装 LearnMap。它会成为 Claude Code / Codex 可调用的学习 skill。", "Install LearnMap first. It becomes a reusable learning skill inside Claude Code / Codex."],
-      ["用真实问题触发：这里演示让 LearnMap 讲解 Loop Engineer。", "Ask a real question: here LearnMap explains Loop Engineer."],
-      ["先确认语言与快慢模式；没有指定时默认慢速逐章。", "Confirm language and fast/slow mode; default is slow."],
-      ["LearnMap 在本地生成课程目录、学习档案、进度、错题和课件。", "LearnMap generates local folders, profile, progress, mistakes, and courseware."],
-      ["真实课件：顶栏、目录、定义框、路线图。", "Real courseware: nav, sidebar, definition, path."],
-      ["测验、自检、复制记录、下载 JSON。", "Quiz, self-check, copy record, download JSON."],
-      ["下一课从导出的薄弱点继续；视频讲解仍然可选。", "The next lesson continues from weak spots; video explainers remain optional."]
-    ];
-
-    function pad(n) {
-      return n < 10 ? "0" + n : "" + n;
-    }
-
-    function sceneIndex(value) {
-      var index = Math.floor(value / sceneLength);
-      if (index < 0) index = 0;
-      if (index > scenes.length - 1) index = scenes.length - 1;
-      return index;
-    }
-
-    function render(index) {
-      var i;
-      for (i = 0; i < scenes.length; i += 1) scenes[i].classList.toggle("active", i === index);
-      for (i = 0; i < steps.length; i += 1) steps[i].classList.toggle("active", i === index);
-      captionCn.textContent = captions[index][0];
-      captionEn.textContent = captions[index][1];
-      counter.textContent = pad(index + 1) + " / " + pad(scenes.length);
-      progress.style.width = Math.min(100, currentTime / duration * 100) + "%";
-      playBtn.textContent = playing ? "Pause" : "Play";
-    }
-
-    function tick(ts) {
-      if (!lastTick) lastTick = ts;
-      if (playing) {
-        currentTime += (ts - lastTick) / 1000;
-        if (currentTime >= duration) {
-          currentTime = duration;
-          playing = false;
-        }
-      }
-      lastTick = ts;
-      render(sceneIndex(currentTime));
-      window.requestAnimationFrame(tick);
-    }
-
-    playBtn.addEventListener("click", function() {
-      playing = !playing;
-      lastTick = 0;
-      render(sceneIndex(currentTime));
-    });
-
-    restartBtn.addEventListener("click", function() {
-      currentTime = 0;
-      playing = true;
-      lastTick = 0;
-      render(0);
-    });
-
-    nextBtn.addEventListener("click", function() {
-      var next = sceneIndex(currentTime) + 1;
-      if (next >= scenes.length) next = 0;
-      currentTime = next * sceneLength;
-      lastTick = 0;
-      render(next);
-    });
-
-    document.addEventListener("keydown", function(event) {
-      if (event.code === "Space") {
-        event.preventDefault();
-        playing = !playing;
-        lastTick = 0;
-      }
-    });
-
-    render(sceneIndex(currentTime));
-    window.requestAnimationFrame(tick);
-  </script>
+  <footer>
+    <span>LearnMap</span>
+    <span><a href="./index.html">Home</a> · <a href="https://github.com/lwbscu/ai-10x-learning-coach">GitHub</a></span>
+  </footer>
 </body>
 </html>

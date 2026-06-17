@@ -55,7 +55,7 @@ git clone https://github.com/lwbscu/ai-10x-learning-coach.git .claude/skills/lea
 
 ## What's New
 
-- [2026/06] LearnMap adds fast overview mode, slow deep-course mode, and an embedded usage walkthrough.
+- [2026/06] LearnMap adds fast overview mode, slow deep-course mode, and an embedded recorded usage walkthrough.
 - [2026/06] Optional HTML video explainers and mentor lenses are now opt-in learning paths.
 - [2026/05] Interactive HTML lessons now export detailed learning records for AI follow-up.
 
