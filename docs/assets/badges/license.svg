@@ -1,0 +1,19 @@
+<svg width="120" height="34" viewBox="0 0 120 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="120" y2="34" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0b111a"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="70" y1="0" x2="120" y2="34" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#facc15"/>
+      <stop offset="1" stop-color="#a16207"/>
+    </linearGradient>
+  </defs>
+  <rect x="0.5" y="0.5" width="119" height="33" rx="8.5" fill="url(#bg)" stroke="#273445"/>
+  <path d="M70 1H111C115.42 1 119 4.58 119 9V25C119 29.42 115.42 33 111 33H70V1Z" fill="url(#accent)"/>
+  <rect x="1" y="1" width="118" height="12" rx="8" fill="#ffffff" opacity="0.07"/>
+  <line x1="70" y1="6" x2="70" y2="28" stroke="#ffffff" stroke-opacity="0.16"/>
+  <text x="35" y="22" text-anchor="middle" font-family="'Microsoft YaHei','PingFang SC','Noto Sans CJK SC','Segoe UI',Arial,sans-serif" font-size="14" font-weight="720" fill="#e5edf7">License</text>
+  <text x="95" y="22" text-anchor="middle" font-family="'Microsoft YaHei','PingFang SC','Noto Sans CJK SC','Segoe UI',Arial,sans-serif" font-size="14" font-weight="780" fill="#ffffff">MIT</text>
+  <rect x="0.5" y="0.5" width="119" height="33" rx="8.5" stroke="#facc15" stroke-opacity="0.36"/>
+</svg>

@@ -1,0 +1,24 @@
+<svg width="122" height="34" viewBox="0 0 122 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="122" y2="34" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0b111a"/>
+      <stop offset="0.58" stop-color="#121a27"/>
+      <stop offset="1" stop-color="#0a0f18"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="122" y2="34" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8b949e"/>
+      <stop offset="1" stop-color="#30363d"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-60%" width="140%" height="220%">
+      <feGaussianBlur stdDeviation="2.4"/>
+    </filter>
+  </defs>
+  <rect x="0.5" y="0.5" width="121" height="33" rx="8.5" fill="url(#bg)" stroke="#243244"/>
+  <rect x="1" y="1" width="120" height="32" rx="8" fill="url(#accent)" opacity="0.16"/>
+  <rect x="1" y="1" width="120" height="12" rx="8" fill="#ffffff" opacity="0.055"/>
+  <rect x="8" y="8" width="23" height="18" rx="5" fill="#08111d" stroke="#8b949e" stroke-opacity="0.72"/>
+  <rect x="11" y="11" width="17" height="12" rx="6" fill="#8b949e" opacity="0.24" filter="url(#soft)"/>
+  <text x="19.5" y="21" text-anchor="middle" font-family="'Microsoft YaHei','PingFang SC','Noto Sans CJK SC','Segoe UI',Arial,sans-serif" font-size="10" font-weight="800" fill="#f8fafc">GH</text>
+  <text x="40" y="22" font-family="'Microsoft YaHei','PingFang SC','Noto Sans CJK SC','Segoe UI',Arial,sans-serif" font-size="14" font-weight="750" fill="#f8fafc" letter-spacing="0">GitHub</text>
+  <rect x="0.5" y="0.5" width="121" height="33" rx="8.5" stroke="#8b949e" stroke-opacity="0.42"/>
+</svg>

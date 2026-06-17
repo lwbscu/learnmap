@@ -1,0 +1,19 @@
+<svg width="148" height="34" viewBox="0 0 148 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="148" y2="34" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0b111a"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="52" y1="0" x2="148" y2="34" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fb7185"/>
+      <stop offset="1" stop-color="#dc2626"/>
+    </linearGradient>
+  </defs>
+  <rect x="0.5" y="0.5" width="147" height="33" rx="8.5" fill="url(#bg)" stroke="#273445"/>
+  <path d="M52 1H139C143.42 1 147 4.58 147 9V25C147 29.42 143.42 33 139 33H52V1Z" fill="url(#accent)"/>
+  <rect x="1" y="1" width="146" height="12" rx="8" fill="#ffffff" opacity="0.07"/>
+  <line x1="52" y1="6" x2="52" y2="28" stroke="#ffffff" stroke-opacity="0.16"/>
+  <text x="26" y="22" text-anchor="middle" font-family="'Microsoft YaHei','PingFang SC','Noto Sans CJK SC','Segoe UI',Arial,sans-serif" font-size="14" font-weight="720" fill="#e5edf7">&#x8BED;&#x8A00;</text>
+  <text x="100" y="22" text-anchor="middle" font-family="'Microsoft YaHei','PingFang SC','Noto Sans CJK SC','Segoe UI',Arial,sans-serif" font-size="14" font-weight="780" fill="#ffffff">&#x7B80;&#x4F53;&#x4E2D;&#x6587;</text>
+  <rect x="0.5" y="0.5" width="147" height="33" rx="8.5" stroke="#fb7185" stroke-opacity="0.36"/>
+</svg>

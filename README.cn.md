@@ -7,20 +7,20 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/lwbscu/ai-10x-learning-coach"><img alt="GitHub" src="https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github&logoColor=white"></a>
-  <a href="https://lwbscu.github.io/ai-10x-learning-coach/promo-video.html"><img alt="60s Demo" src="https://img.shields.io/badge/60s-Demo-0ea5e9?style=for-the-badge&logo=html5&logoColor=white"></a>
-  <a href="README.en.md"><img alt="Documentation" src="https://img.shields.io/badge/Documentation-English-7c3aed?style=for-the-badge&logo=readthedocs&logoColor=white"></a>
-  <a href="README.cn.md"><img alt="Chinese Documentation" src="https://img.shields.io/badge/%E4%B8%AD%E6%96%87-%E6%96%87%E6%A1%A3-c63c3c?style=for-the-badge"></a>
-  <a href="https://mp.weixin.qq.com/s/OsIiHKvV8h0e9URDjRBJnw?scene=1&amp;click_id=669507184"><img alt="WeChat" src="https://img.shields.io/badge/WeChat-%E5%BE%AE%E4%BF%A1-07c160?style=for-the-badge&logo=wechat&logoColor=white"></a>
-  <a href="https://zhuanlan.zhihu.com/p/2044006519017035140"><img alt="Zhihu" src="https://img.shields.io/badge/Zhihu-%E4%B8%93%E6%A0%8F-1772f6?style=for-the-badge&logo=zhihu&logoColor=white"></a>
+  <a href="https://github.com/lwbscu/ai-10x-learning-coach"><img alt="GitHub" src="docs/assets/badges/github.svg"></a>
+  <a href="https://lwbscu.github.io/ai-10x-learning-coach/promo-video.html"><img alt="60s Demo" src="docs/assets/badges/demo.svg"></a>
+  <a href="README.en.md"><img alt="Documentation" src="docs/assets/badges/docs-en.svg"></a>
+  <a href="README.cn.md"><img alt="Chinese Documentation" src="docs/assets/badges/docs-cn.svg"></a>
+  <a href="https://mp.weixin.qq.com/s/OsIiHKvV8h0e9URDjRBJnw?scene=1&amp;click_id=669507184"><img alt="WeChat" src="docs/assets/badges/wechat.svg"></a>
+  <a href="https://zhuanlan.zhihu.com/p/2044006519017035140"><img alt="Zhihu" src="docs/assets/badges/zhihu.svg"></a>
 </p>
 
 <p align="center">
-  <a href="LICENSE"><img alt="License MIT" src="https://img.shields.io/badge/License-MIT-64748b?style=for-the-badge"></a>
-  <a href="https://skills.sh"><img alt="Agent Skill Compatible" src="https://img.shields.io/badge/Agent%20Skill-Compatible-22c55e?style=for-the-badge"></a>
-  <img alt="Version 2.5" src="https://img.shields.io/badge/version-2.5-38bdf8?style=for-the-badge">
-  <a href="README.en.md"><img alt="Language English" src="https://img.shields.io/badge/lang-English-0284c7?style=for-the-badge"></a>
-  <a href="README.cn.md"><img alt="Language Simplified Chinese" src="https://img.shields.io/badge/%E8%AF%AD%E8%A8%80-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-c63c3c?style=for-the-badge"></a>
+  <a href="LICENSE"><img alt="License MIT" src="docs/assets/badges/license.svg"></a>
+  <a href="https://skills.sh"><img alt="Agent Skill Compatible" src="docs/assets/badges/skill.svg"></a>
+  <img alt="Version 2.5" src="docs/assets/badges/version.svg">
+  <a href="README.en.md"><img alt="Language English" src="docs/assets/badges/lang-en.svg"></a>
+  <a href="README.cn.md"><img alt="Language Simplified Chinese" src="docs/assets/badges/lang-cn.svg"></a>
 </p>
 
 **Map first. Learn faster.**

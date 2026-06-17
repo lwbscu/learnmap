@@ -1,0 +1,24 @@
+<svg width="148" height="34" viewBox="0 0 148 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="148" y2="34" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0b111a"/>
+      <stop offset="0.58" stop-color="#121a27"/>
+      <stop offset="1" stop-color="#0a0f18"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="148" y2="34" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#34d399"/>
+      <stop offset="1" stop-color="#0d9488"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-60%" width="140%" height="220%">
+      <feGaussianBlur stdDeviation="2.4"/>
+    </filter>
+  </defs>
+  <rect x="0.5" y="0.5" width="147" height="33" rx="8.5" fill="url(#bg)" stroke="#243244"/>
+  <rect x="1" y="1" width="146" height="32" rx="8" fill="url(#accent)" opacity="0.16"/>
+  <rect x="1" y="1" width="146" height="12" rx="8" fill="#ffffff" opacity="0.055"/>
+  <rect x="8" y="8" width="23" height="18" rx="5" fill="#08111d" stroke="#34d399" stroke-opacity="0.72"/>
+  <rect x="11" y="11" width="17" height="12" rx="6" fill="#34d399" opacity="0.24" filter="url(#soft)"/>
+  <text x="19.5" y="21" text-anchor="middle" font-family="'Microsoft YaHei','PingFang SC','Noto Sans CJK SC','Segoe UI',Arial,sans-serif" font-size="10" font-weight="800" fill="#f8fafc">+</text>
+  <text x="40" y="22" font-family="'Microsoft YaHei','PingFang SC','Noto Sans CJK SC','Segoe UI',Arial,sans-serif" font-size="14" font-weight="750" fill="#f8fafc" letter-spacing="0">Agent Skill</text>
+  <rect x="0.5" y="0.5" width="147" height="33" rx="8.5" stroke="#34d399" stroke-opacity="0.42"/>
+</svg>
