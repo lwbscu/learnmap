@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="LearnMap usage walkthrough: install the skill, ask a learning question, generate interactive courseware, practice, export, and continue.">
+  <meta name="description" content="LearnMap usage walkthrough: install the skill, ask a learning question, generate realistic interactive courseware, practice, export, and continue.">
   <title>LearnMap | Usage Walkthrough</title>
   <style>
     :root {
@@ -204,7 +204,7 @@
       padding: 22px;
       opacity: 0;
       transform: translateY(16px);
-      transition: opacity 0.42s ease, transform 0.42s ease;
+      transition: opacity 0.24s ease, transform 0.24s ease;
       pointer-events: none;
       overflow: hidden;
     }
@@ -442,6 +442,294 @@
       font: 0.82rem/1.55 Consolas, ui-monospace, monospace;
     }
 
+    .courseware-frame {
+      border: 1px solid rgba(51,65,85,0.95);
+      border-radius: 12px;
+      overflow: hidden;
+      min-height: 455px;
+      background: #0f172a;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    }
+
+    .course-top {
+      height: 48px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 12px;
+      padding: 0 16px;
+      border-bottom: 1px solid #334155;
+      color: #94a3b8;
+      background: rgba(15,23,42,0.96);
+      font-size: 0.78rem;
+    }
+
+    .course-top strong {
+      display: block;
+      color: #e2e8f0;
+      font-size: 0.94rem;
+      margin-top: 2px;
+    }
+
+    .course-top em {
+      color: #38bdf8;
+      font-style: normal;
+    }
+
+    .course-top button {
+      border: 1px solid #334155;
+      border-radius: 7px;
+      background: #1e293b;
+      color: #38bdf8;
+      padding: 7px 11px;
+      font-weight: 760;
+      font-size: 0.74rem;
+    }
+
+    .course-layout {
+      display: grid;
+      grid-template-columns: 175px 1fr;
+      min-height: 407px;
+    }
+
+    .course-sidebar {
+      border-right: 1px solid #334155;
+      padding: 16px 12px;
+      color: #94a3b8;
+      background: rgba(2,6,23,0.38);
+      font-size: 0.78rem;
+    }
+
+    .course-sidebar strong {
+      display: block;
+      margin-bottom: 12px;
+      color: #cbd5e1;
+      font-size: 0.82rem;
+    }
+
+    .course-sidebar span {
+      display: block;
+      padding: 6px 8px;
+      border-radius: 6px;
+      margin-bottom: 4px;
+    }
+
+    .course-sidebar span.active {
+      color: #38bdf8;
+      background: rgba(56,189,248,0.08);
+      border-left: 3px solid #38bdf8;
+    }
+
+    .course-main {
+      padding: 18px 20px;
+      overflow: hidden;
+    }
+
+    .course-card-real {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 16px;
+      min-height: 348px;
+    }
+
+    .course-card-real h2 {
+      margin: 0 0 10px;
+      color: #38bdf8;
+      font-size: 1.35rem;
+      line-height: 1.12;
+    }
+
+    .course-card-real p {
+      margin: 0 0 12px;
+      color: #cbd5e1;
+      font-size: 0.86rem;
+      line-height: 1.55;
+    }
+
+    .def-box-real,
+    .warn-box-real {
+      border-left: 4px solid #38bdf8;
+      border-radius: 0 8px 8px 0;
+      background: rgba(56,189,248,0.06);
+      padding: 12px 14px;
+      color: #e2e8f0;
+      font-size: 0.83rem;
+      line-height: 1.55;
+      margin: 12px 0;
+    }
+
+    .warn-box-real {
+      border-left-color: #fbbf24;
+      background: rgba(251,191,36,0.08);
+    }
+
+    .label-real {
+      display: block;
+      color: #38bdf8;
+      font-weight: 850;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .warn-box-real .label-real { color: #fbbf24; }
+
+    .lesson-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .lesson-card {
+      min-height: 86px;
+      border: 1px solid rgba(51,65,85,0.95);
+      border-radius: 8px;
+      background: #020617;
+      padding: 11px;
+      color: #94a3b8;
+      font-size: 0.75rem;
+      line-height: 1.45;
+    }
+
+    .lesson-card strong {
+      display: block;
+      color: #38bdf8;
+      margin-bottom: 4px;
+      font-size: 0.82rem;
+    }
+
+    .lesson-card.current {
+      border-color: #a78bfa;
+      box-shadow: inset 0 0 0 1px rgba(167,139,250,0.22);
+    }
+
+    .mini-quiz-real {
+      border: 1px solid #a78bfa;
+      border-radius: 10px;
+      background: rgba(167,139,250,0.06);
+      padding: 12px 14px;
+      margin-bottom: 10px;
+    }
+
+    .quiz-kicker {
+      color: #a78bfa;
+      font-size: 0.76rem;
+      font-weight: 850;
+      margin-bottom: 8px;
+    }
+
+    .quiz-question {
+      color: #eef5ff;
+      font-weight: 850;
+      margin-bottom: 9px;
+      font-size: 0.94rem;
+    }
+
+    .quiz-option-real {
+      border: 1px solid #334155;
+      border-radius: 7px;
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 7px 10px;
+      margin-bottom: 5px;
+      font-size: 0.82rem;
+    }
+
+    .quiz-option-real.correct {
+      border-color: #4ade80;
+      background: rgba(74,222,128,0.12);
+    }
+
+    .quiz-option-real.wrong {
+      border-color: #f87171;
+      background: rgba(248,113,113,0.11);
+    }
+
+    .feedback-real {
+      border-left: 4px solid #f87171;
+      border-radius: 0 7px 7px 0;
+      background: rgba(248,113,113,0.09);
+      color: #f8d6dc;
+      padding: 9px 12px;
+      font-size: 0.79rem;
+      line-height: 1.45;
+    }
+
+    .end-card-real {
+      border: 2px solid #a78bfa;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(56,189,248,0.08), rgba(167,139,250,0.10));
+      padding: 12px 14px;
+    }
+
+    .end-card-real h2 {
+      color: #a78bfa;
+      font-size: 1.18rem;
+      margin: 0 0 10px;
+    }
+
+    .record-panel-real {
+      background: rgba(0,0,0,0.28);
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .record-stats-real {
+      display: flex;
+      gap: 18px;
+      color: #94a3b8;
+      font-size: 0.74rem;
+    }
+
+    .record-stats-real strong {
+      display: block;
+      color: #a78bfa;
+      font-size: 1.35rem;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .record-buttons-real {
+      display: flex;
+      gap: 8px;
+    }
+
+    .record-buttons-real button {
+      border: 1px solid #334155;
+      border-radius: 7px;
+      background: #1e293b;
+      color: #38bdf8;
+      padding: 8px 10px;
+      font-size: 0.74rem;
+      font-weight: 800;
+    }
+
+    .record-buttons-real button:first-child {
+      color: #4ade80;
+      border-color: rgba(74,222,128,0.35);
+    }
+
+    .float-real {
+      margin-top: 12px;
+      border-top: 1px solid #a78bfa;
+      background: rgba(30,41,59,0.96);
+      padding: 8px 12px;
+      color: #e2e8f0;
+      font-weight: 780;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 0.82rem;
+    }
+
     .caption {
       position: absolute;
       left: 22px;
@@ -525,8 +813,8 @@
       .embed .wrap { padding-top: 0; }
       .intro,
       .stage {
-        width: calc(100vw - 52px) !important;
-        max-width: calc(100vw - 52px) !important;
+        width: 86% !important;
+        max-width: 330px !important;
       }
       h1 { font-size: 3.05rem; }
       .intro p { max-width: 100%; font-size: 0.94rem; overflow-wrap: break-word; }
@@ -547,6 +835,77 @@
         white-space: pre-wrap;
         overflow-wrap: anywhere;
         padding: 12px;
+      }
+      .courseware-frame { min-height: 470px; }
+      .course-top {
+        height: auto;
+        min-height: 54px;
+        grid-template-columns: 1fr;
+        padding: 10px 12px;
+      }
+      .course-top button { display: none; }
+      .course-layout {
+        grid-template-columns: 1fr;
+        min-height: 416px;
+      }
+      .course-sidebar { display: none; }
+      .course-main { padding: 12px; }
+      .course-card-real {
+        min-height: 388px;
+        padding: 14px;
+      }
+      .course-card-real h2 {
+        font-size: 1.24rem;
+      }
+      .course-card-real p,
+      .def-box-real,
+      .warn-box-real {
+        font-size: 0.78rem;
+        line-height: 1.45;
+      }
+      .lesson-cards {
+        grid-template-columns: 1fr;
+        gap: 7px;
+      }
+      .lesson-card {
+        min-height: auto;
+        padding: 8px 10px;
+      }
+      .mini-quiz-real {
+        padding: 10px;
+      }
+      .quiz-question,
+      .quiz-option-real {
+        font-size: 0.76rem;
+      }
+      .quiz-option-real {
+        padding: 6px 8px;
+      }
+      .feedback-real {
+        font-size: 0.72rem;
+        padding: 7px 9px;
+      }
+      .end-card-real {
+        padding: 10px;
+      }
+      .end-card-real h2 {
+        font-size: 0.96rem;
+      }
+      .record-panel-real {
+        grid-template-columns: 1fr;
+      }
+      .record-stats-real {
+        gap: 12px;
+      }
+      .record-stats-real strong {
+        font-size: 1.02rem;
+      }
+      .record-buttons-real button {
+        padding: 7px 8px;
+      }
+      .float-real {
+        display: block;
+        font-size: 0.72rem;
       }
       .card {
         min-height: 84px;
@@ -576,7 +935,7 @@
       <div>
         <p class="eyebrow">FROM INSTALL TO FIRST LESSON</p>
         <h1><span>Use</span><span><em>LearnMap</em></span></h1>
-        <p>Install the skill, ask a real question, generate local HTML courseware, practice in the page, then export a record so AI can continue from weak spots.</p>
+        <p>Install, ask, generate courseware, practice, export, continue.</p>
       </div>
       <div class="steps" id="steps">
         <div class="step active"><strong>01</strong><span>Install skill</span></div>
@@ -616,17 +975,18 @@
         <div class="scene-title">02 / ASK A REAL QUESTION</div>
         <div class="chat">
           <div class="thread">
-            <div class="bubble user">Use learnmap-skill to teach me reinforcement learning. I know Python and want to run a small experiment in one week.</div>
-            <div class="bubble ai">中文版还是 English version?</div>
-            <div class="bubble user">English.</div>
-            <div class="bubble ai">I will map the field first, then create interactive courseware with checks and a learning record.</div>
+            <div class="bubble user">使用 learnmap-skill 给我讲解 Loop Engineer。我知道 Claude Code 的 /loop，但想系统理解背后的工程方法。</div>
+            <div class="bubble ai">请选择教学语言 / Please choose your teaching language.</div>
+            <div class="bubble user">中文版，慢速模式。</div>
+            <div class="bubble ai">我会先做全局地图，再生成可交互 HTML 课件、测验和学习记录。</div>
           </div>
           <aside class="side">
             <strong>Skill invoked</strong>
             <code>name: learnmap-skill
-topic: reinforcement learning
-background: Python
-goal: one-week experiment</code>
+topic: Loop Engineer
+language: zh-CN
+outputMode: slow
+goal: understand loop design</code>
           </aside>
         </div>
       </article>
@@ -635,13 +995,13 @@ goal: one-week experiment</code>
         <div class="scene-title">03 / CHOOSE MODE</div>
         <div class="chat">
           <div class="thread">
-            <div class="bubble ai">Courseware mode: fast overview or slow deep-course mode? Default is slow.</div>
-            <div class="bubble user">Slow mode. I want the structure and the details.</div>
-            <div class="bubble ai">Confirmed. I will create a global map first, then continue chapter by chapter.</div>
+            <div class="bubble ai">课件输出模式：快速模式（一章浓缩全貌）还是慢速模式（逐章全貌+细节）？默认慢速。</div>
+            <div class="bubble user">慢速模式，先让我建立全局地图。</div>
+            <div class="bubble ai">确认。第 01 课会先讲 Loop Engineer 是什么、模块关系、术语和常见陷阱。</div>
           </div>
           <aside class="side">
             <strong>Profile fields</strong>
-            <code>language: en
+            <code>language: zh-CN
 outputMode: slow
 videoExplainer: offered
 mentorLens: none</code>
@@ -653,71 +1013,100 @@ mentorLens: none</code>
         <div class="scene-title">04 / GENERATE COURSEWARE</div>
         <div class="files">
           <div class="tree">
-learning/reinforcement-learning/
+学习/Loop-Engineer/
 ├── _meta/
-│   ├── profile.md
-│   ├── progress.md
-│   └── mistakes.md
-├── lesson-01-global-map/
-│   └── index.html
-└── lesson-02-mdp/
+│   ├── 学习档案.md
+│   ├── 进度.md
+│   └── 错题.md
+├── 第01课-全局地图/
+│   └── 课件.html
+└── 第02课-loop命令基础/
           </div>
           <div class="cards">
-            <div class="card"><strong>Global map</strong><span>5-9 modules, dependencies, vocabulary, and traps.</span></div>
-            <div class="card"><strong>Interactive lesson</strong><span>Tabs, concept cards, quiz feedback, review links.</span></div>
-            <div class="card"><strong>Mastery checks</strong><span>Questions test distinctions, boundaries, and application.</span></div>
-            <div class="card"><strong>Learning record</strong><span>Copy Markdown or JSON for AI follow-up.</span></div>
+            <div class="card"><strong>本课目录</strong><span>核心问题、模块地图、术语、陷阱、检查。</span></div>
+            <div class="card"><strong>真实课件页</strong><span>sticky 顶栏、左侧目录、section-card、提示框。</span></div>
+            <div class="card"><strong>即时测验</strong><span>正确/错误反馈，错误点回跳复习。</span></div>
+            <div class="card"><strong>学习记录</strong><span>复制 Markdown 或下载 JSON 给 AI 接力。</span></div>
           </div>
         </div>
       </article>
 
       <article class="scene">
         <div class="scene-title">05 / OPEN THE LESSON</div>
-        <div class="browser">
-          <nav class="toc">
-            <span class="active">0. Core question</span>
-            <span>1. Field map</span>
-            <span>2. MDP foundation</span>
-            <span>3. Common traps</span>
-            <span>4. Mastery check</span>
-          </nav>
-          <div class="lesson">
-            <div class="lesson-head"><span>Reinforcement Learning / Lesson 01</span><span>0% complete</span></div>
-            <div class="lesson-body">
-              <h2>Start with the map</h2>
-              <p>The page is not a static note. It is local HTML courseware with clickable concepts and embedded checks.</p>
-              <div class="map">
-                <div class="node">Agent</div>
-                <div class="node">Environment</div>
-                <div class="node">Reward</div>
-                <div class="node">State</div>
-                <div class="node">Action</div>
-                <div class="node">Policy</div>
-              </div>
-            </div>
+        <div class="courseware-frame">
+          <div class="course-top">
+            <div><span>学习 / Loop-Engineer / <em>第01课</em></span><strong>全局地图 — Loop Engineer 是什么？</strong></div>
+            <button type="button">重置课程</button>
+          </div>
+          <div class="course-layout">
+            <aside class="course-sidebar">
+              <strong>本课目录</strong>
+              <span class="active">1. Loop Engineer 是什么</span>
+              <span>2. 六大知识模块</span>
+              <span>3. 模块关系图</span>
+              <span>4. 核心术语表</span>
+              <span>5. 常见陷阱与误区</span>
+              <span>6. 学习路线图</span>
+              <span>7. 掌握检查</span>
+            </aside>
+            <main class="course-main">
+              <section class="course-card-real">
+                <h2>1. Loop Engineer 是什么</h2>
+                <p>把一次性提示改造成可验证、可复盘、可继续的工程循环。</p>
+                <div class="def-box-real"><span class="label-real">Definition</span>从“手动一次次输入命令”，变成设计自动化循环，让 AI 按周期执行、检查、记录和修正。</div>
+                <div class="lesson-cards">
+                  <div class="lesson-card current"><strong>第01课</strong>全局地图<br>你现在在这里</div>
+                  <div class="lesson-card"><strong>第02课</strong>/loop 命令基础<br>间隔、目标、退出条件</div>
+                  <div class="lesson-card"><strong>第03课</strong>反馈回路<br>记录、评估、修正</div>
+                </div>
+              </section>
+            </main>
           </div>
         </div>
       </article>
 
       <article class="scene">
         <div class="scene-title">06 / PRACTICE AND EXPORT</div>
-        <div class="course">
-          <div class="quiz">
-            <h3>Learn and Practice</h3>
-            <div class="choice">A. Bigger models solve the learning loop.</div>
-            <div class="choice good">B. The agent needs reward feedback and policy updates.</div>
-            <div class="choice">C. Memorizing terms is enough.</div>
-            <div class="export">diagnosis: correct
-concept: reward + policy
-next: continue to MDP</div>
+        <div class="courseware-frame">
+          <div class="course-top">
+            <div><span>学习 / Loop-Engineer / <em>第01课</em></span><strong>8. 掌握检查 — 测验</strong></div>
+            <button type="button">67% 完成</button>
           </div>
-          <div class="checklist">
-            <h3>Self-check</h3>
-            <div class="check done">I can explain Agent and Environment.</div>
-            <div class="check done">I can explain why reward matters.</div>
-            <div class="check">I need to revisit the MDP tuple.</div>
-            <div class="export">Copy learning record
-Download learning-record.json</div>
+          <div class="course-layout">
+            <aside class="course-sidebar">
+              <strong>本课目录</strong>
+              <span>1. Loop Engineer 是什么</span>
+              <span>2. 六大知识模块</span>
+              <span>3. 模块关系图</span>
+              <span>4. 核心术语表</span>
+              <span>5. 初学者该忽略什么</span>
+              <span>6. 常见陷阱与误区</span>
+              <span class="active">7. 掌握检查</span>
+            </aside>
+            <main class="course-main">
+              <section class="course-card-real">
+                <div class="mini-quiz-real">
+                  <div class="quiz-kicker">即时训练 01 — 概念理解</div>
+                  <div class="quiz-question">Loop Engineer 最核心的“范式转变”是什么？</div>
+                  <div class="quiz-option-real">A. 从写代码变成写文档</div>
+                  <div class="quiz-option-real correct">B. 从手动一次次输入命令，变成设计自动化循环</div>
+                  <div class="quiz-option-real wrong">C. 从用终端变成用网页</div>
+                  <div class="feedback-real">再想想。重点不在工具形式，而在执行模式从手动到自动循环。</div>
+                </div>
+                <div class="end-card-real">
+                  <h2>第01课完成 — 自我检查</h2>
+                  <div class="record-panel-real">
+                    <div class="record-stats-real">
+                      <span><strong>56%</strong>完成度</span>
+                      <span><strong>2/5</strong>自检打勾</span>
+                      <span><strong>mq2</strong>薄弱点</span>
+                    </div>
+                    <div class="record-buttons-real"><button type="button">复制学习记录</button><button type="button">下载 JSON</button></div>
+                  </div>
+                  <div class="float-real"><span>第01课完成</span><span>下一课：/loop 命令基础</span></div>
+                </div>
+              </section>
+            </main>
           </div>
         </div>
       </article>
@@ -726,15 +1115,15 @@ Download learning-record.json</div>
         <div class="scene-title">07 / CONTINUE WITH MEMORY</div>
         <div class="chat">
           <div class="thread">
-            <div class="bubble user">Learning record: I missed the MDP tuple self-check.</div>
-            <div class="bubble ai">I will reteach MDP with a simpler example, then retest.</div>
-            <div class="bubble ai">Optional HTML video explainer for this lesson? Default stays HTML courseware.</div>
-            <div class="bubble user">Not now. Continue Lesson 2.</div>
+            <div class="bubble user">这是导出的学习记录：薄弱点是“反馈回路”和“退出条件”。继续第 02 课。</div>
+            <div class="bubble ai">收到。我会先补一段反馈回路例子，再进入 /loop 命令基础。</div>
+            <div class="bubble ai">是否需要本课 HTML 视频可视化讲解？默认继续交互式课件。</div>
+            <div class="bubble user">不用，继续生成第 02 课。</div>
           </div>
           <aside class="side">
             <strong>Next command</strong>
-            <code>Continue Lesson 2: MDP
-weakSpots: mdp-tuple
+            <code>继续第02课: /loop 命令基础
+weakSpots: feedback-loop, exit-condition
 outputMode: slow</code>
           </aside>
         </div>
@@ -759,8 +1148,8 @@ outputMode: slow</code>
       document.body.classList.add("embed");
     }
 
-    var duration = 63;
-    var sceneLength = 9;
+    var duration = 42;
+    var sceneLength = 6;
     var requestedScene = parseInt(params.get("scene"), 10);
     var hasRequestedScene = !isNaN(requestedScene);
     var requestedIndex = hasRequestedScene ? Math.max(0, Math.min(6, requestedScene - 1)) : 0;
@@ -779,12 +1168,12 @@ outputMode: slow</code>
 
     var captions = [
       ["先安装 LearnMap。它会成为 Claude Code / Codex 可调用的学习 skill。", "Install LearnMap first. It becomes a reusable learning skill inside Claude Code / Codex."],
-      ["用真实目标提问：主题、背景、时间和结果越清楚，课件越贴合。", "Ask with a real goal: topic, background, timing, and outcome make the course sharper."],
-      ["先选语言，再选快速总览或慢速逐章；没有指定时默认慢速。", "Pick language, then choose fast overview or slow deep-course mode; default is slow."],
-      ["LearnMap 在本地生成课程目录、学习档案、进度、错题和 HTML 课件。", "LearnMap generates local folders, profile, progress, mistakes, and HTML courseware."],
-      ["打开课件：这是可交互网页，不是静态笔记。", "Open the lesson: an interactive web page, not a static note."],
-      ["在网页里答题、自检、回跳复习，并导出学习记录给 AI 接力。", "Practice, self-check, review, and export the learning record for AI follow-up."],
-      ["下一课从薄弱点继续；视频讲解和 mentor lens 可选。", "Continue from weak spots; video explainers and mentor lenses remain optional."]
+      ["用真实问题触发：这里演示让 LearnMap 讲解 Loop Engineer。", "Ask a real question: here LearnMap explains Loop Engineer."],
+      ["先确认语言与快慢模式；没有指定时默认慢速逐章。", "Confirm language and fast/slow mode; default is slow."],
+      ["LearnMap 在本地生成课程目录、学习档案、进度、错题和课件。", "LearnMap generates local folders, profile, progress, mistakes, and courseware."],
+      ["真实课件：顶栏、目录、定义框、路线图。", "Real courseware: nav, sidebar, definition, path."],
+      ["测验、自检、复制记录、下载 JSON。", "Quiz, self-check, copy record, download JSON."],
+      ["下一课从导出的薄弱点继续；视频讲解仍然可选。", "The next lesson continues from weak spots; video explainers remain optional."]
     ];
 
     function pad(n) {
