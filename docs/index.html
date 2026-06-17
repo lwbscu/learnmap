@@ -112,8 +112,8 @@
     .hero {
       max-width: var(--max);
       margin: 0 auto;
-      min-height: 88vh;
-      padding: 76px 22px 44px;
+      min-height: 78vh;
+      padding: 64px 22px 34px;
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1.04fr);
       gap: 34px;
@@ -180,6 +180,27 @@
 
     .btn:hover { border-color: rgba(56, 189, 248, 0.7); }
 
+    .link-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .link-strip a {
+      border: 1px solid rgba(238, 245, 255, 0.1);
+      border-radius: 999px;
+      padding: 5px 10px;
+      background: rgba(16, 24, 33, 0.45);
+    }
+
+    .link-strip a:hover {
+      color: var(--text);
+      border-color: rgba(56, 189, 248, 0.45);
+    }
+
     .hero-card {
       position: relative;
       border: 1px solid rgba(238, 245, 255, 0.11);
@@ -240,7 +261,7 @@
       position: relative;
       max-width: var(--max);
       margin: 0 auto;
-      padding: 72px 22px;
+      padding: 56px 22px;
       border-top: 1px solid rgba(238, 245, 255, 0.08);
     }
 
@@ -395,6 +416,8 @@
       </a>
       <div class="nav-links">
         <a href="#walkthrough">Walkthrough</a>
+        <a href="https://github.com/lwbscu/ai-10x-learning-coach/blob/main/README.cn.md">中文</a>
+        <a href="https://github.com/lwbscu/ai-10x-learning-coach/blob/main/README.en.md">English</a>
         <a href="#new">What's New</a>
         <a href="#install">Install</a>
         <a href="https://github.com/lwbscu/ai-10x-learning-coach">GitHub</a>
@@ -411,6 +434,12 @@
         <a class="btn primary" href="#walkthrough">Watch usage flow</a>
         <a class="btn" href="#install">Install skill</a>
         <a class="btn" href="./promo-video.html">Open full-screen demo</a>
+      </div>
+      <div class="link-strip" aria-label="LearnMap links">
+        <a href="https://github.com/lwbscu/ai-10x-learning-coach/blob/main/README.cn.md">中文</a>
+        <a href="https://github.com/lwbscu/ai-10x-learning-coach/blob/main/README.en.md">English</a>
+        <a href="https://mp.weixin.qq.com/s/OsIiHKvV8h0e9URDjRBJnw?scene=1&amp;click_id=669507184">微信公众号</a>
+        <a href="https://zhuanlan.zhihu.com/p/2044006519017035140">知乎专栏</a>
       </div>
     </div>
     <div class="hero-card">
@@ -436,7 +465,7 @@
 
   <section class="section" id="walkthrough">
     <h2>Usage Walkthrough</h2>
-    <p class="lead">A 42-second recorded walkthrough showing the full path: install, ask, invoke, generate, open, practice, export, continue.</p>
+    <p class="lead">A 60-second recorded walkthrough showing the full path: install, ask, invoke, generate, open, interact with the HTML lesson, recover from a wrong answer, export, and continue.</p>
     <div class="demo-video-card">
       <video class="demo-video" controls preload="metadata" playsinline poster="./assets/learnmap-demo-poster.png">
         <source src="./assets/learnmap-demo-16x9.mp4" type="video/mp4">
@@ -446,8 +475,10 @@
       <a class="btn" href="./promo-video.html">Open standalone video</a>
       <a class="btn" href="./assets/learnmap-demo-vertical.mp4">Vertical MP4</a>
       <a class="btn" href="./assets/learnmap-demo-16x9.mp4">Download 16:9 MP4</a>
+      <a class="btn" href="https://mp.weixin.qq.com/s/OsIiHKvV8h0e9URDjRBJnw?scene=1&amp;click_id=669507184">WeChat</a>
+      <a class="btn" href="https://zhuanlan.zhihu.com/p/2044006519017035140">Zhihu</a>
     </div>
-    <p class="video-note">No voiceover. Bilingual on-screen captions are burned into the video.</p>
+    <p class="video-note">No voiceover. Bilingual on-screen captions are burned into the video. The cursor only appears during real interactions.</p>
   </section>
 
   <section class="section" id="new">
@@ -464,7 +495,7 @@
     <div class="grid">
       <div class="card"><strong>Fast overview</strong><p>One chapter to understand the whole field: map, examples, traps, checks, and next steps.</p></div>
       <div class="card"><strong>Slow course</strong><p>Global map first, then one interactive HTML lesson per chapter.</p></div>
-      <div class="card"><strong>Learning record</strong><p>Export quiz answers, checklist state, weak spots, and next command for AI follow-up.</p></div>
+      <div class="card"><strong>Learning record</strong><p>Export quiz answers, review targets, checklist state, weak spots, and next command for AI follow-up.</p></div>
     </div>
   </section>
 
@@ -477,7 +508,7 @@ git clone https://github.com/lwbscu/ai-10x-learning-coach.git "$env:USERPROFILE\
 
   <footer>
     <span>LearnMap</span>
-    <span><a href="https://github.com/lwbscu/ai-10x-learning-coach/blob/main/README.cn.md">中文文档</a> · <a href="https://github.com/lwbscu/ai-10x-learning-coach/blob/main/README.en.md">English Docs</a> · <a href="https://github.com/lwbscu/ai-10x-learning-coach">GitHub</a></span>
+    <span><a href="https://github.com/lwbscu/ai-10x-learning-coach/blob/main/README.cn.md">中文</a> · <a href="https://github.com/lwbscu/ai-10x-learning-coach/blob/main/README.en.md">English</a> · <a href="https://mp.weixin.qq.com/s/OsIiHKvV8h0e9URDjRBJnw?scene=1&amp;click_id=669507184">微信公众号</a> · <a href="https://zhuanlan.zhihu.com/p/2044006519017035140">知乎专栏</a> · <a href="https://github.com/lwbscu/ai-10x-learning-coach">GitHub</a></span>
   </footer>
 </body>
 </html>

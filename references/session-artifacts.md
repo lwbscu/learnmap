@@ -254,9 +254,16 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
         data-correct: correct answer text or key
         data-retry: what to review if wrong
         data-review-target: section id or hash to revisit if wrong, such as "#s2"
+        Wrong-answer feedback must include a visible 复习 / Review jump back to this target.
       -->
       <div class="mini-quiz" id="mq1" data-question="[Question text]" data-concept="[Concept]" data-correct="[Correct answer]" data-retry="[Review suggestion]" data-review-target="#s1">
-        <!-- .opt answer options and #mq1-explain feedback -->
+        <p>[Question text]</p>
+        <button class="opt" onclick="checkMQ('mq1', 0, false)">[Wrong option]</button>
+        <button class="opt" onclick="checkMQ('mq1', 1, true)">[Correct option]</button>
+        <div class="explain" id="mq1-explain" data-default="[Explanation text]">
+          [Explanation text]
+          <button class="review-link" onclick="event.stopPropagation(); scrollToDetail('s1');">复习 →</button>
+        </div>
       </div>
     </div>
 
@@ -354,15 +361,20 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
     var mq = document.getElementById(mqId);
     var explain = document.getElementById(mqId + "-explain");
     var opts = mq.querySelectorAll(".opt");
+    var reviewTarget = mq.getAttribute("data-review-target") || "";
+    var reviewId = reviewTarget.replace("#", "");
+    var reviewLabel = LESSON_META.language === "zh-CN" ? "复习 →" : "Review →";
+    var baseExplain = explain.getAttribute("data-default") || explain.textContent.trim();
+    var reviewButton = reviewId ? ' <button class="review-link" onclick="event.stopPropagation(); scrollToDetail(\'' + reviewId + '\');">' + reviewLabel + '</button>' : "";
     opts.forEach(function(o) { o.classList.remove("chosen-correct", "chosen-wrong"); });
     if (isCorrect) {
       opts[optIdx].classList.add("chosen-correct");
       explain.className = "explain show ok";
-      explain.innerHTML = "[Correct icon] <strong>[Correct!]</strong> " + explain.innerHTML;
+      explain.innerHTML = "[Correct icon] <strong>[Correct!]</strong> " + baseExplain + reviewButton;
     } else {
       opts[optIdx].classList.add("chosen-wrong");
       explain.className = "explain show no";
-      explain.innerHTML = "[Wrong explanation text]";
+      explain.innerHTML = "[Wrong explanation text] " + baseExplain + reviewButton;
     }
     saveRecord();
     updateRecordUI();
@@ -719,6 +731,8 @@ Required behavior:
 - auto-grading with instant feedback (correct / partially-correct / wrong)
 - hint button per question where useful
 - sample answer or explanation after the learner answers
+- a visible `复习 →` / `Review →` button in wrong-answer feedback that jumps to the section teaching the tested concept
+- `data-review-target` on every `.mini-quiz`, and the exported JSON must preserve it as `reviewTarget`
 - completion state that shows the next-step command
 
 Language: all UI text in the learner's chosen language. Technical terms in English.

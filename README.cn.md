@@ -1,14 +1,33 @@
 # LearnMap
 
-![LearnMap cover](docs/assets/learnmap-cover.png)
+<p align="center">
+  <a href="https://lwbscu.github.io/ai-10x-learning-coach/">
+    <img src="docs/assets/learnmap-cover.png" alt="LearnMap cover" width="960">
+  </a>
+</p>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Agent Skill](https://img.shields.io/badge/Agent%20Skill-Compatible-38bdf8)](https://skills.sh)
-[![Version](https://img.shields.io/badge/version-2.5-38bdf8)]()
+<p align="center">
+  <a href="LICENSE">MIT</a>
+  · <a href="https://skills.sh">Agent Skill</a>
+  · <strong>v2.5</strong>
+  · <a href="README.cn.md">中文</a>
+  · <a href="README.en.md">English</a>
+  · <a href="https://mp.weixin.qq.com/s/OsIiHKvV8h0e9URDjRBJnw?scene=1&amp;click_id=669507184">微信公众号</a>
+  · <a href="https://zhuanlan.zhihu.com/p/2044006519017035140">知乎专栏</a>
+  · <a href="https://lwbscu.github.io/ai-10x-learning-coach/promo-video.html">60s Demo</a>
+</p>
 
-Map first. Learn faster.
+**Map first. Learn faster.**
 
-LearnMap 是一个面向 Agent Skills 的学习 skill。它不会直接输出一篇长文，而是先把陌生主题变成知识地图，再按你的目标生成交互式 HTML 课件、掌握检查、错题记录和可导出的学习记录。
+LearnMap 是一个面向 Agent Skills 的学习 skill。它不会直接输出一篇长文，而是先把陌生主题变成知识地图，再按你的目标生成交互式 HTML 课件、掌握检查、错题复习跳转和可导出的学习记录。
+
+<p align="center">
+  <a href="https://lwbscu.github.io/ai-10x-learning-coach/promo-video.html">
+    <img src="docs/assets/learnmap-demo-poster.png" alt="观看 LearnMap 60 秒使用流程演示" width="900">
+  </a>
+  <br>
+  <a href="https://lwbscu.github.io/ai-10x-learning-coach/promo-video.html">观看 60 秒使用流程演示</a>
+</p>
 
 [在线演示](https://lwbscu.github.io/ai-10x-learning-coach/) · [使用流程演示](https://lwbscu.github.io/ai-10x-learning-coach/promo-video.html) · [English docs](README.en.md)
 
@@ -72,6 +91,7 @@ git clone https://github.com/lwbscu/ai-10x-learning-coach.git .claude/skills/lea
 |---|---|
 | 快速理解全貌 | 一章浓缩版交互式 HTML 课件 |
 | 深入学习新领域 | 全局地图、学习路线、逐章 HTML 课件、掌握检查 |
+| 纠正错题 | 答错后显示解析，并提供 `复习 →` 跳回对应知识点 |
 | 项目交付准备 | 技术决策清单、风险列表、实施路线 |
 | 面试或考试 | 知识地图、主动回忆题、分级模拟题 |
 | 理解代码库 | 仓库地图、术语表、逐步探索任务 |

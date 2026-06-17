@@ -20,7 +20,7 @@ Run this checklist in order:
 
 3. Failure modes
    - Weak answers trigger reteaching or simpler follow-up questions.
-   - Wrong quiz feedback points back to the relevant explanation section.
+   - Wrong quiz feedback shows a visible `复习 →` / `Review →` control that jumps back to the relevant explanation section.
    - Missing learner context is handled by at most three calibration questions.
 
 4. Checkpoints
@@ -32,7 +32,7 @@ Run this checklist in order:
 
 5. Specificity
    - The next command is written exactly.
-   - Quiz items include concept, answer, feedback, retry suggestion, and review target.
+   - Quiz items include concept, answer, feedback, retry suggestion, and a working review target.
    - Checklist items store clean text, checked state, and review target.
    - Exported records include `outputMode`.
 

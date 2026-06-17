@@ -1,16 +1,35 @@
 # LearnMap
 
-![LearnMap cover](docs/assets/learnmap-cover.png)
+<p align="center">
+  <a href="https://lwbscu.github.io/ai-10x-learning-coach/">
+    <img src="docs/assets/learnmap-cover.png" alt="LearnMap cover" width="960">
+  </a>
+</p>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Agent Skill](https://img.shields.io/badge/Agent%20Skill-Compatible-38bdf8)](https://skills.sh)
-[![Version](https://img.shields.io/badge/version-2.5-38bdf8)]()
+<p align="center">
+  <a href="LICENSE">MIT</a>
+  · <a href="https://skills.sh">Agent Skill</a>
+  · <strong>v2.5</strong>
+  · <a href="README.cn.md">中文</a>
+  · <a href="README.en.md">English</a>
+  · <a href="https://mp.weixin.qq.com/s/OsIiHKvV8h0e9URDjRBJnw?scene=1&amp;click_id=669507184">微信公众号</a>
+  · <a href="https://zhuanlan.zhihu.com/p/2044006519017035140">知乎专栏</a>
+  · <a href="https://lwbscu.github.io/ai-10x-learning-coach/promo-video.html">60s Demo</a>
+</p>
 
-Map first. Learn faster.
+**Map first. Learn faster.**
 
-LearnMap is an Agent Skill that turns a vague learning request into a mapped, interactive course: fast overview when you need the whole picture, slow chapter-by-chapter mode when you need depth, mastery checks, mistake tracking, and exportable learning records for AI follow-up.
+LearnMap is an Agent Skill that turns a vague learning request into mapped, interactive HTML courseware: fast overview when you need the whole picture, slow chapter-by-chapter mode when you need depth, mastery checks that point back to the exact concept, and exportable learning records for AI follow-up.
 
-[Live demo](https://lwbscu.github.io/ai-10x-learning-coach/) · [Usage video](https://lwbscu.github.io/ai-10x-learning-coach/promo-video.html) · [中文文档](README.cn.md) · [English docs](README.en.md)
+<p align="center">
+  <a href="https://lwbscu.github.io/ai-10x-learning-coach/promo-video.html">
+    <img src="docs/assets/learnmap-demo-poster.png" alt="Watch the 60-second LearnMap usage walkthrough" width="900">
+  </a>
+  <br>
+  <a href="https://lwbscu.github.io/ai-10x-learning-coach/promo-video.html">Watch the 60-second usage walkthrough</a>
+</p>
+
+Links: [Live demo](https://lwbscu.github.io/ai-10x-learning-coach/) · [Usage video](https://lwbscu.github.io/ai-10x-learning-coach/promo-video.html) · [中文文档](README.cn.md) · [English docs](README.en.md)
 
 ## Install
 
@@ -65,6 +84,7 @@ LearnMap asks for language first, then asks whether you want fast overview mode 
 |---|---|
 | Understand the whole picture quickly | One condensed interactive HTML overview with map, examples, traps, checks, and next steps |
 | Learn a new field deeply | Global map, chapter path, interactive HTML lessons, mastery checks |
+| Recover from mistakes | Wrong quiz feedback with a `Review` jump back to the exact section that taught the concept |
 | Prepare for a project | Decision checklist, risk list, implementation route |
 | Prepare for an exam or interview | Knowledge map, active-recall prompts, graded questions |
 | Understand a codebase | Repo map, glossary, walkthrough tasks |

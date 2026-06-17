@@ -66,7 +66,7 @@ This skill is distilled from the workflow in the article "如何用 Claude Code 
 - When a mentor lens is active, use it to shape explanation structure, examples, questions, and boundaries. Do not role-play as the person, invent quotes, or claim the answer is the person's real view.
 - Support two courseware modes: `fast` creates one condensed but complete interactive HTML overview; `slow` creates the normal global-map lesson followed by chapter-by-chapter lessons. Default to `slow`.
 - Run a lightweight quality gate before finalizing lesson artifacts: verify workflow clarity, failure modes, review links, export data, browser interactions, and 2-3 dry-run prompts.
-- **v2.2 review loop:** every self-check checklist item MUST include a review link back to the exact explanation section in the same HTML page. Quizzes and weak spots SHOULD also include review targets when possible.
+- **v2.2 review loop:** every self-check checklist item MUST include a review link back to the exact explanation section in the same HTML page. Every mini-quiz MUST include a tested concept and a `复习 / Review` jump target. Wrong-answer feedback MUST render a visible `复习 →` / `Review →` control that jumps back to the exact section that taught the tested concept.
 
 ---
 
@@ -223,8 +223,8 @@ Each HTML lesson MUST include:
 - **Hover annotations** — key terms with dashed underline; hover to reveal a tooltip with deeper insight
 - **MDP card click-to-scroll** — when using concept tuple cards, clicking scrolls to the detail section. Use manual position calculation (`getBoundingClientRect().top + pageYOffset - offset`) instead of `scroll-margin-top` for cross-browser reliability.
 - **Learning record persistence** — save quiz results, checklist state, viewed lesson, completion percentage, weak spots, and last updated time to `localStorage` under a stable key such as `ai10x:<topic>:lesson-01`.
-- **Detailed diagnostic records** — each mini-quiz MUST expose enough metadata for later AI diagnosis: question text, tested concept, chosen answer, correct answer (when available), correctness, feedback, and retry recommendation.
-- **Review targets (v2.2)** — self-check items MUST link to teaching sections with `href="#sX"` or `onclick="scrollToDetail('sX')"`. Wrong quiz feedback SHOULD point to the relevant concept section with a review target.
+- **Detailed diagnostic records** — each mini-quiz MUST expose enough metadata for later AI diagnosis: question text, tested concept, chosen answer, correct answer (when available), correctness, feedback, retry recommendation, and review target.
+- **Review targets (v2.2)** — self-check items MUST link to teaching sections with `href="#sX"` or `onclick="scrollToDetail('sX')"`. Every mini-quiz MUST set `data-review-target="#sX"` or an equivalent section id. Wrong-answer feedback MUST include a visible non-answer `复习 →` / `Review →` control that jumps to that target using `scrollToDetail()` or an anchor link.
 - **AI handoff actions** — include buttons to copy a detailed Markdown learning report to clipboard and to download a JSON record. Chinese mode downloads `学习记录.json`; English mode downloads `learning-record.json`.
 
 **Bottom-of-lesson navigation (REQUIRED):**
@@ -411,3 +411,4 @@ This is not an autonomous optimizer. Do not create branches, commits, scoring lo
 - **Quiz double-click corruption** — always guard mini-quiz answer handlers against repeated clicks.
 - **`scroll-margin-top` inconsistency** — use manual scroll position calculation instead of relying on CSS scroll-margin for cross-browser reliability.
 - **Checklist review-link bug** — clicking a `复习 →` / `Review →` link inside a checklist item must not toggle the checklist. Use `event.stopPropagation()` on the link and store checklist text from `.check-text`, not `textContent` from the whole item.
+- **Quiz review-link omission** — never show wrong-answer feedback without a same-page `复习 →` / `Review →` jump back to the exact explanation section for that question's tested concept.
