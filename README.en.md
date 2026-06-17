@@ -7,14 +7,20 @@
 </p>
 
 <p align="center">
-  <a href="LICENSE">MIT</a>
-  · <a href="https://skills.sh">Agent Skill</a>
-  · <strong>v2.5</strong>
-  · <a href="README.cn.md">中文</a>
-  · <a href="README.en.md">English</a>
-  · <a href="https://mp.weixin.qq.com/s/OsIiHKvV8h0e9URDjRBJnw?scene=1&amp;click_id=669507184">WeChat</a>
-  · <a href="https://zhuanlan.zhihu.com/p/2044006519017035140">Zhihu</a>
-  · <a href="https://lwbscu.github.io/ai-10x-learning-coach/promo-video.html">60s Demo</a>
+  <a href="https://github.com/lwbscu/ai-10x-learning-coach"><img alt="GitHub" src="https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github&logoColor=white"></a>
+  <a href="https://lwbscu.github.io/ai-10x-learning-coach/promo-video.html"><img alt="60s Demo" src="https://img.shields.io/badge/60s-Demo-0ea5e9?style=for-the-badge&logo=html5&logoColor=white"></a>
+  <a href="README.en.md"><img alt="Documentation" src="https://img.shields.io/badge/Documentation-English-7c3aed?style=for-the-badge&logo=readthedocs&logoColor=white"></a>
+  <a href="README.cn.md"><img alt="Chinese Documentation" src="https://img.shields.io/badge/%E4%B8%AD%E6%96%87-%E6%96%87%E6%A1%A3-c63c3c?style=for-the-badge"></a>
+  <a href="https://mp.weixin.qq.com/s/OsIiHKvV8h0e9URDjRBJnw?scene=1&amp;click_id=669507184"><img alt="WeChat" src="https://img.shields.io/badge/WeChat-%E5%BE%AE%E4%BF%A1-07c160?style=for-the-badge&logo=wechat&logoColor=white"></a>
+  <a href="https://zhuanlan.zhihu.com/p/2044006519017035140"><img alt="Zhihu" src="https://img.shields.io/badge/Zhihu-%E4%B8%93%E6%A0%8F-1772f6?style=for-the-badge&logo=zhihu&logoColor=white"></a>
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img alt="License MIT" src="https://img.shields.io/badge/License-MIT-64748b?style=for-the-badge"></a>
+  <a href="https://skills.sh"><img alt="Agent Skill Compatible" src="https://img.shields.io/badge/Agent%20Skill-Compatible-22c55e?style=for-the-badge"></a>
+  <img alt="Version 2.5" src="https://img.shields.io/badge/version-2.5-38bdf8?style=for-the-badge">
+  <a href="README.en.md"><img alt="Language English" src="https://img.shields.io/badge/lang-English-0284c7?style=for-the-badge"></a>
+  <a href="README.cn.md"><img alt="Language Simplified Chinese" src="https://img.shields.io/badge/%E8%AF%AD%E8%A8%80-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-c63c3c?style=for-the-badge"></a>
 </p>
 
 **Map first. Learn faster.**
