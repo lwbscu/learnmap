@@ -8,6 +8,8 @@ Language-specific naming is mandatory:
 - English mode: generated learning artifacts use English folder and file names.
 - Repository/skill functional files keep required names: `SKILL.md`, `README*.md`, `LICENSE`, `agents/openai.yaml`, and `references/*.md`.
 - Technical terms such as MDP, Q-Learning, PPO, DQN, and Bellman equation stay in English in both modes.
+- Optional mentor lens artifacts are created only when requested: Chinese mode uses `思维镜片.md`; English mode uses `mentor-lens.md`.
+- Courseware output mode is stored as `outputMode: fast | slow`. Fast mode creates one overview courseware page; slow mode creates the normal chapter-by-chapter lesson sequence.
 
 ---
 
@@ -27,6 +29,10 @@ Language-specific naming is mandatory:
 │   └── 课件.html            # 交互式课件 + 嵌入式测验
 ├── 第03课-价值函数/
 │   └── 课件.html
+├── 快速总览/
+│   └── 课件.html            # fast mode only: one condensed overview courseware page
+├── 视频讲解.html              # optional, only when accepted
+├── 思维镜片.md                # optional, only when requested
 └── ...
 ```
 
@@ -44,6 +50,10 @@ learning/<topic-slug>/
 │   └── index.html          # Interactive lesson + embedded quiz
 ├── lesson-03-<slug>/
 │   └── index.html
+├── fast-overview/
+│   └── index.html          # fast mode only: one condensed overview courseware page
+├── video-explainer.html       # optional, only when accepted
+├── mentor-lens.md             # optional, only when requested
 └── ...
 ```
 
@@ -53,8 +63,14 @@ learning/<topic-slug>/
 |------|-----------|--------------|-------------|---------------|
 | Chinese | `学习/强化学习/` | `第01课-全局地图/` | `课件.html` | embedded |
 | Chinese | `学习/强化学习/` | `第02课-MDP详解/` | `课件.html` | embedded |
+| Chinese | `学习/强化学习/` | `快速总览/` | `课件.html` | embedded |
+| Chinese | `学习/强化学习/` | root workspace | `视频讲解.html` | optional |
+| Chinese | `学习/强化学习/` | root workspace | `思维镜片.md` | optional |
 | English | `learning/reinforcement-learning/` | `lesson-01-global-map/` | `index.html` | embedded |
 | English | `learning/reinforcement-learning/` | `lesson-02-mdp/` | `index.html` | embedded |
+| English | `learning/reinforcement-learning/` | `fast-overview/` | `index.html` | embedded |
+| English | `learning/reinforcement-learning/` | root workspace | `video-explainer.html` | optional |
+| English | `learning/reinforcement-learning/` | root workspace | `mentor-lens.md` | optional |
 
 ---
 
@@ -72,7 +88,10 @@ English mode path: `_meta/profile.md`
 - **Goal / 目标**: [project / interview / interest / exam / paper]
 - **Deadline / 时间规划**: [if any]
 - **Preferred Style / 讲解风格**: [detailed / concise, interactive HTML]
+- **Output Mode / 课件输出模式**: [fast / slow]
 - **Success Criteria / 成功标准**: [what "done" looks like]
+- **Video Explainer / 视频讲解**: [offered / accepted / declined]
+- **Mentor Lens / 思维镜片**: [none / lens name]
 ```
 
 ---
@@ -86,12 +105,39 @@ English mode path: `_meta/progress.md`
 # Progress / 进度追踪
 
 - Current / 当前进度: **Lesson X — [name]**
+- Output mode / 课件输出模式: [fast / slow]
 - Completed / 已完成:
-  - Lesson 1 ✅
+  - Lesson 1 done
   - ...
 - Weak spots / 薄弱点: [concepts to revisit]
 - Next / 下一步: [specific action + command to type]
+- Video explainer / 视频讲解: [offered / accepted / declined, output path if accepted]
+- Mentor lens / 思维镜片: [none / lens name, output path if requested]
 ```
+
+---
+
+## Fast Mode Courseware
+
+Chinese mode path: `快速总览/课件.html`
+English mode path: `fast-overview/index.html`
+
+Fast mode is one complete compressed interactive HTML courseware page. It is for quickly understanding the whole picture before deciding whether to go deep.
+
+It MUST include:
+
+- a core question and one-sentence field definition
+- a global map with 5-9 modules and visible relationships
+- essential vocabulary and "ignore for now" guidance
+- a core workflow or mental model
+- 3-5 concrete examples that connect back to the map
+- common traps and false friends
+- embedded mini mastery checks
+- an end-card checklist with same-page review links
+- a next-step plan for expanding into slow mode
+- a learning record export with `"outputMode": "fast"`
+
+It MUST NOT create `第01课-*` / `lesson-01-*` and later lesson folders unless the learner explicitly asks to switch to slow mode or expand a module.
 
 ---
 
@@ -269,6 +315,8 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
     lessonId: "lesson-N",
     lessonTitle: "[Lesson Title]",
     language: "zh-CN", // or "en"
+    outputMode: "slow", // "fast" for 快速总览 / fast-overview
+    mentorLens: "none", // or requested lens name
     nextCommand: "[Command to type in Claude Code]",
     recordFileName: "学习记录.json" // English mode: "learning-record.json"
   };
@@ -379,6 +427,8 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
       lessonId: LESSON_META.lessonId,
       lessonTitle: LESSON_META.lessonTitle,
       language: LESSON_META.language,
+      outputMode: LESSON_META.outputMode || "slow",
+      mentorLens: LESSON_META.mentorLens || "none",
       updatedAt: new Date().toISOString(),
       completion: {
         percent: completion,
@@ -451,6 +501,8 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
     lines.push((isZh ? "- 完成度: " : "- Completion: ") + record.completion.percent + "%");
     lines.push((isZh ? "- 测验: " : "- Quiz: ") + record.completion.quizCorrect + "/" + record.quiz.length);
     lines.push((isZh ? "- 自检: " : "- Checklist: ") + record.completion.checklistChecked + "/" + record.completion.checklistTotal);
+    lines.push((isZh ? "- 输出模式: " : "- Output mode: ") + (record.outputMode || "slow"));
+    lines.push((isZh ? "- 思维镜片: " : "- Mentor lens: ") + (record.mentorLens || "none"));
     lines.push((isZh ? "- 更新时间: " : "- Updated: ") + record.updatedAt);
     lines.push("");
     lines.push(isZh ? "## 答题明细" : "## Quiz Details");
@@ -603,6 +655,7 @@ Every lesson must support both local persistence and AI handoff:
 - Provide a copy button that copies a detailed Markdown report to clipboard. The report must include every quiz question, selected answer, correct/wrong status, correct answer when available, feedback, retry suggestion, all checked/unchecked self-check items, each item's review target, weak spots, and next command.
 - Provide a download button for a portable JSON file.
 - Checklist export MUST read `.check-text`, not the entire `.check-item`, so labels like `复习 →` / `Review →` do not pollute the learning record.
+- JSON export MUST include `outputMode` so a later AI session knows whether to continue fast overview behavior or slow chapter-by-chapter behavior.
 - Chinese mode download name: `学习记录.json`.
 - English mode download name: `learning-record.json`.
 
@@ -615,6 +668,8 @@ Required JSON shape:
   "lessonId": "lesson-01",
   "lessonTitle": "第01课：全局地图",
   "language": "zh-CN",
+  "outputMode": "slow",
+  "mentorLens": "none",
   "updatedAt": "2026-05-29T00:00:00.000Z",
   "completion": {
     "percent": 75,

@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="LearnMap usage walkthrough: install the skill, ask a learning question, generate interactive courseware, practice, export, and continue.">
+  <title>LearnMap | Usage Walkthrough</title>
+  <style>
+    :root {
+      --bg: #05070a;
+      --panel: #0a0f15;
+      --panel2: #101820;
+      --line: #27323c;
+      --text: #eef5ff;
+      --muted: #7e8b9a;
+      --cyan: #38bdf8;
+      --green: #85f0b2;
+      --violet: #a855f7;
+      --amber: #f4c86a;
+      --red: #ff6b6b;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; background: var(--bg); }
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: Inter, "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 88% 12%, rgba(168, 85, 247, 0.11), transparent 27%),
+        radial-gradient(circle at 70% 18%, rgba(56, 189, 248, 0.1), transparent 30%),
+        radial-gradient(circle at 22% 36%, rgba(133, 240, 178, 0.08), transparent 28%),
+        #05070a;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.42;
+      background:
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.035) 0 1px, transparent 1px 4px),
+        linear-gradient(rgba(255,255,255,0.032) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.026) 1px, transparent 1px);
+      background-size: auto, 80px 80px, 80px 80px;
+      mask-image: linear-gradient(180deg, black, transparent 92%);
+    }
+
+    a { color: var(--cyan); text-decoration: none; border-bottom: 1px solid rgba(56,189,248,0.55); }
+    code, pre { font-family: Consolas, "SFMono-Regular", ui-monospace, monospace; }
+
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 30;
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 0 22px;
+      background: rgba(5, 7, 10, 0.82);
+      border-bottom: 1px solid rgba(238,245,255,0.08);
+      backdrop-filter: blur(16px);
+    }
+
+    .brand {
+      color: var(--text);
+      font: 800 0.82rem/1 Consolas, ui-monospace, monospace;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .links { display: flex; gap: 14px; font-size: 0.9rem; }
+
+    .wrap {
+      position: relative;
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 84px 0 24px;
+      display: grid;
+      grid-template-columns: minmax(250px, 300px) minmax(0, 1fr);
+      gap: 24px;
+      min-height: 100vh;
+    }
+
+    .wrap > *,
+    .stage,
+    .window,
+    .thread,
+    .side,
+    .browser,
+    .course,
+    .lesson,
+    .tree {
+      min-width: 0;
+    }
+
+    .intro {
+      align-self: center;
+      display: grid;
+      gap: 22px;
+    }
+
+    .eyebrow {
+      color: var(--green);
+      font: 800 0.72rem/1 Consolas, ui-monospace, monospace;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.55rem, 4.5vw, 3.85rem);
+      line-height: 0.94;
+      letter-spacing: -0.03em;
+      overflow-wrap: normal;
+    }
+
+    h1 em {
+      color: var(--cyan);
+      font-style: normal;
+      text-shadow: 0 0 34px rgba(168,85,247,0.22);
+    }
+
+    h1 span {
+      display: block;
+    }
+
+    .intro p {
+      margin: 0;
+      color: #c8d4e1;
+      font-size: 1rem;
+      overflow-wrap: normal;
+    }
+
+    .steps {
+      display: grid;
+      border: 1px solid rgba(238,245,255,0.11);
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(10,15,21,0.72);
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 46px 1fr;
+      gap: 10px;
+      padding: 11px 12px;
+      border-bottom: 1px solid rgba(238,245,255,0.08);
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    .step:last-child { border-bottom: 0; }
+    .step strong {
+      color: var(--muted);
+      font-family: Consolas, ui-monospace, monospace;
+    }
+    .step.active {
+      color: var(--text);
+      background: linear-gradient(90deg, rgba(56,189,248,0.09), rgba(168,85,247,0.07));
+    }
+    .step.active strong { color: var(--cyan); }
+
+    .stage {
+      align-self: center;
+      border: 1px solid rgba(238,245,255,0.12);
+      border-radius: 16px;
+      overflow: hidden;
+      background: rgba(7,10,14,0.88);
+      min-height: 650px;
+      box-shadow: 0 30px 120px rgba(0,0,0,0.52);
+      position: relative;
+    }
+
+    .stage-head {
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 15px;
+      border-bottom: 1px solid rgba(238,245,255,0.1);
+      background: rgba(255,255,255,0.025);
+      color: var(--muted);
+      font: 0.78rem Consolas, ui-monospace, monospace;
+    }
+
+    .dots { display: flex; gap: 8px; }
+    .dots span {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #34424e;
+    }
+
+    .scene {
+      position: absolute;
+      inset: 44px 0 118px;
+      padding: 22px;
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.42s ease, transform 0.42s ease;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .scene.active {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .scene-title {
+      color: var(--green);
+      font: 800 0.78rem/1 Consolas, ui-monospace, monospace;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .window {
+      border: 1px solid rgba(238,245,255,0.12);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #070b10;
+      min-height: 430px;
+    }
+
+    .window-head {
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      border-bottom: 1px solid rgba(238,245,255,0.1);
+      color: var(--muted);
+      font: 0.76rem Consolas, ui-monospace, monospace;
+      background: rgba(255,255,255,0.025);
+    }
+
+    .terminal {
+      padding: 18px;
+      color: #d9e4ee;
+      font: 0.9rem/1.75 Consolas, ui-monospace, monospace;
+      overflow-wrap: break-word;
+      word-break: normal;
+    }
+
+    .cmd { color: var(--green); }
+    .dim { color: var(--muted); }
+    .cyan { color: var(--cyan); }
+    .ok { color: #b7f7ce; }
+    .warn { color: var(--amber); }
+
+    .chat {
+      display: grid;
+      grid-template-columns: 1fr 230px;
+      gap: 14px;
+      height: 100%;
+    }
+
+    .thread,
+    .side,
+    .browser,
+    .course {
+      border: 1px solid rgba(238,245,255,0.11);
+      border-radius: 12px;
+      background: rgba(16,24,32,0.72);
+      padding: 16px;
+      overflow: hidden;
+    }
+
+    .bubble {
+      max-width: 82%;
+      margin-bottom: 12px;
+      padding: 11px 13px;
+      border: 1px solid rgba(238,245,255,0.12);
+      border-radius: 12px;
+      color: #dce8f4;
+      background: rgba(255,255,255,0.04);
+      overflow-wrap: anywhere;
+    }
+
+    .bubble.user { margin-left: auto; border-color: rgba(56,189,248,0.3); background: linear-gradient(135deg, rgba(56,189,248,0.08), rgba(168,85,247,0.06)); }
+    .bubble.ai { border-color: rgba(133,240,178,0.22); background: rgba(133,240,178,0.06); }
+
+    .side strong,
+    .card strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .side code {
+      display: block;
+      white-space: pre-wrap;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 0.82rem;
+    }
+
+    .files {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .tree {
+      border: 1px solid rgba(238,245,255,0.1);
+      border-radius: 12px;
+      background: rgba(7,11,16,0.88);
+      padding: 16px;
+      font: 0.86rem/1.9 Consolas, ui-monospace, monospace;
+      color: #dce8f4;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .card {
+      min-height: 110px;
+      border: 1px solid rgba(238,245,255,0.1);
+      border-radius: 12px;
+      background: rgba(16,24,32,0.72);
+      padding: 13px;
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    .browser {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 14px;
+      min-height: 455px;
+    }
+
+    .toc {
+      display: grid;
+      align-content: start;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .toc span {
+      border: 1px solid rgba(238,245,255,0.08);
+      border-radius: 8px;
+      padding: 9px;
+      background: rgba(255,255,255,0.035);
+    }
+
+    .toc .active { color: var(--cyan); border-color: rgba(56,189,248,0.36); }
+
+    .lesson {
+      border: 1px solid rgba(238,245,255,0.1);
+      border-radius: 12px;
+      background: #0d141d;
+      overflow: hidden;
+    }
+
+    .lesson-head {
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      border-bottom: 1px solid rgba(238,245,255,0.09);
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .lesson-body {
+      padding: 18px;
+    }
+
+    .lesson h2 { margin: 0 0 8px; font-size: 1.7rem; }
+    .lesson p { color: var(--muted); margin: 0 0 15px; }
+
+    .map {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 9px;
+    }
+
+    .node {
+      min-height: 70px;
+      border: 1px solid rgba(56,189,248,0.22);
+      border-radius: 10px;
+      background: rgba(56,189,248,0.06);
+      display: grid;
+      place-items: center;
+      color: #dff4ff;
+      font-weight: 780;
+    }
+
+    .course {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      min-height: 455px;
+    }
+
+    .quiz,
+    .checklist {
+      border: 1px solid rgba(238,245,255,0.1);
+      border-radius: 12px;
+      background: #0d141d;
+      padding: 15px;
+    }
+
+    .quiz h3,
+    .checklist h3 { margin: 0 0 12px; }
+
+    .choice,
+    .check {
+      border: 1px solid rgba(238,245,255,0.11);
+      border-radius: 9px;
+      padding: 10px;
+      margin-bottom: 9px;
+      color: #dce8f4;
+      background: rgba(255,255,255,0.035);
+    }
+
+    .choice.good,
+    .check.done { border-color: rgba(133,240,178,0.36); background: rgba(133,240,178,0.07); }
+
+    .export {
+      margin-top: 12px;
+      border: 1px solid rgba(56,189,248,0.25);
+      border-radius: 9px;
+      padding: 11px;
+      color: var(--cyan);
+      background: rgba(56,189,248,0.06);
+      font: 0.82rem/1.55 Consolas, ui-monospace, monospace;
+    }
+
+    .caption {
+      position: absolute;
+      left: 22px;
+      right: 22px;
+      bottom: 54px;
+      min-height: 64px;
+      border-top: 1px solid rgba(238,245,255,0.09);
+      padding-top: 14px;
+    }
+
+    .caption-cn { color: var(--text); font-weight: 800; }
+    .caption-en { color: var(--muted); font-size: 0.9rem; margin-top: 3px; }
+    .caption-cn,
+    .caption-en { overflow-wrap: anywhere; }
+
+    .progress {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      height: 3px;
+      width: 0%;
+      background: linear-gradient(90deg, var(--green), var(--cyan), var(--violet));
+    }
+
+    .controls {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 45px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-top: 1px solid rgba(238,245,255,0.09);
+      background: rgba(5,7,10,0.9);
+    }
+
+    .controls button {
+      border: 0;
+      border-right: 1px solid rgba(238,245,255,0.09);
+      background: transparent;
+      color: var(--text);
+      font: 800 0.84rem Inter, system-ui, sans-serif;
+      cursor: pointer;
+    }
+
+    .controls button:last-child { border-right: 0; }
+    .controls button:hover { background: rgba(56,189,248,0.08); color: var(--cyan); }
+
+    .embed .topbar { display: none; }
+    .embed .wrap {
+      width: 100%;
+      min-height: 100vh;
+      padding: 0;
+      grid-template-columns: minmax(250px, 280px) minmax(0, 1fr);
+    }
+    .embed .stage { min-height: 100vh; border-radius: 0; border-top: 0; border-bottom: 0; }
+    .embed .intro { padding-left: 18px; }
+
+    @media (max-width: 980px) {
+      .wrap,
+      .embed .wrap {
+        grid-template-columns: 1fr;
+        padding: 70px 14px 18px;
+      }
+      .embed .wrap { padding-top: 0; }
+      .intro { align-self: auto; }
+      .steps { display: none; }
+      .stage { min-height: 690px; }
+      .embed .stage { min-height: 760px; }
+    }
+
+    @media (max-width: 620px) {
+      .topbar { position: static; height: auto; align-items: flex-start; flex-direction: column; padding: 14px; }
+      .wrap,
+      .embed .wrap {
+        width: 100%;
+        max-width: 100vw;
+        padding: 18px 14px;
+        overflow: hidden;
+      }
+      .embed .wrap { padding-top: 0; }
+      .intro,
+      .stage {
+        width: calc(100vw - 52px) !important;
+        max-width: calc(100vw - 52px) !important;
+      }
+      h1 { font-size: 3.05rem; }
+      .intro p { max-width: 100%; font-size: 0.94rem; overflow-wrap: break-word; }
+      .stage { min-height: 760px; }
+      .scene { padding: 14px; inset-bottom: 126px; }
+      .chat, .files, .browser, .course { grid-template-columns: 1fr; }
+      .side, .toc { display: none; }
+      .cards { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .map { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .node { min-height: 54px; }
+      .window, .browser, .course { min-height: 470px; }
+      .window-head span:last-child { display: none; }
+      .lesson-head span:last-child { display: none; }
+      .terminal { font-size: 0.68rem; line-height: 1.66; word-break: normal; }
+      .tree {
+        font-size: 0.66rem;
+        line-height: 1.52;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        padding: 12px;
+      }
+      .card {
+        min-height: 84px;
+        padding: 10px;
+        font-size: 0.74rem;
+      }
+      .bubble { max-width: 92%; font-size: 0.9rem; }
+      .bubble.user { margin-left: 0; }
+      .caption-cn { font-size: 0.95rem; }
+      .caption-en { font-size: 0.8rem; }
+      .caption { left: 14px; right: 14px; bottom: 54px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">LEARNMAP / USAGE WALKTHROUGH</div>
+    <nav class="links" aria-label="Page links">
+      <a href="./index.html">Home</a>
+      <a href="https://github.com/lwbscu/ai-10x-learning-coach">GitHub</a>
+      <a href="https://github.com/lwbscu/ai-10x-learning-coach/blob/main/README.md">README</a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <aside class="intro" aria-label="Walkthrough summary">
+      <div>
+        <p class="eyebrow">FROM INSTALL TO FIRST LESSON</p>
+        <h1><span>Use</span><span><em>LearnMap</em></span></h1>
+        <p>Install the skill, ask a real question, generate local HTML courseware, practice in the page, then export a record so AI can continue from weak spots.</p>
+      </div>
+      <div class="steps" id="steps">
+        <div class="step active"><strong>01</strong><span>Install skill</span></div>
+        <div class="step"><strong>02</strong><span>Ask a real question</span></div>
+        <div class="step"><strong>03</strong><span>Pick language and mode</span></div>
+        <div class="step"><strong>04</strong><span>Generate courseware</span></div>
+        <div class="step"><strong>05</strong><span>Open HTML lesson</span></div>
+        <div class="step"><strong>06</strong><span>Practice and export</span></div>
+        <div class="step"><strong>07</strong><span>Continue from weak spots</span></div>
+      </div>
+    </aside>
+
+    <section class="stage" aria-label="LearnMap usage walkthrough video">
+      <div class="stage-head">
+        <span id="sceneCounter">01 / 07</span>
+        <div class="dots"><span></span><span></span><span></span></div>
+      </div>
+
+      <article class="scene active">
+        <div class="scene-title">01 / INSTALL LEARNMAP</div>
+        <div class="window">
+          <div class="window-head"><span>PowerShell</span><span>~/.claude/skills</span></div>
+          <div class="terminal">
+            <span class="dim"># User-level install, available across projects</span><br>
+            <span class="cmd">$</span> mkdir -p ~/.claude/skills<br>
+            <span class="cmd">$</span> git clone https://github.com/lwbscu/<br>
+            <span class="cmd">&gt;</span> ai-10x-learning-coach.git<br>
+            <span class="dim">target: ~/.claude/skills/learnmap-skill</span><br><br>
+            <span class="ok">Cloning into 'learnmap-skill'...</span><br>
+            <span class="ok">Skill installed: learnmap-skill</span><br>
+            <span class="dim">Ready inside Claude Code / Codex.</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="scene">
+        <div class="scene-title">02 / ASK A REAL QUESTION</div>
+        <div class="chat">
+          <div class="thread">
+            <div class="bubble user">Use learnmap-skill to teach me reinforcement learning. I know Python and want to run a small experiment in one week.</div>
+            <div class="bubble ai">中文版还是 English version?</div>
+            <div class="bubble user">English.</div>
+            <div class="bubble ai">I will map the field first, then create interactive courseware with checks and a learning record.</div>
+          </div>
+          <aside class="side">
+            <strong>Skill invoked</strong>
+            <code>name: learnmap-skill
+topic: reinforcement learning
+background: Python
+goal: one-week experiment</code>
+          </aside>
+        </div>
+      </article>
+
+      <article class="scene">
+        <div class="scene-title">03 / CHOOSE MODE</div>
+        <div class="chat">
+          <div class="thread">
+            <div class="bubble ai">Courseware mode: fast overview or slow deep-course mode? Default is slow.</div>
+            <div class="bubble user">Slow mode. I want the structure and the details.</div>
+            <div class="bubble ai">Confirmed. I will create a global map first, then continue chapter by chapter.</div>
+          </div>
+          <aside class="side">
+            <strong>Profile fields</strong>
+            <code>language: en
+outputMode: slow
+videoExplainer: offered
+mentorLens: none</code>
+          </aside>
+        </div>
+      </article>
+
+      <article class="scene">
+        <div class="scene-title">04 / GENERATE COURSEWARE</div>
+        <div class="files">
+          <div class="tree">
+learning/reinforcement-learning/
+├── _meta/
+│   ├── profile.md
+│   ├── progress.md
+│   └── mistakes.md
+├── lesson-01-global-map/
+│   └── index.html
+└── lesson-02-mdp/
+          </div>
+          <div class="cards">
+            <div class="card"><strong>Global map</strong><span>5-9 modules, dependencies, vocabulary, and traps.</span></div>
+            <div class="card"><strong>Interactive lesson</strong><span>Tabs, concept cards, quiz feedback, review links.</span></div>
+            <div class="card"><strong>Mastery checks</strong><span>Questions test distinctions, boundaries, and application.</span></div>
+            <div class="card"><strong>Learning record</strong><span>Copy Markdown or JSON for AI follow-up.</span></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="scene">
+        <div class="scene-title">05 / OPEN THE LESSON</div>
+        <div class="browser">
+          <nav class="toc">
+            <span class="active">0. Core question</span>
+            <span>1. Field map</span>
+            <span>2. MDP foundation</span>
+            <span>3. Common traps</span>
+            <span>4. Mastery check</span>
+          </nav>
+          <div class="lesson">
+            <div class="lesson-head"><span>Reinforcement Learning / Lesson 01</span><span>0% complete</span></div>
+            <div class="lesson-body">
+              <h2>Start with the map</h2>
+              <p>The page is not a static note. It is local HTML courseware with clickable concepts and embedded checks.</p>
+              <div class="map">
+                <div class="node">Agent</div>
+                <div class="node">Environment</div>
+                <div class="node">Reward</div>
+                <div class="node">State</div>
+                <div class="node">Action</div>
+                <div class="node">Policy</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="scene">
+        <div class="scene-title">06 / PRACTICE AND EXPORT</div>
+        <div class="course">
+          <div class="quiz">
+            <h3>Learn and Practice</h3>
+            <div class="choice">A. Bigger models solve the learning loop.</div>
+            <div class="choice good">B. The agent needs reward feedback and policy updates.</div>
+            <div class="choice">C. Memorizing terms is enough.</div>
+            <div class="export">diagnosis: correct
+concept: reward + policy
+next: continue to MDP</div>
+          </div>
+          <div class="checklist">
+            <h3>Self-check</h3>
+            <div class="check done">I can explain Agent and Environment.</div>
+            <div class="check done">I can explain why reward matters.</div>
+            <div class="check">I need to revisit the MDP tuple.</div>
+            <div class="export">Copy learning record
+Download learning-record.json</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="scene">
+        <div class="scene-title">07 / CONTINUE WITH MEMORY</div>
+        <div class="chat">
+          <div class="thread">
+            <div class="bubble user">Learning record: I missed the MDP tuple self-check.</div>
+            <div class="bubble ai">I will reteach MDP with a simpler example, then retest.</div>
+            <div class="bubble ai">Optional HTML video explainer for this lesson? Default stays HTML courseware.</div>
+            <div class="bubble user">Not now. Continue Lesson 2.</div>
+          </div>
+          <aside class="side">
+            <strong>Next command</strong>
+            <code>Continue Lesson 2: MDP
+weakSpots: mdp-tuple
+outputMode: slow</code>
+          </aside>
+        </div>
+      </article>
+
+      <div class="caption" aria-live="polite">
+        <div class="caption-cn" id="captionCn">先安装 LearnMap。它会成为 Claude Code / Codex 可调用的学习 skill。</div>
+        <div class="caption-en" id="captionEn">Install LearnMap first. It becomes a reusable learning skill inside Claude Code / Codex.</div>
+      </div>
+      <div class="controls">
+        <button type="button" id="playBtn">Pause</button>
+        <button type="button" id="restartBtn">Restart</button>
+        <button type="button" id="nextBtn">Next</button>
+      </div>
+      <div class="progress" id="progress"></div>
+    </section>
+  </main>
+
+  <script>
+    var params = new URLSearchParams(window.location.search);
+    if (params.get("embed") === "1") {
+      document.body.classList.add("embed");
+    }
+
+    var duration = 63;
+    var sceneLength = 9;
+    var requestedScene = parseInt(params.get("scene"), 10);
+    var hasRequestedScene = !isNaN(requestedScene);
+    var requestedIndex = hasRequestedScene ? Math.max(0, Math.min(6, requestedScene - 1)) : 0;
+    var currentTime = requestedIndex * sceneLength;
+    var lastTick = 0;
+    var playing = !hasRequestedScene;
+    var scenes = document.querySelectorAll(".scene");
+    var steps = document.querySelectorAll(".step");
+    var captionCn = document.getElementById("captionCn");
+    var captionEn = document.getElementById("captionEn");
+    var counter = document.getElementById("sceneCounter");
+    var progress = document.getElementById("progress");
+    var playBtn = document.getElementById("playBtn");
+    var restartBtn = document.getElementById("restartBtn");
+    var nextBtn = document.getElementById("nextBtn");
+
+    var captions = [
+      ["先安装 LearnMap。它会成为 Claude Code / Codex 可调用的学习 skill。", "Install LearnMap first. It becomes a reusable learning skill inside Claude Code / Codex."],
+      ["用真实目标提问：主题、背景、时间和结果越清楚，课件越贴合。", "Ask with a real goal: topic, background, timing, and outcome make the course sharper."],
+      ["先选语言，再选快速总览或慢速逐章；没有指定时默认慢速。", "Pick language, then choose fast overview or slow deep-course mode; default is slow."],
+      ["LearnMap 在本地生成课程目录、学习档案、进度、错题和 HTML 课件。", "LearnMap generates local folders, profile, progress, mistakes, and HTML courseware."],
+      ["打开课件：这是可交互网页，不是静态笔记。", "Open the lesson: an interactive web page, not a static note."],
+      ["在网页里答题、自检、回跳复习，并导出学习记录给 AI 接力。", "Practice, self-check, review, and export the learning record for AI follow-up."],
+      ["下一课从薄弱点继续；视频讲解和 mentor lens 可选。", "Continue from weak spots; video explainers and mentor lenses remain optional."]
+    ];
+
+    function pad(n) {
+      return n < 10 ? "0" + n : "" + n;
+    }
+
+    function sceneIndex(value) {
+      var index = Math.floor(value / sceneLength);
+      if (index < 0) index = 0;
+      if (index > scenes.length - 1) index = scenes.length - 1;
+      return index;
+    }
+
+    function render(index) {
+      var i;
+      for (i = 0; i < scenes.length; i += 1) scenes[i].classList.toggle("active", i === index);
+      for (i = 0; i < steps.length; i += 1) steps[i].classList.toggle("active", i === index);
+      captionCn.textContent = captions[index][0];
+      captionEn.textContent = captions[index][1];
+      counter.textContent = pad(index + 1) + " / " + pad(scenes.length);
+      progress.style.width = Math.min(100, currentTime / duration * 100) + "%";
+      playBtn.textContent = playing ? "Pause" : "Play";
+    }
+
+    function tick(ts) {
+      if (!lastTick) lastTick = ts;
+      if (playing) {
+        currentTime += (ts - lastTick) / 1000;
+        if (currentTime >= duration) {
+          currentTime = duration;
+          playing = false;
+        }
+      }
+      lastTick = ts;
+      render(sceneIndex(currentTime));
+      window.requestAnimationFrame(tick);
+    }
+
+    playBtn.addEventListener("click", function() {
+      playing = !playing;
+      lastTick = 0;
+      render(sceneIndex(currentTime));
+    });
+
+    restartBtn.addEventListener("click", function() {
+      currentTime = 0;
+      playing = true;
+      lastTick = 0;
+      render(0);
+    });
+
+    nextBtn.addEventListener("click", function() {
+      var next = sceneIndex(currentTime) + 1;
+      if (next >= scenes.length) next = 0;
+      currentTime = next * sceneLength;
+      lastTick = 0;
+      render(next);
+    });
+
+    document.addEventListener("keydown", function(event) {
+      if (event.code === "Space") {
+        event.preventDefault();
+        playing = !playing;
+        lastTick = 0;
+      }
+    });
+
+    render(sceneIndex(currentTime));
+    window.requestAnimationFrame(tick);
+  </script>
+</body>
+</html>

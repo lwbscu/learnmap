@@ -1,18 +1,22 @@
 ---
-name: ai-10x-learning-coach
-description: Personalized AI learning coach for Claude Code/Codex. Use when the user wants to learn an unfamiliar domain, build a 1-2 week learning plan, turn articles/docs/repos into a curriculum, get "10x learning" guidance, receive chapter-by-chapter interactive HTML teaching, create concept maps, run mastery quizzes, generate self-check review links, or use an agent as a tutor that adapts to the learner's background and mistakes.
+name: learnmap-skill
+description: Map-first personalized learning skill for Claude Code/Codex. Use when the user wants to learn an unfamiliar domain, build a 1-2 week learning plan, turn articles/docs/repos into a curriculum, get structured learning guidance, choose fast one-chapter overview mode or slow chapter-by-chapter mode, receive interactive HTML teaching, create concept maps, run mastery quizzes, generate self-check review links, optionally create short HTML video visual explainers, optionally explain through a named thinker/domain mentor lens, or use an agent as a tutor that adapts to the learner's background and mistakes.
 ---
 
-# AI 10x Learning Coach / AI 10倍学习教练
+# LearnMap
 
 ## Step 0 — Language Selection (MANDATORY)
 
-**Before any teaching begins, you MUST ask the learner to choose a language.**
+**Before any new teaching begins, you MUST know the learner's language.**
 
-Ask exactly this as your first interaction:
+For a new learning session, ask exactly this as your first interaction:
 
-> 🌐 **中文版还是 English version?**  
+> **中文版还是 English version?**
 > *(All lesson content, quizzes, folder names, and prompts will be in your chosen language. Technical terms like "MDP", "Q-Learning", "policy gradient" will remain in English regardless.)*
+
+If the learner is resuming and a profile/progress file or exported learning record already contains `language`, use that stored language and do not ask again.
+
+If the first user message already contains topic, background, deadline, video request, or mentor-lens request, preserve those details as pending context while asking the language question. After the language is chosen, continue from the preserved context instead of asking the same questions again.
 
 Once the learner chooses:
 
@@ -27,6 +31,12 @@ Once the learner chooses:
 
 Record the language choice in the language-specific profile file: `元数据/学习档案.md` for Chinese mode, `_meta/profile.md` for English mode.
 
+Also initialize `videoExplainer: offered | accepted | declined` in the profile/progress files once the optional video explainer has been offered.
+
+Also initialize `mentorLens: none | <lens-name>` in the profile/progress files. Keep it as `none` unless the learner explicitly asks for a named thinker, expert, or domain framework lens.
+
+Also initialize `outputMode: fast | slow` in the profile/progress files. Use `slow` by default unless the learner explicitly asks for fast mode, quick overview, one-chapter overview, or similar wording.
+
 ---
 
 ## Purpose
@@ -39,9 +49,9 @@ This skill is distilled from the workflow in the article "如何用 Claude Code 
 
 ## Core Rules
 
-- **Step 0 is mandatory.** Always ask language first, before anything else.
+- **Step 0 is mandatory for new sessions.** Always establish language first, before teaching. Reuse stored language when resuming from profile/progress files or exported learning records.
 - Start with a global map before details.
-- Teach one module at a time.
+- Teach one module at a time in slow mode. In fast mode, compress the map, essentials, examples, traps, and checks into one complete overview page.
 - **Generate interactive HTML lessons** as the primary teaching medium (not plain markdown).
 - Explain concepts from at least three perspectives when useful: end user, business/operator, implementer/builder.
 - Use concrete examples immediately after abstract concepts.
@@ -51,6 +61,11 @@ This skill is distilled from the workflow in the article "如何用 Claude Code 
 - Do not advance after "I explained it"; advance only after the learner demonstrates understanding.
 - Keep a mistake log and use it to adapt future explanations and questions.
 - Avoid generating a giant complete textbook in one response.
+- Keep interactive HTML lessons as the default teaching artifact. Offer a short video-style visual explainer only once per topic or lesson, and do not generate it unless the learner accepts.
+- Keep neutral teaching as the default. Use a mentor lens only when the learner explicitly asks for one, such as "用费曼方式解释 PPO", "explain this like Karpathy", or "use a Munger-style lens".
+- When a mentor lens is active, use it to shape explanation structure, examples, questions, and boundaries. Do not role-play as the person, invent quotes, or claim the answer is the person's real view.
+- Support two courseware modes: `fast` creates one condensed but complete interactive HTML overview; `slow` creates the normal global-map lesson followed by chapter-by-chapter lessons. Default to `slow`.
+- Run a lightweight quality gate before finalizing lesson artifacts: verify workflow clarity, failure modes, review links, export data, browser interactions, and 2-3 dry-run prompts.
 - **v2.2 review loop:** every self-check checklist item MUST include a review link back to the exact explanation section in the same HTML page. Quizzes and weak spots SHOULD also include review targets when possible.
 
 ---
@@ -67,7 +82,30 @@ If the request is vague, ask at most three short questions:
 
 If the user already gave enough context, infer the rest and proceed.
 
-Create a learning workspace with **organized per-lesson structure**.
+When Step 0 preserved context from the first user message, merge it into calibration:
+
+- topic/background/deadline become profile fields
+- explicit fast-mode requests set `outputMode: fast`
+- explicit slow-mode or deep-learning requests set `outputMode: slow`
+- explicit video requests set `videoExplainer: accepted`
+- explicit mentor-lens requests set `mentorLens: <lens-name>` and route to [cognitive-distillation.md](references/cognitive-distillation.md) after language selection
+- do not ask duplicate questions for information already supplied
+
+Choose the courseware output mode before creating lesson files:
+
+- If the learner asks for "快速模式", "快速总览", "一章讲完", "quick overview", "fast mode", or a similar compressed overview, set `outputMode: fast`.
+- If the learner asks for "慢速模式", "逐章", "深入细节", "deep dive", "slow mode", or a similar progressive course, set `outputMode: slow`.
+- If the mode is not explicit and no stored profile/progress value exists, ask once: `课件输出模式：快速模式（一章浓缩全貌）还是慢速模式（逐章全貌+细节）？默认慢速。`
+- If the learner does not answer the mode question, continue with `outputMode: slow`.
+- When resuming, use the stored `outputMode` and do not ask again unless the learner wants to switch.
+
+Offer the optional video explainer once during calibration or at the end of a lesson:
+
+> 是否需要生成本主题/本课的视频可视化讲解？默认只生成交互式 HTML 课件。
+
+If the learner declines or does not answer, continue with the normal HTML lesson workflow. If the learner accepts, read [video-visualization.md](references/video-visualization.md) and generate the explainer after the current lesson artifact is complete.
+
+Create a learning workspace with **organized per-mode structure**.
 
 Chinese mode MUST use this naming style:
 
@@ -83,6 +121,10 @@ Chinese mode MUST use this naming style:
 │   └── 课件.html            # 交互式课件 + 嵌入式测验
 ├── 第03课-价值函数/
 │   └── 课件.html
+├── 快速总览/
+│   └── 课件.html            # fast mode only: one-chapter overview
+├── 视频讲解.html              # optional, only when accepted
+├── 思维镜片.md                # optional, only when a mentor lens is requested
 └── ...
 ```
 
@@ -100,14 +142,41 @@ learning/<topic-slug>/
 │   └── index.html          # Interactive lesson + embedded quiz
 ├── lesson-03-<slug>/
 │   └── index.html
+├── fast-overview/
+│   └── index.html          # fast mode only: one-chapter overview
+├── video-explainer.html       # optional, only when accepted
+├── mentor-lens.md             # optional, only when a mentor lens is requested
 └── ...
 ```
 
 Use [session-artifacts.md](references/session-artifacts.md) for templates.
 
-### 2. Build The Global Map First
+### 2. Build The Right Courseware Shape
 
-Before teaching details, produce a coarse domain map as an interactive HTML lesson:
+If `outputMode: fast`, create a single interactive HTML courseware page:
+
+- Chinese mode: `快速总览/课件.html`
+- English mode: `fast-overview/index.html`
+
+Fast mode is a complete compressed overview, not a thin summary. It MUST include:
+
+- one-sentence field definition and core question
+- global map with 5-9 modules and dependency relationships
+- essential vocabulary and what to ignore at the beginning
+- core workflow or mental model for the field
+- 3-5 high-value examples tied to the map
+- common traps and false friends
+- embedded mini mastery checks and self-check review links
+- a next-step slow-learning plan that can expand any module into chapter-by-chapter lessons
+- a learning record export with `outputMode: fast`
+
+Do not create multiple lesson folders in fast mode. If the learner later asks to go deeper, switch or continue with `outputMode: slow` and use the fast overview as Lesson 1 context.
+
+If `outputMode: slow`, build the normal global-map lesson first and continue chapter by chapter.
+
+### 2A. Build The Global Map First In Slow Mode
+
+Before teaching details in slow mode, produce a coarse domain map as an interactive HTML lesson:
 
 - Chinese mode: `第01课-全局地图/课件.html`
 - English mode: `lesson-01-global-map/index.html`
@@ -125,6 +194,8 @@ Then ask the learner to paraphrase the map or confirm the chapter plan. If they 
 For Lesson 1, embed a **mastery check section** with 3-4 questions inside the same HTML page. The learner should not need to open a separate quiz file.
 
 ### 3. Teach One Module At A Time (Interactive HTML)
+
+Use this section for slow mode lessons and for any later expansion from fast mode into a deep chapter.
 
 **For every lesson, including Lesson 1, generate one interactive HTML lesson page.** This is the primary delivery format.
 
@@ -171,7 +242,7 @@ Each HTML lesson MUST include:
 - **Save-on-interaction** — every quiz answer and checklist toggle calls `saveRecord()` and `updateRecordUI()`.
 - **Restore-on-load** — when the page loads, call `loadRecord()` to restore previous quiz/checklist state from `localStorage`.
 - **Copy format** — clipboard text MUST be a detailed Markdown report, not a terse dashboard. It must list every quiz question, whether it was correct, the learner's selected answer, the correct answer when available, feedback/retry notes, every checked/unchecked checklist item, weak spots, and next command.
-- **Export format** — exported JSON MUST include `topic`, `lessonId`, `lessonTitle`, `language`, `updatedAt`, `completion`, `quiz`, `checklist`, `weakSpots`, and `nextCommand`. Each `quiz` item MUST include `id`, `question`, `concept`, `answered`, `correct`, `choiceIndex`, `choiceText`, `correctAnswer`, `feedback`, `retrySuggestion`, and `reviewTarget` when available. Each checklist item MUST include clean `text`, `checked`, and `reviewTarget`.
+- **Export format** — exported JSON MUST include `topic`, `lessonId`, `lessonTitle`, `language`, `outputMode`, `mentorLens`, `updatedAt`, `completion`, `quiz`, `checklist`, `weakSpots`, and `nextCommand`. Each `quiz` item MUST include `id`, `question`, `concept`, `answered`, `correct`, `choiceIndex`, `choiceText`, `correctAnswer`, `feedback`, `retrySuggestion`, and `reviewTarget` when available. Each checklist item MUST include clean `text`, `checked`, and `reviewTarget`.
 - **Tab switching** — MUST query panels from the parent section (`section.querySelectorAll(".tab-panel")`), NOT from the tabs container (`.tabs` only contains buttons, not panels — this is a verified bug pattern to avoid)
 - **All JS uses `function` keyword and `var`** (not arrow functions or `const`/`let`) for maximum browser compatibility
 
@@ -190,6 +261,40 @@ Each HTML lesson MUST include:
 ```
 
 See [session-artifacts.md](references/session-artifacts.md) for a complete HTML lesson scaffold.
+
+### 3A. Optional Video Visual Explainer
+
+Only create a video-style visual explainer when the learner explicitly accepts the offer or asks for one.
+
+- Default output is an HTML motion page, not MP4.
+- Chinese mode output: `视频讲解.html`
+- English mode output: `video-explainer.html`
+- Target duration: 60-90 seconds unless the learner asks otherwise.
+- Include a concise script, 5-8 scenes, bilingual captions when useful, and a simple play/pause/restart control surface.
+- Use the lesson's concept map, examples, quiz weak spots, and next-step command as source material.
+- Follow [video-visualization.md](references/video-visualization.md) for the script, storyboard, asset checklist, visual style, and tool routing.
+- Use external video tools only when the requested delivery requires them: HyperFrames for finished motion-graphics MP4, Remotion for React/code-driven batch videos, video-use/videocut-skills for editing real footage, and generative media tools for AI b-roll or cinematic clips.
+
+### 3B. Optional Mentor Lens
+
+Only use a mentor lens when the learner explicitly asks to learn through a named thinker, expert, public figure, or domain framework.
+
+- Default state: `mentorLens: none`.
+- Chinese mode output: `思维镜片.md`.
+- English mode output: `mentor-lens.md`.
+- Read [cognitive-distillation.md](references/cognitive-distillation.md) before generating or applying the lens.
+- Use the lens as a teaching adapter: concept order, analogies, checks, counterexamples, and "what this lens would notice first".
+- Keep the normal learning workflow intact: global map first, one HTML lesson at a time, mastery checks, mistake log, and learning record export.
+- If public evidence is thin, label the lens as provisional and prefer a domain framework over a named-person lens.
+- If current facts matter, verify them before using them; otherwise mark the lens as a stable teaching analogy, not a current biography.
+- Preserve the learner's language choice. Technical terms remain in English.
+
+Do not:
+
+- speak as the person in first person
+- fabricate quotes, private beliefs, or recent views
+- make the lens override mastery checks
+- force every explanation through the lens when a neutral explanation is clearer
 
 ### 4. Gate Progress With Mastery Checks
 
@@ -220,21 +325,29 @@ After each module:
 - Chinese mode: update `元数据/学习进度.md` and append mistakes to `元数据/错题记录.md`
 - English mode: update `_meta/progress.md` and append mistakes to `_meta/mistakes.md`
 - If a lesson folder contains exported learning records (`学习记录.json` in Chinese mode or `learning-record.json` in English mode), read them before deciding whether to advance, reteach, or update weak spots.
+- If the learner pastes an exported learning record inline in the chat, parse that JSON directly and treat it the same as a file-based `学习记录.json` / `learning-record.json`.
+- If an imported record only lists weak spot IDs and lacks quiz metadata such as question text, concept, feedback, or review target, open the corresponding lesson HTML to recover the missing concept context. If the lesson file is unavailable, ask the learner for the missing quiz/question context before deciding to advance or reteach.
+- Preserve `videoExplainer` in the profile/progress files. Values: `offered`, `accepted`, or `declined`.
+- Preserve `mentorLens` in the profile/progress files. Values: `none` or the active lens name.
+- Preserve `outputMode` in the profile/progress files. Values: `fast` or `slow`. Use stored mode on resume unless the learner asks to switch.
 - update the map if the learner discovered a better structure
 - add a short retrieval prompt for later review
 
-When resuming a session, read the language-specific progress/profile files and the latest lesson before teaching. Do not restart from scratch unless requested.
+When resuming a session, read the language-specific progress/profile files, stored `outputMode`, and the latest lesson before teaching. Do not restart from scratch unless requested.
 
 ### 6. Produce Useful Outputs
 
 Choose outputs based on the user's goal:
 
-- fast domain onboarding: concept map + chapter plan + interactive HTML lessons + mastery quizzes
+- fast output mode / quick overview: one condensed interactive HTML courseware page with a concept map, core examples, mastery checks, and a slow-learning expansion plan
+- slow output mode / deep onboarding: global-map HTML lesson + chapter plan + one interactive HTML lesson per module + mastery quizzes
 - project delivery: map + implementation decision checklist + risk list
 - exam/interview: map + flashcards + graded mock questions
 - blog/writing: map + analogies + examples + outline
-- codebase/domain learning: repo map + terminology glossary + walkthrough tasks
+- codebase/domain learning: repo map + terminology glossary + walkthrough tasks as an interactive HTML lesson with mastery checks and exportable learning record
 - interactive courseware update: anchored explanations + quizzes + self-check checklist with review-back links + exportable learning record
+- accepted video explainer: HTML motion explainer + bilingual captions + storyboard/source notes, with MP4 rendering left to an explicit follow-up
+- requested mentor lens: lens brief + adapted explanations + lens-specific counterexamples + honest boundaries
 
 When the user asks for a final artifact, produce a concise learning dossier:
 
@@ -244,6 +357,23 @@ When the user asks for a final artifact, produce a concise learning dossier:
 - common mistakes
 - remaining gaps
 - next 3 study tasks
+
+---
+
+### 7. Lightweight Quality Gate
+
+Before finalizing a new lesson, visual explainer, mentor lens, or major workspace update, run the compact gate in [quality-ratchet.md](references/quality-ratchet.md).
+
+Minimum pass criteria:
+
+- the next learner action is explicit
+- every quiz/checklist item has a target concept and review path
+- export data contains enough detail for the next AI session to diagnose mistakes
+- optional video and mentor-lens paths remain opt-in
+- failure modes are handled directly rather than hidden in generic advice
+- 2-3 representative prompts dry-run without changing the intended workflow
+
+This is not an autonomous optimizer. Do not create branches, commits, scoring logs, or result cards during normal teaching unless the user explicitly asks to optimize the skill itself.
 
 ---
 
@@ -268,6 +398,14 @@ When the user asks for a final artifact, produce a concise learning dossier:
 - Explaining only from the implementer perspective.
 - Giving examples without tying them back to the concept map.
 - Creating many files without maintaining the language-specific progress file (`元数据/学习进度.md` or `_meta/progress.md`).
+- Generating video explainers by default or blocking the normal lesson loop while waiting for a video decision.
+- Asking the output-mode question repeatedly after `outputMode` is stored.
+- Treating fast mode as a shallow summary; it must still be an interactive HTML lesson with checks and export.
+- Creating multiple chapter folders in fast mode before the learner asks to expand.
+- Rendering MP4 by default when the learner only asked for learning help; start with HTML preview unless MP4 is explicitly requested.
+- Turning a mentor lens into impersonation, role-play, or fake quotations.
+- Applying a mentor lens by default when the learner only asked to learn normally.
+- Treating Darwin/Nuwa as required runtime dependencies. Their ideas are internalized as local references; normal lessons must work without invoking those external skills.
 - **Generating plain markdown for learner-facing lesson content** — every lesson, including the global map, must be one interactive HTML page.
 - **`querySelectorAll` scoping bug** — when switching tabs, always query panels from the parent section, not the tabs button container.
 - **Quiz double-click corruption** — always guard mini-quiz answer handlers against repeated clicks.

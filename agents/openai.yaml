@@ -1,7 +1,7 @@
 interface:
-  display_name: "AI 10x Learning Coach"
-  short_description: "Interactive HTML lessons with mastery checks, review links, AI reports, JSON records, and CN/EN artifact names."
-  default_prompt: "Use $ai-10x-learning-coach to help me learn a new domain from zero with a concept map, chapter-by-chapter interactive lessons, quizzes, self-check review links, and mistake-based review."
+  display_name: "LearnMap"
+  short_description: "Fast overview or slow chapter-by-chapter interactive HTML lessons with mastery checks, review links, learning records, optional visual explainers, optional mentor lenses, and quality gates."
+  default_prompt: "Use $learnmap-skill to help me learn a new domain from zero. Ask whether I want fast overview mode or slow chapter-by-chapter mode, then create interactive lessons with quizzes, self-check review links, mistake-based review, and optional visual or mentor-lens explainers when useful."
 
 policy:
   allow_implicit_invocation: true

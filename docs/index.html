@@ -1,56 +1,69 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="AI 10x Learning Coach turns Claude Code/Codex into an adaptive tutor with interactive HTML lessons, mastery checks, mistake tracking, and exportable learning records.">
-  <title>AI 10x Learning Coach | 交互式 AI 学习教练</title>
+  <meta name="description" content="LearnMap is a map-first Agent Skill for generating interactive learning courseware with fast overview mode, slow deep-course mode, mastery checks, and learning records.">
+  <title>LearnMap | Map-first learning skill</title>
   <style>
     :root {
-      --bg: #0b1020;
-      --bg-soft: #101827;
-      --panel: #172033;
-      --panel-2: #1d293d;
-      --line: #2d3b55;
-      --text: #e6edf7;
-      --muted: #9aa8bd;
+      --bg: #05070a;
+      --panel: #0b1017;
+      --panel2: #101821;
+      --line: #26323d;
+      --text: #eef5ff;
+      --muted: #8492a3;
       --cyan: #38bdf8;
-      --green: #4ade80;
-      --purple: #a78bfa;
-      --amber: #fbbf24;
-      --red: #fb7185;
-      --max: 1180px;
+      --green: #85f0b2;
+      --violet: #a855f7;
+      --amber: #f4c86a;
+      --max: 1120px;
     }
 
     * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
+    html { scroll-behavior: smooth; background: var(--bg); }
     body {
       margin: 0;
-      font-family: Inter, "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
       color: var(--text);
-      background: var(--bg);
-      line-height: 1.65;
+      background:
+        radial-gradient(circle at 88% 14%, rgba(168, 85, 247, 0.1), transparent 28%),
+        radial-gradient(circle at 72% 18%, rgba(56, 189, 248, 0.12), transparent 32%),
+        radial-gradient(circle at 18% 22%, rgba(133, 240, 178, 0.08), transparent 26%),
+        linear-gradient(180deg, #040609 0%, #070b10 54%, #05070a 100%);
+      font-family: Inter, "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+      line-height: 1.62;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.38;
+      background:
+        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 72px 72px;
+      mask-image: linear-gradient(180deg, black, transparent 88%);
     }
 
     a { color: inherit; text-decoration: none; }
-    button { font: inherit; }
-    .page { min-height: 100vh; overflow: hidden; }
+    code, pre { font-family: Consolas, "SFMono-Regular", ui-monospace, monospace; }
 
     .nav {
-      position: fixed;
+      position: sticky;
       top: 0;
-      left: 0;
-      right: 0;
       z-index: 20;
-      border-bottom: 1px solid rgba(230, 237, 247, 0.08);
-      background: rgba(11, 16, 32, 0.78);
       backdrop-filter: blur(18px);
+      background: rgba(5, 7, 10, 0.76);
+      border-bottom: 1px solid rgba(238, 245, 255, 0.08);
     }
 
     .nav-inner {
       max-width: var(--max);
       margin: 0 auto;
-      padding: 14px 24px;
+      padding: 14px 22px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -61,119 +74,89 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      min-width: 0;
-      font-weight: 800;
-      letter-spacing: 0;
+      font-weight: 900;
+      letter-spacing: 0.02em;
     }
 
-    .brand-mark {
-      width: 34px;
-      height: 34px;
-      border: 1px solid rgba(56, 189, 248, 0.55);
+    .mark {
+      width: 30px;
+      height: 30px;
+      border: 1px solid rgba(56, 189, 248, 0.6);
+      border-radius: 7px;
       background:
-        linear-gradient(135deg, rgba(56, 189, 248, 0.18), rgba(74, 222, 128, 0.12)),
-        #0f172a;
+        linear-gradient(135deg, rgba(56,189,248,0.18), rgba(168,85,247,0.12), rgba(133,240,178,0.1)),
+        #071019;
+      box-shadow: 0 0 28px rgba(56, 189, 248, 0.18);
       display: grid;
       place-items: center;
-      border-radius: 8px;
       color: var(--cyan);
-      font-weight: 900;
+      font-size: 0.74rem;
     }
 
     .nav-links {
       display: flex;
-      align-items: center;
-      gap: 6px;
+      gap: 4px;
       flex-wrap: wrap;
       justify-content: flex-end;
     }
 
     .nav-links a {
-      padding: 8px 10px;
+      padding: 7px 10px;
       color: var(--muted);
-      font-size: 0.92rem;
       border-radius: 7px;
+      font-size: 0.92rem;
     }
 
-    .nav-links a:hover { color: var(--text); background: rgba(255, 255, 255, 0.06); }
-
-    .nav-lang {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-      padding-left: 4px;
-    }
+    .nav-links a:hover { color: var(--text); background: rgba(255,255,255,0.06); }
 
     .hero {
-      position: relative;
-      min-height: 92vh;
-      display: grid;
-      align-items: center;
-      padding: 116px 24px 56px;
-      border-bottom: 1px solid rgba(230, 237, 247, 0.08);
-      background:
-        linear-gradient(180deg, rgba(11, 16, 32, 0.05), rgba(11, 16, 32, 0.88)),
-        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 120px),
-        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.026) 0 1px, transparent 1px 120px);
-    }
-
-    #mapCanvas {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0.72;
-    }
-
-    .hero-content {
-      position: relative;
-      z-index: 2;
       max-width: var(--max);
       margin: 0 auto;
-      width: 100%;
-    }
-
-    .kicker {
-      display: inline-flex;
+      min-height: 88vh;
+      padding: 76px 22px 44px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.04fr);
+      gap: 34px;
       align-items: center;
-      gap: 10px;
-      color: var(--cyan);
-      border: 1px solid rgba(56, 189, 248, 0.38);
-      background: rgba(15, 23, 42, 0.72);
-      padding: 7px 11px;
-      border-radius: 999px;
-      font-size: 0.88rem;
-      font-weight: 700;
     }
 
-    .status-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 999px;
-      background: var(--green);
-      box-shadow: 0 0 0 5px rgba(74, 222, 128, 0.16);
+    .hero > *,
+    .hero-card,
+    .terminal,
+    .demo-frame {
+      min-width: 0;
+    }
+
+    .eyebrow {
+      color: var(--green);
+      font: 800 0.78rem/1 Consolas, ui-monospace, monospace;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-bottom: 18px;
     }
 
     h1 {
-      max-width: 920px;
-      margin: 22px 0 18px;
-      font-size: clamp(2.65rem, 7vw, 6rem);
-      line-height: 0.96;
-      letter-spacing: 0;
+      margin: 0;
+      font-size: clamp(3.55rem, 8vw, 6.6rem);
+      letter-spacing: -0.03em;
+      line-height: 0.9;
+      overflow-wrap: normal;
+      word-break: normal;
     }
 
-    .hero-subtitle {
-      max-width: 780px;
-      color: #c7d2e2;
-      font-size: clamp(1.05rem, 2vw, 1.35rem);
-      margin: 0 0 30px;
+    .tagline {
+      margin: 20px 0 0;
+      max-width: 640px;
+      color: #c8d4e1;
+      font-size: clamp(1.05rem, 2vw, 1.28rem);
+      overflow-wrap: normal;
     }
 
-    .hero-actions {
+    .actions {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 32px;
+      gap: 10px;
+      margin-top: 28px;
     }
 
     .btn {
@@ -181,1884 +164,289 @@
       align-items: center;
       justify-content: center;
       min-height: 44px;
-      padding: 11px 17px;
-      border-radius: 8px;
-      border: 1px solid rgba(230, 237, 247, 0.14);
-      background: rgba(23, 32, 51, 0.86);
+      padding: 10px 15px;
+      border: 1px solid rgba(238, 245, 255, 0.14);
+      border-radius: 7px;
+      background: rgba(16, 24, 33, 0.72);
       color: var(--text);
-      cursor: pointer;
-      font-weight: 750;
-      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+      font-weight: 760;
     }
 
-    .btn:hover { transform: translateY(-1px); border-color: rgba(56, 189, 248, 0.55); }
-    .btn.primary { background: var(--cyan); color: #06111f; border-color: var(--cyan); }
-    .btn.green { background: rgba(74, 222, 128, 0.14); border-color: rgba(74, 222, 128, 0.45); color: #bbf7d0; }
-
-    .hero-proof {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(120px, 1fr));
-      max-width: 820px;
-      gap: 10px;
+    .btn.primary {
+      background: var(--cyan);
+      border-color: var(--cyan);
+      color: #041018;
     }
 
-    .metric {
-      border: 1px solid rgba(230, 237, 247, 0.11);
-      background: rgba(15, 23, 42, 0.72);
-      border-radius: 8px;
-      padding: 12px 14px;
-    }
+    .btn:hover { border-color: rgba(56, 189, 248, 0.7); }
 
-    .metric strong { display: block; font-size: 1.18rem; }
-    .metric span { color: var(--muted); font-size: 0.86rem; }
-
-    .section {
-      padding: 82px 24px;
-      border-bottom: 1px solid rgba(230, 237, 247, 0.08);
-      background: var(--bg);
-    }
-
-    .section.alt { background: var(--bg-soft); }
-    .inner { max-width: var(--max); margin: 0 auto; }
-
-    .section-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: end;
-      gap: 22px;
-      margin-bottom: 26px;
-    }
-
-    .section-head h2 {
-      font-size: clamp(1.85rem, 4vw, 3.1rem);
-      line-height: 1.08;
-      margin: 0;
-      letter-spacing: 0;
-    }
-
-    .section-head p { max-width: 520px; color: var(--muted); margin: 0; }
-
-    .simulator {
-      display: grid;
-      grid-template-columns: 0.95fr 1.25fr;
-      gap: 18px;
-      align-items: stretch;
-    }
-
-    .panel {
-      border: 1px solid rgba(230, 237, 247, 0.12);
-      background: var(--panel);
-      border-radius: 8px;
+    .hero-card {
+      position: relative;
+      border: 1px solid rgba(238, 245, 255, 0.11);
+      border-radius: 14px;
       overflow: hidden;
-      box-shadow: 0 24px 90px rgba(0, 0, 0, 0.23);
+      background: rgba(8, 12, 17, 0.68);
+      box-shadow: 0 28px 110px rgba(0,0,0,0.48);
     }
 
-    .panel-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 14px 16px;
-      border-bottom: 1px solid rgba(230, 237, 247, 0.1);
-      background: rgba(255, 255, 255, 0.025);
-    }
-
-    .panel-title { font-weight: 800; }
-    .pill-row { display: flex; gap: 8px; flex-wrap: wrap; }
-    .pill {
-      border: 1px solid rgba(230, 237, 247, 0.14);
-      color: var(--muted);
-      padding: 5px 9px;
-      border-radius: 999px;
-      font-size: 0.79rem;
-      background: rgba(15, 23, 42, 0.55);
-      cursor: pointer;
-    }
-
-    .pill.active { color: #06111f; background: var(--green); border-color: var(--green); }
-    .pill.muted { cursor: default; color: var(--muted); background: rgba(15, 23, 42, 0.55); border-color: rgba(230, 237, 247, 0.14); }
-
-    .flow {
-      padding: 18px;
-      display: grid;
-      gap: 12px;
-    }
-
-    .flow-step {
-      display: grid;
-      grid-template-columns: 38px 1fr;
-      gap: 12px;
-      align-items: start;
-      padding: 14px;
-      border: 1px solid rgba(230, 237, 247, 0.1);
-      background: rgba(15, 23, 42, 0.55);
-      border-radius: 8px;
-    }
-
-    .step-index {
-      width: 38px;
-      height: 38px;
-      border: 1px solid rgba(56, 189, 248, 0.42);
-      border-radius: 8px;
-      display: grid;
-      place-items: center;
-      color: var(--cyan);
-      font-weight: 900;
-    }
-
-    .flow-step h3 { margin: 0 0 4px; font-size: 1.02rem; }
-    .flow-step p { margin: 0; color: var(--muted); font-size: 0.92rem; }
-
-    .demo-body { padding: 18px; }
-
-    .lesson-shell {
-      border: 1px solid rgba(56, 189, 248, 0.2);
-      background: #0f172a;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .lesson-topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 14px;
-      border-bottom: 1px solid rgba(230, 237, 247, 0.1);
-      color: var(--muted);
-      font-size: 0.88rem;
-    }
-
-    .record-chip {
-      color: #06111f;
-      background: var(--green);
-      border-radius: 999px;
-      padding: 4px 8px;
-      font-weight: 850;
-    }
-
-    .lesson-content {
-      padding: 18px;
-      display: grid;
-      gap: 14px;
-    }
-
-    .map-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 9px;
-    }
-
-    .map-node {
-      min-height: 72px;
-      border: 1px solid rgba(230, 237, 247, 0.1);
-      background: rgba(29, 41, 61, 0.78);
-      border-radius: 8px;
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      text-align: left;
-      color: var(--text);
-      cursor: pointer;
-      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
-    }
-
-    .map-node strong { font-size: 0.92rem; }
-    .map-node span { color: var(--muted); font-size: 0.76rem; }
-    .map-node:hover,
-    .map-node.hot {
-      border-color: rgba(56, 189, 248, 0.56);
-      background: rgba(56, 189, 248, 0.08);
-      transform: translateY(-1px);
-    }
-
-    .concept-detail {
-      border: 1px solid rgba(56, 189, 248, 0.22);
-      background: rgba(56, 189, 248, 0.055);
-      border-radius: 8px;
-      padding: 12px;
-      display: grid;
-      gap: 6px;
-    }
-
-    .concept-detail strong { color: var(--cyan); }
-    .concept-detail p { margin: 0; color: #cbd5e1; font-size: 0.88rem; }
-
-    .trap-panel {
-      border: 1px solid rgba(251, 191, 36, 0.26);
-      background: rgba(251, 191, 36, 0.065);
-      border-radius: 8px;
-      padding: 12px;
-      display: grid;
-      gap: 9px;
-    }
-
-    .trap-panel h3 {
-      margin: 0;
-      color: var(--amber);
-      font-size: 0.98rem;
-    }
-
-    .trap-card {
-      border-left: 3px solid var(--amber);
-      background: rgba(255, 255, 255, 0.035);
-      border-radius: 0 8px 8px 0;
-      padding: 9px 11px;
-    }
-
-    .trap-card strong { color: #fde68a; display: block; font-size: 0.88rem; }
-    .trap-card span { color: #dbeafe; font-size: 0.84rem; }
-
-    .tabs {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 4px;
-    }
-
-    .tab-btn,
-    .quiz-option,
-    .check-item {
-      border: 1px solid rgba(230, 237, 247, 0.12);
-      background: rgba(255, 255, 255, 0.035);
-      color: var(--text);
-      border-radius: 8px;
-      padding: 9px 11px;
-      cursor: pointer;
-    }
-
-    .check-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      text-align: left;
-    }
-
-    .check-label {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .review-mini {
-      flex: 0 0 auto;
-      color: var(--cyan);
-      font-size: 0.78rem;
-      white-space: nowrap;
-    }
-
-    .tab-btn.active { border-color: var(--cyan); color: var(--cyan); }
-
-    .tab-panel {
-      margin: 10px 0 0;
-      color: #cbd5e1;
-      background: rgba(56, 189, 248, 0.06);
-      border-left: 3px solid var(--cyan);
-      padding: 12px;
-      border-radius: 0 8px 8px 0;
-    }
-
-    .quiz {
-      border: 1px solid rgba(167, 139, 250, 0.28);
-      border-radius: 8px;
-      padding: 14px;
-      background: rgba(167, 139, 250, 0.06);
-    }
-
-    .quiz h3 { margin: 0 0 10px; font-size: 1rem; }
-    .quiz-note { margin: 0 0 10px; color: var(--muted); font-size: 0.84rem; }
-    .quiz-mode {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-
-    .mode-btn {
-      border: 1px solid rgba(230, 237, 247, 0.14);
-      background: rgba(255, 255, 255, 0.035);
-      color: var(--muted);
-      border-radius: 999px;
-      padding: 6px 11px;
-      cursor: pointer;
-      font-size: 0.84rem;
-    }
-
-    .mode-btn.active { border-color: var(--purple); color: #ddd6fe; background: rgba(167, 139, 250, 0.12); }
-    .mode-btn.hidden { display: none; }
-    .quiz-options { display: grid; gap: 8px; }
-    .quiz-option { text-align: left; }
-    .quiz-option.selected { border-color: var(--purple); background: rgba(167, 139, 250, 0.12); }
-    .quiz-option.correct { border-color: var(--green); background: rgba(74, 222, 128, 0.1); }
-    .quiz-option.wrong { border-color: var(--red); background: rgba(251, 113, 133, 0.1); }
-    .answer-input {
+    .hero-card img {
+      display: block;
       width: 100%;
-      min-height: 88px;
-      resize: vertical;
-      border: 1px solid rgba(230, 237, 247, 0.14);
-      background: rgba(8, 13, 26, 0.7);
-      color: var(--text);
-      border-radius: 8px;
-      padding: 10px 11px;
-      font: inherit;
-      line-height: 1.55;
-    }
-    .answer-input.code {
-      font-family: Consolas, "SFMono-Regular", monospace;
-      min-height: 120px;
-    }
-    .answer-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-    }
-    .hint-box {
-      display: none;
-      margin-top: 10px;
-      border-left: 3px solid var(--amber);
-      background: rgba(251, 191, 36, 0.08);
-      color: #fde68a;
-      border-radius: 0 8px 8px 0;
-      padding: 10px 12px;
-      font-size: 0.86rem;
-    }
-    .hint-box.show { display: block; }
-    .feedback { min-height: 26px; margin: 10px 0 0; color: var(--muted); white-space: pre-wrap; }
-    .feedback.ok { color: #bbf7d0; }
-    .feedback.no { color: #fecdd3; }
-    .feedback.partial { color: #fde68a; }
-    .hidden { display: none !important; }
-
-    .checks {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-    }
-
-    .check-item.done { border-color: var(--green); color: #bbf7d0; background: rgba(74, 222, 128, 0.08); }
-
-    .record-box {
-      border: 1px solid rgba(74, 222, 128, 0.3);
-      background: rgba(74, 222, 128, 0.07);
-      border-radius: 8px;
-      padding: 14px;
-    }
-
-    .record-box pre {
-      margin: 10px 0 0;
-      white-space: pre-wrap;
-      color: #d8ffe5;
-      font-size: 0.82rem;
-      max-height: 150px;
-      overflow: auto;
-    }
-
-    .feature-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-    }
-
-    .feature-card {
-      border: 1px solid rgba(230, 237, 247, 0.1);
-      background: var(--panel);
-      border-radius: 8px;
-      padding: 18px;
-      min-height: 170px;
-    }
-
-    .feature-label {
-      color: var(--cyan);
-      font-weight: 850;
-      font-size: 0.82rem;
-      margin-bottom: 14px;
-    }
-
-    .feature-card h3 { margin: 0 0 8px; font-size: 1.15rem; }
-    .feature-card p { margin: 0; color: var(--muted); }
-
-    .proof-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 18px;
+      max-width: 100%;
+      height: auto;
     }
 
     .terminal {
-      background: #090e19;
-      border: 1px solid rgba(230, 237, 247, 0.12);
-      border-radius: 8px;
-      padding: 18px;
-      min-height: 100%;
+      border: 1px solid rgba(238, 245, 255, 0.12);
+      border-radius: 12px;
+      background: rgba(7, 10, 14, 0.82);
+      overflow: hidden;
+      box-shadow: 0 20px 90px rgba(0,0,0,0.38);
     }
 
-    .terminal code,
-    .code-block {
-      font-family: "Cascadia Mono", "Consolas", monospace;
-      color: #dbeafe;
-    }
-
-    .terminal-line { margin: 0 0 10px; color: #a7f3d0; }
-    .terminal-line.muted { color: var(--muted); }
-
-    .cta-band {
-      background: #0b1020;
-      padding: 76px 24px;
-    }
-
-    .install {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 18px;
-      align-items: stretch;
-    }
-
-    .code-block {
-      display: block;
-      padding: 16px;
-      border-radius: 8px;
-      border: 1px solid rgba(230, 237, 247, 0.12);
-      background: #090e19;
-      overflow-x: auto;
-      line-height: 1.55;
-    }
-
-    .trust {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-top: 24px;
-    }
-
-    .trust-item {
-      border: 1px solid rgba(230, 237, 247, 0.1);
-      border-radius: 8px;
-      padding: 14px;
+    .terminal-head {
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      border-bottom: 1px solid rgba(238, 245, 255, 0.1);
       color: var(--muted);
-      background: rgba(255, 255, 255, 0.025);
+      font: 0.78rem Consolas, ui-monospace, monospace;
+      background: rgba(255,255,255,0.025);
     }
 
-    .trust-item strong { display: block; color: var(--text); }
+    .dots { display: flex; gap: 7px; }
+    .dots span {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #33414d;
+    }
+
+    .terminal-body {
+      padding: 18px;
+      min-height: 182px;
+      color: #d6e2ee;
+      font: 0.92rem/1.75 Consolas, ui-monospace, monospace;
+      overflow-wrap: break-word;
+    }
+
+    .prompt { color: var(--green); }
+    .dim { color: var(--muted); }
+    .cyan { color: var(--cyan); }
+
+    .section {
+      position: relative;
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 72px 22px;
+      border-top: 1px solid rgba(238, 245, 255, 0.08);
+    }
+
+    h2 {
+      margin: 0 0 22px;
+      font-size: clamp(2rem, 5vw, 3.25rem);
+      letter-spacing: -0.02em;
+      line-height: 1.02;
+    }
+
+    .lead { max-width: 680px; color: var(--muted); margin: -8px 0 26px; }
+
+    .news {
+      border-top: 1px solid var(--line);
+      display: grid;
+      gap: 0;
+    }
+
+    .news-item {
+      display: grid;
+      grid-template-columns: 118px 1fr;
+      gap: 18px;
+      padding: 17px 0;
+      border-bottom: 1px solid rgba(238,245,255,0.09);
+      color: #dce8f5;
+      font-size: 1.02rem;
+    }
+
+    .news-item time {
+      color: var(--green);
+      font-family: Consolas, ui-monospace, monospace;
+    }
+
+    .demo-frame {
+      width: 100%;
+      height: 720px;
+      border: 1px solid rgba(238,245,255,0.12);
+      border-radius: 14px;
+      background: #05070a;
+      box-shadow: 0 28px 110px rgba(0,0,0,0.45);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .card {
+      min-height: 170px;
+      border: 1px solid rgba(238,245,255,0.1);
+      border-radius: 12px;
+      background: rgba(16,24,33,0.58);
+      padding: 18px;
+    }
+
+    .card strong { display: block; font-size: 1.08rem; margin-bottom: 8px; }
+    .card p { margin: 0; color: var(--muted); }
+
+    pre {
+      overflow-x: auto;
+      border: 1px solid rgba(238,245,255,0.12);
+      border-radius: 12px;
+      background: #070b10;
+      padding: 18px;
+      color: #d9e4ee;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
 
     footer {
-      padding: 30px 24px;
-      color: var(--muted);
-      background: #080d18;
-    }
-
-    footer .inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 36px 22px 54px;
       display: flex;
       justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
+      gap: 18px;
+      color: var(--muted);
+      border-top: 1px solid rgba(238,245,255,0.08);
     }
 
+    footer a { color: var(--cyan); }
+
     @media (max-width: 900px) {
-      .nav-inner { align-items: flex-start; flex-direction: column; }
-      .hero { min-height: auto; padding-top: 132px; }
-      .hero-proof,
-      .feature-grid,
-      .proof-grid,
-      .install,
-      .trust,
-      .simulator { grid-template-columns: 1fr; }
-      .section-head { display: block; }
-      .section-head p { margin-top: 12px; }
+      .hero { grid-template-columns: 1fr; min-height: auto; }
+      .grid { grid-template-columns: 1fr; }
+      .demo-frame { height: 690px; }
     }
 
     @media (max-width: 620px) {
-      .map-grid,
-      .checks { grid-template-columns: 1fr; }
-      .hero-actions .btn { width: 100%; }
-      .nav-links a { padding-left: 0; }
-      .section { padding: 62px 18px; }
-      .hero { padding-left: 18px; padding-right: 18px; }
+      .nav-inner { align-items: flex-start; flex-direction: column; }
+      .hero {
+        display: block;
+        width: 100%;
+        max-width: 100vw;
+        padding-left: 22px;
+        padding-right: 22px;
+        overflow: hidden;
+      }
+      .hero > div:first-child { width: 100%; max-width: 100%; }
+      h1 { font-size: clamp(3rem, 14vw, 3.45rem); }
+      .tagline {
+        inline-size: calc(100dvw - 44px);
+        max-inline-size: calc(100dvw - 44px);
+        font-size: 1rem;
+      }
+      .terminal-body { font-size: 0.82rem; word-break: normal; }
+      .hero-card {
+        inline-size: calc(100dvw - 44px);
+        max-inline-size: calc(100dvw - 44px);
+        margin-top: 36px;
+      }
+      .terminal {
+        inline-size: calc(100dvw - 44px);
+        max-inline-size: calc(100dvw - 44px);
+      }
+      .section { overflow: hidden; }
+      .news-item { grid-template-columns: 1fr; gap: 4px; }
+      .demo-frame { height: 760px; }
+      footer { flex-direction: column; }
     }
   </style>
 </head>
 <body>
-  <div class="page">
-    <nav class="nav" aria-label="Primary navigation">
-      <div class="nav-inner">
-        <a class="brand" href="#top" aria-label="AI 10x Learning Coach home">
-          <span class="brand-mark">10x</span>
-          <span>AI 10x Learning Coach</span>
-        </a>
-        <div class="nav-links">
-          <a id="navDemo" href="#demo">交互演示</a>
-          <a id="navFeatures" href="#features">能力</a>
-          <a id="navInstall" href="#install">安装</a>
-          <a href="https://github.com/lwbscu/ai-10x-learning-coach">GitHub</a>
-          <div class="nav-lang" aria-label="Language switch">
-            <button class="pill active" id="langCn" type="button">中文</button>
-            <button class="pill" id="langEn" type="button">English</button>
-          </div>
-        </div>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="#top" aria-label="LearnMap home">
+        <span class="mark">LM</span>
+        <span>LearnMap</span>
+      </a>
+      <div class="nav-links">
+        <a href="#walkthrough">Walkthrough</a>
+        <a href="#new">What's New</a>
+        <a href="#install">Install</a>
+        <a href="https://github.com/lwbscu/ai-10x-learning-coach">GitHub</a>
       </div>
-    </nav>
+    </div>
+  </nav>
 
-    <header class="hero" id="top">
-      <canvas id="mapCanvas" aria-hidden="true"></canvas>
-      <div class="hero-content">
-        <span class="kicker"><span class="status-dot"></span> Claude Code Skill · v2.2 · interactive learning system</span>
-        <h1 id="heroTitle">把 AI 从答题机器变成真正的学习教练</h1>
-        <p class="hero-subtitle" id="heroSubtitle">AI 10x Learning Coach 会先画知识地图，再逐章生成交互式 HTML 课件，通过测验和自检记录你的掌握情况，并把薄弱点交还给 AI 继续复教。</p>
-        <div class="hero-actions">
-          <a class="btn primary" href="https://github.com/lwbscu/ai-10x-learning-coach">Star on GitHub</a>
-          <a class="btn" id="heroDemoLink" href="#demo">体验交互演示</a>
-          <a class="btn green" id="heroInstallLink" href="#install">复制安装命令</a>
-        </div>
-        <div class="hero-proof" aria-label="Project highlights">
-          <div class="metric"><strong>HTML-first</strong><span id="metricHtml">每课可交互网页</span></div>
-          <div class="metric"><strong>CN / EN</strong><span id="metricBilingual">双语课件与文件名</span></div>
-          <div class="metric"><strong>Record</strong><span id="metricRecord">学习记录可导出</span></div>
-          <div class="metric"><strong>Retest</strong><span id="metricRetest">错题驱动复教</span></div>
-        </div>
+  <header class="hero" id="top">
+    <div>
+      <div class="eyebrow">MAP-FIRST AGENT SKILL</div>
+      <h1>LearnMap</h1>
+      <p class="tagline">Map first. Learn faster.<br>Generate local courseware.<br>Continue from weak spots.</p>
+      <div class="actions">
+        <a class="btn primary" href="#walkthrough">Watch usage flow</a>
+        <a class="btn" href="#install">Install skill</a>
+        <a class="btn" href="./promo-video.html">Open full-screen demo</a>
       </div>
-    </header>
+    </div>
+    <div class="hero-card">
+      <img src="./assets/learnmap-cover.png" alt="LearnMap sci-fi knowledge map cover">
+    </div>
+  </header>
 
-    <section class="section alt" id="demo">
-      <div class="inner">
-        <div class="section-head">
-          <h2 id="demoTitle">不是 README 里的承诺，而是可感知的学习体验</h2>
-          <p id="demoIntro">下面这个小演示模拟了真实课件的关键环节：语言选择、知识地图、多视角解释、即时测验、可回跳复习的自检清单和可复制给 AI 的学习记录。</p>
-        </div>
-
-        <div class="simulator">
-          <div class="panel">
-            <div class="panel-head">
-              <span class="panel-title">Learning Loop</span>
-              <span class="pill active" id="langPill">中文模式</span>
-            </div>
-            <div class="flow">
-              <div class="flow-step">
-                <div class="step-index">1</div>
-                <div><h3 id="flow1Title">校准学习者</h3><p id="flow1Body">背景、目标、时间预算和语言偏好先确定。</p></div>
-              </div>
-              <div class="flow-step">
-                <div class="step-index">2</div>
-                <div><h3 id="flow2Title">全局地图</h3><p id="flow2Body">先知道这门知识的结构，再进入细节。</p></div>
-              </div>
-              <div class="flow-step">
-                <div class="step-index">3</div>
-                <div><h3 id="flow3Title">交互课件</h3><p id="flow3Body">每课都是 HTML：tabs、测验、可回跳复习的清单、记录面板。</p></div>
-              </div>
-              <div class="flow-step">
-                <div class="step-index">4</div>
-                <div><h3 id="flow4Title">错题复教</h3><p id="flow4Body">把学习记录交给 AI，让下一课从薄弱点开始。</p></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="panel">
-            <div class="panel-head">
-              <span class="panel-title" id="lessonFileTitle">第01课-全局地图 / 课件.html</span>
-              <span class="pill muted" id="lessonModePill">轻量选择题为主</span>
-            </div>
-            <div class="demo-body">
-              <div class="lesson-shell">
-                <div class="lesson-topbar">
-                  <span id="crumb">强化学习 / 第01课</span>
-                  <span class="record-chip" id="recordPercent">20% complete</span>
-                </div>
-                <div class="lesson-content">
-                  <div class="map-grid">
-                    <button class="map-node hot" data-topic="mdp" type="button"><strong>MDP</strong><span>决策问题的数学地基</span></button>
-                    <button class="map-node" data-topic="value" type="button"><strong>Value</strong><span>从现在往后能拿多少分</span></button>
-                    <button class="map-node" data-topic="policy" type="button"><strong>Policy</strong><span>什么状态下该做什么</span></button>
-                    <button class="map-node" data-topic="explore" type="button"><strong>Explore</strong><span>试新动作还是用旧经验</span></button>
-                    <button class="map-node" data-topic="qlearning" type="button"><strong>Q-Learning</strong><span>经典无模型方法</span></button>
-                    <button class="map-node" data-topic="deep" type="button"><strong>DQN / PPO</strong><span>深度强化学习代表</span></button>
-                  </div>
-
-                  <div class="concept-detail" id="conceptDetail">
-                    <strong>当前选中：MDP</strong>
-                    <p>把一个决策问题拆成 State、Action、Transition、Reward、Discount，让后面的 Value、Q-Learning、PPO 都有共同语言。</p>
-                    <p>点击上面任意模块，课件会同步切换讲解、练习题和学习记录。</p>
-                  </div>
-
-                  <div class="trap-panel">
-                    <h3 id="trapTitle">⚠ 常见陷阱与初学忽略项</h3>
-                    <div id="trapList"></div>
-                  </div>
-
-                  <div>
-                    <div class="tabs" role="tablist" aria-label="Perspective tabs">
-                      <button class="tab-btn active" id="tabUser" data-tab="user" type="button">学习者视角</button>
-                      <button class="tab-btn" id="tabBuilder" data-tab="builder" type="button">工程视角</button>
-                      <button class="tab-btn" id="tabAi" data-tab="ai" type="button">AI 复教视角</button>
-                    </div>
-                    <div class="tab-panel" id="tabPanel">你不是在读长文，而是在一个课件里点击、回答、勾选，然后把学习记录交回给 AI。</div>
-                  </div>
-
-                  <div class="quiz">
-                    <h3 id="quizTitle">即学即练：RL 和监督学习最大的区别是什么？</h3>
-                    <p class="quiz-note" id="quizNote">默认是轻量选择题，只有少数模块开放简答或小代码体验，不制造刷题压力。</p>
-                    <div class="quiz-mode" aria-label="Question type">
-                      <button class="mode-btn active" data-mode="choice" type="button">选择题</button>
-                      <button class="mode-btn" data-mode="short" type="button">简答题</button>
-                      <button class="mode-btn" data-mode="code" type="button">简单编程</button>
-                    </div>
-                    <div class="quiz-options" id="choiceArea"></div>
-                    <div id="shortArea" class="hidden">
-                      <textarea class="answer-input" id="shortAnswer" placeholder="用自己的话回答，写 2-4 句即可。"></textarea>
-                    </div>
-                    <div id="codeArea" class="hidden">
-                      <textarea class="answer-input code" id="codeAnswer" placeholder="写伪代码或 Python 风格代码，重点是表达思路。"></textarea>
-                    </div>
-                    <div class="answer-actions">
-                      <button class="btn" id="hintButton" type="button">提示 1</button>
-                      <button class="btn primary" id="checkButton" type="button">提交评判</button>
-                    </div>
-                    <div class="hint-box" id="hintBox">点击提示，会逐步展开解题线索。</div>
-                    <p class="feedback" id="quizFeedback">选择一个答案，看看课件如何即时诊断。</p>
-                  </div>
-
-                  <div class="checks" aria-label="Self-check checklist">
-                    <button class="check-item" type="button"><span class="check-label">我能解释 Agent / Environment / Reward</span><span class="review-mini">复习 →</span></button>
-                    <button class="check-item" type="button"><span class="check-label">我能说出 MDP 的作用</span><span class="review-mini">复习 →</span></button>
-                    <button class="check-item" type="button"><span class="check-label">我知道为什么先学全局地图</span><span class="review-mini">复习 →</span></button>
-                    <button class="check-item" type="button"><span class="check-label">我能把学习记录交给 AI</span><span class="review-mini">复习 →</span></button>
-                  </div>
-
-                  <div class="record-box">
-                    <strong id="recordBoxTitle">学习记录面板</strong>
-                    <p id="recordSummary">完成度: 20% | 测验: 0/1 | 自检: 0/4</p>
-                    <button class="btn green" id="copyRecord" type="button">复制详细学习记录</button>
-                    <pre id="recordPreview"># 学习记录
-- 题目: RL 和监督学习最大的区别是什么？
-- 状态: 未作答
-- 自检: 0/4
-- 下一步: 继续第02课 MDP详解</pre>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+  <section class="section">
+    <div class="terminal">
+      <div class="terminal-head">
+        <span>~/.claude/skills/learnmap-skill</span>
+        <div class="dots"><span></span><span></span><span></span></div>
       </div>
-    </section>
-
-    <section class="section" id="features">
-      <div class="inner">
-        <div class="section-head">
-          <h2 id="featuresTitle">它解决的是“我看过了，但没学会”</h2>
-          <p id="featuresIntro">Skill 的价值不只是生成内容，而是强制走完从地图、互动、检测到复教的闭环。</p>
-        </div>
-        <div class="feature-grid">
-          <div class="feature-card">
-            <div class="feature-label">HTML lessons</div>
-            <h3 id="feature1Title">从第 1 课开始就是网页课件</h3>
-            <p id="feature1Body">每课都是自包含 HTML，带目录、tabs、折叠深读、即时测验、带复习回跳的自检清单和底部导航。</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-label">Mastery checks</div>
-            <h3 id="feature2Title">不会让模糊理解直接进入下一章</h3>
-            <p id="feature2Body">测验结果会被诊断为正确、部分正确、概念误区、边界不清或应用脱节。</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-label">Learning record</div>
-            <h3 id="feature3Title">网页行为可以交回给 AI</h3>
-            <p id="feature3Body">复制详细 Markdown 报告，或下载 JSON，让下一轮教学知道你错在哪、勾了什么。</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-label">Bilingual artifacts</div>
-            <h3 id="feature4Title">中文模式下连文件名也中文</h3>
-            <p id="feature4Body">例如 `学习/强化学习/第01课-全局地图/课件.html`，但 MDP、PPO 等术语保留英文。</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-label">Mistake-driven reteach</div>
-            <h3 id="feature5Title">错题不是结束，而是下一轮教学入口</h3>
-            <p id="feature5Body">AI 会读取学习进度、错题记录和导出的学习记录，针对薄弱点补讲和复测。</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-label">No build step</div>
-            <h3 id="feature6Title">安装的是一个 Skill，不是复杂平台</h3>
-            <p id="feature6Body">仓库只有 Markdown 指令、引用模板和元数据；课件生成在你的本地学习目录里。</p>
-          </div>
-        </div>
+      <div class="terminal-body">
+        <span class="prompt">$</span> use <span class="cyan">learnmap-skill</span> to learn RL<br>
+        <span class="dim">&gt; asks language and output mode</span><br>
+        <span class="dim">&gt; builds a map before details</span><br>
+        <span class="dim">&gt; writes local HTML courseware</span><br>
+        <span class="dim">&gt; exports a learning record</span>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section class="section alt">
-      <div class="inner">
-        <div class="section-head">
-          <h2 id="proofTitle">为什么它值得 Star</h2>
-          <p id="proofIntro">很多 AI 学习提示词只负责“讲”，这个 Skill 负责把学习过程变成可追踪、可复盘、可继续的系统。</p>
-        </div>
-        <div class="proof-grid">
-          <div class="terminal">
-            <p class="terminal-line" id="terminal1">你: 使用 ai-10x-learning-coach 教我强化学习</p>
-            <p class="terminal-line muted" id="terminal2">AI: 中文版还是 English version?</p>
-            <p class="terminal-line" id="terminal3">你: 中文版。我没有机器学习基础，慢慢扎实学。</p>
-            <p class="terminal-line muted" id="terminal4">AI: 已创建 学习/强化学习/第01课-全局地图/课件.html</p>
-            <p class="terminal-line muted" id="terminal5">AI: 学完后复制学习记录，我会根据错题继续第02课。</p>
-          </div>
-          <div class="terminal">
-            <p class="terminal-line muted" id="recordLine1"># AI 可以读取的学习记录片段</p>
-            <p class="terminal-line" id="recordLine2">题目: RL 和监督学习最大的区别是什么?</p>
-            <p class="terminal-line" id="recordLine3">状态: 错误</p>
-            <p class="terminal-line" id="recordLine4">我的选择: 两者没有本质区别</p>
-            <p class="terminal-line" id="recordLine5">正确答案: RL 通过环境交互和延迟奖励学习决策序列</p>
-            <p class="terminal-line" id="recordLine6">复习建议: 对比“标签答案”和“奖励反馈”</p>
-          </div>
-        </div>
-      </div>
-    </section>
+  <section class="section" id="walkthrough">
+    <h2>Usage Walkthrough</h2>
+    <p class="lead">A 60-second motion demo showing the full path: install, ask, invoke, generate, open, practice, export, continue.</p>
+    <iframe class="demo-frame" src="./promo-video.html?embed=1" title="LearnMap usage walkthrough"></iframe>
+    <p class="lead" style="margin-top:18px;"><a class="btn" href="./promo-video.html">Open standalone walkthrough</a></p>
+  </section>
 
-    <section class="cta-band" id="install">
-      <div class="inner">
-        <div class="section-head">
-          <h2 id="installTitle">安装后，用一句话开始学任何领域</h2>
-          <p id="installIntro">适合新领域入门、代码库理解、面试复习、项目预研和写作准备。</p>
-        </div>
-        <div class="install">
-          <div>
-            <span class="code-block">git clone https://github.com/lwbscu/ai-10x-learning-coach.git ~/.claude/skills/ai-10x-learning-coach</span>
-          </div>
-          <div>
-            <span class="code-block" id="triggerCommand">使用 ai-10x-learning-coach 教我强化学习<br>Use ai-10x-learning-coach to teach me reinforcement learning</span>
-          </div>
-        </div>
-        <div class="trust">
-          <div class="trust-item"><strong>MIT</strong>Open-source license</div>
-          <div class="trust-item"><strong>v2.2</strong>Checklist review links</div>
-          <div class="trust-item"><strong>Claude Code</strong>Skill-first workflow</div>
-          <div class="trust-item"><strong>Static</strong>No build dependency</div>
-        </div>
-      </div>
-    </section>
+  <section class="section" id="new">
+    <h2>What's New</h2>
+    <div class="news">
+      <div class="news-item"><time>[2026/06]</time><span>LearnMap adds fast overview mode, slow deep-course mode, and an embedded usage walkthrough.</span></div>
+      <div class="news-item"><time>[2026/06]</time><span>Optional HTML video explainers and mentor lenses are now opt-in learning paths.</span></div>
+      <div class="news-item"><time>[2026/05]</time><span>Interactive HTML lessons now export detailed learning records for AI follow-up.</span></div>
+    </div>
+  </section>
 
-    <footer>
-      <div class="inner">
-        <span>AI 10x Learning Coach</span>
-        <span><a id="footerCn" href="https://github.com/lwbscu/ai-10x-learning-coach/blob/main/README.cn.md">中文文档</a> · <a id="footerEn" href="https://github.com/lwbscu/ai-10x-learning-coach/blob/main/README.en.md">English Docs</a> · <a href="https://github.com/lwbscu/ai-10x-learning-coach">GitHub</a></span>
-      </div>
-    </footer>
-  </div>
+  <section class="section">
+    <h2>Core Flow</h2>
+    <div class="grid">
+      <div class="card"><strong>Fast overview</strong><p>One chapter to understand the whole field: map, examples, traps, checks, and next steps.</p></div>
+      <div class="card"><strong>Slow course</strong><p>Global map first, then one interactive HTML lesson per chapter.</p></div>
+      <div class="card"><strong>Learning record</strong><p>Export quiz answers, checklist state, weak spots, and next command for AI follow-up.</p></div>
+    </div>
+  </section>
 
-  <script>
-    (function() {
-      var canvas = document.getElementById("mapCanvas");
-      var ctx = canvas.getContext("2d");
-      if (!ctx) return;
-      var nodes = [];
-      var count = 48;
+  <section class="section" id="install">
+    <h2>Install</h2>
+    <pre><code>git clone https://github.com/lwbscu/ai-10x-learning-coach.git ~/.claude/skills/learnmap-skill</code></pre>
+    <pre><code>New-Item -ItemType Directory -Force "$env:USERPROFILE\.codex\skills" | Out-Null
+git clone https://github.com/lwbscu/ai-10x-learning-coach.git "$env:USERPROFILE\.codex\skills\learnmap-skill"</code></pre>
+  </section>
 
-      function resize() {
-        canvas.width = canvas.offsetWidth * window.devicePixelRatio;
-        canvas.height = canvas.offsetHeight * window.devicePixelRatio;
-        ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
-      }
-
-      function makeNodes() {
-        nodes = [];
-        var w = canvas.offsetWidth;
-        var h = canvas.offsetHeight;
-        for (var i = 0; i < count; i++) {
-          nodes.push({
-            x: Math.random() * w,
-            y: Math.random() * h,
-            vx: (Math.random() - 0.5) * 0.25,
-            vy: (Math.random() - 0.5) * 0.25,
-            r: 2 + Math.random() * 2.4
-          });
-        }
-      }
-
-      function draw() {
-        var w = canvas.offsetWidth;
-        var h = canvas.offsetHeight;
-        ctx.clearRect(0, 0, w, h);
-        ctx.lineWidth = 1;
-        for (var i = 0; i < nodes.length; i++) {
-          var a = nodes[i];
-          a.x += a.vx;
-          a.y += a.vy;
-          if (a.x < 0 || a.x > w) a.vx *= -1;
-          if (a.y < 0 || a.y > h) a.vy *= -1;
-          for (var j = i + 1; j < nodes.length; j++) {
-            var b = nodes[j];
-            var dx = a.x - b.x;
-            var dy = a.y - b.y;
-            var d = Math.sqrt(dx * dx + dy * dy);
-            if (d < 150) {
-              ctx.strokeStyle = "rgba(56, 189, 248," + (0.2 - d / 900) + ")";
-              ctx.beginPath();
-              ctx.moveTo(a.x, a.y);
-              ctx.lineTo(b.x, b.y);
-              ctx.stroke();
-            }
-          }
-          ctx.fillStyle = i % 5 === 0 ? "rgba(74,222,128,.72)" : "rgba(56,189,248,.72)";
-          ctx.beginPath();
-          ctx.arc(a.x, a.y, a.r, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        requestAnimationFrame(draw);
-      }
-
-      resize();
-      makeNodes();
-      draw();
-      window.addEventListener("resize", function() {
-        resize();
-        makeNodes();
-      });
-    })();
-
-    (function() {
-      var copyRecord = document.getElementById("copyRecord");
-      var recordPreview = document.getElementById("recordPreview");
-      var recordPercent = document.getElementById("recordPercent");
-      var recordSummary = document.getElementById("recordSummary");
-      var quizTitle = document.getElementById("quizTitle");
-      var quizNote = document.getElementById("quizNote");
-      var quizFeedback = document.getElementById("quizFeedback");
-      var choiceArea = document.getElementById("choiceArea");
-      var shortArea = document.getElementById("shortArea");
-      var codeArea = document.getElementById("codeArea");
-      var shortAnswer = document.getElementById("shortAnswer");
-      var codeAnswer = document.getElementById("codeAnswer");
-      var hintButton = document.getElementById("hintButton");
-      var hintBox = document.getElementById("hintBox");
-      var checkButton = document.getElementById("checkButton");
-      var conceptDetail = document.getElementById("conceptDetail");
-      var mapNodes = Array.prototype.slice.call(document.querySelectorAll(".map-node"));
-      var modeButtons = Array.prototype.slice.call(document.querySelectorAll(".mode-btn"));
-      var checkItems = Array.prototype.slice.call(document.querySelectorAll(".check-item"));
-      var tabButtons = Array.prototype.slice.call(document.querySelectorAll(".tab-btn"));
-      var tabPanel = document.getElementById("tabPanel");
-      var langCn = document.getElementById("langCn");
-      var langEn = document.getElementById("langEn");
-      var langPill = document.getElementById("langPill");
-      var lessonModePill = document.getElementById("lessonModePill");
-      var crumb = document.getElementById("crumb");
-      var trapTitle = document.getElementById("trapTitle");
-      var trapList = document.getElementById("trapList");
-
-      var lang = "cn";
-      var activeTopic = "mdp";
-      var activeMode = "choice";
-      var hintIndex = 0;
-      var selectedChoice = -1;
-      var lastResult = { status: "unanswered", answer: "-", feedback: "", missing: [] };
-
-      var copyLabels = {
-        cn: { ready: "复制详细学习记录", done: "已复制详细学习记录" },
-        en: { ready: "Copy detailed record", done: "Detailed record copied" }
-      };
-
-      var modeLabels = {
-        cn: { choice: "选择题", short: "简答题", code: "简单编程" },
-        en: { choice: "Multiple choice", short: "Short answer", code: "Tiny coding" }
-      };
-
-      var uiText = {
-        cn: {
-          title: "AI 10x Learning Coach | 交互式 AI 学习教练",
-          description: "AI 10x Learning Coach turns Claude Code/Codex into an adaptive tutor with interactive HTML lessons, mastery checks, mistake tracking, and exportable learning records.",
-          navDemo: "交互演示",
-          navFeatures: "能力",
-          navInstall: "安装",
-          heroTitle: "把 AI 从答题机器变成真正的学习教练",
-          heroSubtitle: "AI 10x Learning Coach 会先画知识地图，再逐章生成交互式 HTML 课件，通过测验和自检记录你的掌握情况，并把薄弱点交还给 AI 继续复教。",
-          heroDemoLink: "体验交互演示",
-          heroInstallLink: "复制安装命令",
-          metricHtml: "每课可交互网页",
-          metricBilingual: "双语课件与文件名",
-          metricRecord: "学习记录可导出",
-          metricRetest: "错题驱动复教",
-          demoTitle: "不是 README 里的承诺，而是可感知的学习体验",
-          demoIntro: "下面这个小演示模拟了真实课件的关键环节：语言选择、知识地图、多视角解释、即时测验、可回跳复习的自检清单和可复制给 AI 的学习记录。",
-          flow1Title: "校准学习者",
-          flow1Body: "背景、目标、时间预算和语言偏好先确定。",
-          flow2Title: "全局地图",
-          flow2Body: "先知道这门知识的结构，再进入细节。",
-          flow3Title: "交互课件",
-          flow3Body: "每课都是 HTML：tabs、测验、可回跳复习的清单、记录面板。",
-          flow4Title: "错题复教",
-          flow4Body: "把学习记录交给 AI，让下一课从薄弱点开始。",
-          lessonFileTitle: "第01课-全局地图 / 课件.html",
-          tabUser: "学习者视角",
-          tabBuilder: "工程视角",
-          tabAi: "AI 复教视角",
-          recordBoxTitle: "学习记录面板",
-          featuresTitle: "它解决的是“我看过了，但没学会”",
-          featuresIntro: "Skill 的价值不只是生成内容，而是强制走完从地图、互动、检测到复教的闭环。",
-          feature1Title: "从第 1 课开始就是网页课件",
-          feature1Body: "每课都是自包含 HTML，带目录、tabs、折叠深读、即时测验、带复习回跳的自检清单和底部导航。",
-          feature2Title: "不会让模糊理解直接进入下一章",
-          feature2Body: "测验结果会被诊断为正确、部分正确、概念误区、边界不清或应用脱节。",
-          feature3Title: "网页行为可以交回给 AI",
-          feature3Body: "复制详细 Markdown 报告，或下载 JSON，让下一轮教学知道你错在哪、勾了什么。",
-          feature4Title: "中文模式下连文件名也中文",
-          feature4Body: "例如 `学习/强化学习/第01课-全局地图/课件.html`，但 MDP、PPO 等术语保留英文。",
-          feature5Title: "错题不是结束，而是下一轮教学入口",
-          feature5Body: "AI 会读取学习进度、错题记录和导出的学习记录，针对薄弱点补讲和复测。",
-          feature6Title: "安装的是一个 Skill，不是复杂平台",
-          feature6Body: "仓库只有 Markdown 指令、引用模板和元数据；课件生成在你的本地学习目录里。",
-          proofTitle: "为什么它值得 Star",
-          proofIntro: "很多 AI 学习提示词只负责“讲”，这个 Skill 负责把学习过程变成可追踪、可复盘、可继续的系统。",
-          terminal1: "你: 使用 ai-10x-learning-coach 教我强化学习",
-          terminal2: "AI: 中文版还是 English version?",
-          terminal3: "你: 中文版。我没有机器学习基础，慢慢扎实学。",
-          terminal4: "AI: 已创建 学习/强化学习/第01课-全局地图/课件.html",
-          terminal5: "AI: 学完后复制学习记录，我会根据错题继续第02课。",
-          recordLine1: "# AI 可以读取的学习记录片段",
-          recordLine2: "题目: RL 和监督学习最大的区别是什么?",
-          recordLine3: "状态: 错误",
-          recordLine4: "我的选择: 两者没有本质区别",
-          recordLine5: "正确答案: RL 通过环境交互和延迟奖励学习决策序列",
-          recordLine6: "复习建议: 对比“标签答案”和“奖励反馈”",
-          installTitle: "安装后，用一句话开始学任何领域",
-          installIntro: "适合新领域入门、代码库理解、面试复习、项目预研和写作准备。",
-          triggerCommand: "使用 ai-10x-learning-coach 教我强化学习<br>Use ai-10x-learning-coach to teach me reinforcement learning",
-          footerCn: "中文文档",
-          footerEn: "English Docs",
-          checks: [
-            "我能解释 Agent / Environment / Reward",
-            "我能说出 MDP 的作用",
-            "我知道为什么先学全局地图",
-            "我能把学习记录交给 AI"
-          ]
-        },
-        en: {
-          title: "AI 10x Learning Coach | Interactive AI Learning Coach",
-          description: "AI 10x Learning Coach turns Claude Code/Codex into an adaptive tutor with interactive HTML lessons, mastery checks, mistake tracking, and exportable learning records.",
-          navDemo: "Interactive Demo",
-          navFeatures: "Features",
-          navInstall: "Install",
-          heroTitle: "Turn AI from an answer machine into a real learning coach",
-          heroSubtitle: "AI 10x Learning Coach starts with a knowledge map, then generates interactive HTML lessons chapter by chapter, checks mastery, records self-checks, and hands weak spots back to AI for targeted reteaching.",
-          heroDemoLink: "Try the demo",
-          heroInstallLink: "Copy install command",
-          metricHtml: "Interactive lesson pages",
-          metricBilingual: "Bilingual lessons and paths",
-          metricRecord: "Exportable learning records",
-          metricRetest: "Mistake-driven reteaching",
-          demoTitle: "Not a README promise, but a visible learning experience",
-          demoIntro: "This mini demo mirrors the real course flow: language choice, knowledge map, multi-perspective explanation, instant quiz, a self-check list with review links, and a record you can hand back to AI.",
-          flow1Title: "Calibrate the learner",
-          flow1Body: "Background, goal, time budget, and language preference come first.",
-          flow2Title: "Global map",
-          flow2Body: "Understand the structure before entering the details.",
-          flow3Title: "Interactive lessons",
-          flow3Body: "Every lesson is HTML with tabs, quizzes, reviewable checklists, and a record panel.",
-          flow4Title: "Mistake-driven reteaching",
-          flow4Body: "Give the learning record back to AI so the next lesson starts from weak spots.",
-          lessonFileTitle: "lesson-01-global-map / index.html",
-          tabUser: "Learner view",
-          tabBuilder: "Builder view",
-          tabAi: "AI reteaching view",
-          recordBoxTitle: "Learning record panel",
-          featuresTitle: "It solves “I read it, but I did not learn it”",
-          featuresIntro: "The Skill is not just content generation. It enforces a loop from map to interaction, mastery check, and reteaching.",
-          feature1Title: "Lesson 1 is already an interactive web page",
-          feature1Body: "Each lesson is self-contained HTML with navigation, tabs, deep dives, instant quizzes, self-checks with review links, and bottom guidance.",
-          feature2Title: "Fuzzy understanding does not pass silently",
-          feature2Body: "Quiz answers are diagnosed as correct, partially correct, misconception, missing boundary, or application gap.",
-          feature3Title: "Page behavior can go back to AI",
-          feature3Body: "Copy a detailed Markdown report or export JSON so the next round knows what was wrong and what was checked.",
-          feature4Title: "Chinese mode localizes file names too",
-          feature4Body: "For example: learning/reinforcement-learning/lesson-01-global-map/index.html. Technical terms such as MDP and PPO stay in English.",
-          feature5Title: "Wrong answers become the next teaching entry point",
-          feature5Body: "AI reads progress, mistakes, and exported learning records to reteach and retest weak spots.",
-          feature6Title: "It is a Skill, not a complex platform",
-          feature6Body: "The repo contains Markdown instructions, references, and metadata. Lessons are generated locally in your learning workspace.",
-          proofTitle: "Why it is worth starring",
-          proofIntro: "Many AI learning prompts only explain. This Skill turns learning into a trackable, reviewable, continuable system.",
-          terminal1: "You: Use ai-10x-learning-coach to teach me reinforcement learning",
-          terminal2: "AI: Chinese version or English version?",
-          terminal3: "You: English. I have no machine learning background, and I want to learn slowly and solidly.",
-          terminal4: "AI: Created learning/reinforcement-learning/lesson-01-global-map/index.html",
-          terminal5: "AI: After the lesson, copy the learning record and I will continue Lesson 2 from your mistakes.",
-          recordLine1: "# Learning record snippet AI can read",
-          recordLine2: "Question: What is the biggest difference between RL and supervised learning?",
-          recordLine3: "Status: Wrong",
-          recordLine4: "My choice: There is no core difference",
-          recordLine5: "Correct answer: RL learns decision sequences through environment interaction and delayed rewards",
-          recordLine6: "Review suggestion: Compare labeled answers with reward feedback",
-          installTitle: "Install it, then start learning any domain with one sentence",
-          installIntro: "Useful for new-domain onboarding, codebase understanding, interview review, project research, and writing preparation.",
-          triggerCommand: "Use ai-10x-learning-coach to teach me reinforcement learning",
-          footerCn: "Chinese Docs",
-          footerEn: "English Docs",
-          checks: [
-            "I can explain Agent / Environment / Reward",
-            "I can state what MDP is for",
-            "I know why the global map comes first",
-            "I can hand the learning record back to AI"
-          ]
-        }
-      };
-
-      var availableModes = {
-        mdp: ["choice", "short"],
-        value: ["choice"],
-        policy: ["choice"],
-        explore: ["choice"],
-        qlearning: ["choice", "code"],
-        deep: ["choice"]
-      };
-
-      var traps = {
-        mdp: {
-          cn: [
-            { title: "陷阱 1：把 Reward 当成标准答案", body: "Reward 是环境反馈的分数，不是监督学习里的标签。它可能延迟、稀疏，甚至设计得不好。" },
-            { title: "陷阱 2：忽略 Transition", body: "同一个 Action 在不同 State 下会导致不同结果，MDP 的关键是状态转移概率 P。" }
-          ],
-          en: [
-            { title: "Trap 1: Treating Reward as a label", body: "Reward is a feedback score, not a supervised-learning label. It may be delayed, sparse, or poorly designed." },
-            { title: "Trap 2: Ignoring Transition", body: "The same Action can lead to different results in different States. Transition P is central to MDP." }
-          ]
-        },
-        value: {
-          cn: [
-            { title: "陷阱 1：只看眼前奖励", body: "Value 关心长期累计回报，眼前 Reward 高不代表最终更好。" },
-            { title: "陷阱 2：忘记 discount", body: "γ 决定未来奖励打几折，太高或太低都会改变 Agent 的偏好。" }
-          ],
-          en: [
-            { title: "Trap 1: Chasing immediate reward", body: "Value cares about long-term cumulative return. A high reward now may be worse later." },
-            { title: "Trap 2: Forgetting discount", body: "Gamma controls how much future rewards matter, changing the Agent's preference." }
-          ]
-        },
-        policy: {
-          cn: [
-            { title: "陷阱 1：把 Policy 和 Value 混在一起", body: "Policy 负责选动作，Value 负责评估好坏，它们经常配合但不是一回事。" },
-            { title: "陷阱 2：以为策略必须是确定的", body: "很多 RL 策略是概率分布 π(a|s)，同一状态也可能按概率选择不同动作。" }
-          ],
-          en: [
-            { title: "Trap 1: Mixing Policy and Value", body: "Policy chooses actions; Value evaluates goodness. They often cooperate but are not the same." },
-            { title: "Trap 2: Assuming policies are deterministic", body: "Many RL policies are probability distributions π(a|s), not fixed actions." }
-          ]
-        },
-        explore: {
-          cn: [
-            { title: "陷阱 1：太早停止探索", body: "当前最优只是已见过的最优，没试过的动作可能更好。" },
-            { title: "陷阱 2：一直随机探索", body: "探索需要逐步减少，否则 Agent 永远无法稳定利用学到的经验。" }
-          ],
-          en: [
-            { title: "Trap 1: Stopping exploration too early", body: "Current best only means best seen so far; untried actions may be better." },
-            { title: "Trap 2: Exploring forever", body: "Exploration should often decay; otherwise the Agent never stabilizes." }
-          ]
-        },
-        qlearning: {
-          cn: [
-            { title: "陷阱 1：误解“无模型”", body: "无模型不是没有模型文件，而是不显式学习环境转移模型 P(s'|s,a)。" },
-            { title: "陷阱 2：Q 表爆炸", body: "状态或动作一多，表格方法就不可行，这正是 DQN 登场的原因。" }
-          ],
-          en: [
-            { title: "Trap 1: Misreading model-free", body: "Model-free means not explicitly learning environment dynamics P(s'|s,a), not no model file." },
-            { title: "Trap 2: Q-table explosion", body: "When states/actions grow, tables break down. This is why DQN appears." }
-          ]
-        },
-        deep: {
-          cn: [
-            { title: "陷阱 1：以为深度 RL 必然更好", body: "深度方法更强但也更不稳定、更吃数据，简单问题上表格法反而更清楚。" },
-            { title: "陷阱 2：跳过基础直接学 PPO", body: "PPO 很实用，但不理解 MDP、Value、Policy 时很容易只背参数。" }
-          ],
-          en: [
-            { title: "Trap 1: Assuming deep RL is always better", body: "Deep methods are powerful but unstable and data-hungry; tables can be clearer for small problems." },
-            { title: "Trap 2: Jumping straight to PPO", body: "PPO is useful, but without MDP, Value, and Policy, it becomes parameter memorization." }
-          ]
-        }
-      };
-
-      var panels = {
-        user: {
-          cn: "你不是在读长文，而是在一个课件里点击知识卡、切换题型、查看提示、回答问题、勾选自检，再把详细学习记录交回给 AI。",
-          en: "You are not reading a wall of text. You click concept cards, switch question types, use hints, answer, self-check, and hand a detailed record back to AI."
-        },
-        builder: {
-          cn: "每个课件都是自包含 HTML：概念地图、tabs、测验、提示、清单、学习记录导出都在同一个文件里。",
-          en: "Each lesson is a self-contained HTML file: concept map, tabs, quizzes, hints, checklist, and learning-record export in one page."
-        },
-        ai: {
-          cn: "AI 读取的不只是分数，而是哪张知识卡、哪种题型、错因、提示使用量和未勾选清单，从薄弱点继续复教。",
-          en: "AI reads more than a score: concept, question type, error cause, hints used, and unchecked items, then reteaches weak spots."
-        }
-      };
-
-      var concepts = {
-        mdp: {
-          label: "MDP",
-          cn: {
-            tagline: "决策问题的数学地基",
-            detail: "MDP 把一个决策问题拆成 State、Action、Transition、Reward、Discount，让后面的 Value、Q-Learning、PPO 都有共同语言。",
-            why: "先学它，是为了知道 RL 到底在优化什么、观察什么、反馈什么。",
-            next: "继续第02课 MDP详解",
-            questions: {
-              choice: {
-                title: "选择题：MDP 五元组里 Reward 的作用是什么？",
-                options: [
-                  { text: "直接告诉 Agent 最终正确答案", ok: false, feedback: "不对。Reward 不是标注答案，它只是每一步交互后的分数信号。" },
-                  { text: "把动作结果转成可优化的分数信号", ok: true, feedback: "正确。Reward 让 Agent 能比较哪些行为更值得重复。" },
-                  { text: "负责存储所有历史轨迹", ok: false, feedback: "不对。轨迹是交互记录，Reward 只是其中的反馈值。" }
-                ],
-                hints: ["先想游戏里的金币、扣血和通关分。", "Reward 是环境给 Agent 的即时反馈，不是人类给的标准答案。", "如果没有 Reward，Agent 不知道哪个动作更好。"],
-                expected: "Reward 把动作结果转成可优化的分数信号。"
-              },
-              short: {
-                title: "简答题：用空调控温举例说明 State、Action、Reward。",
-                placeholder: "例如：State 包含当前温度……Action 可以是……Reward 可以是……",
-                keywords: ["温度", "状态", "动作", "奖励"],
-                hints: ["State 是它能看到的局面。", "Action 是它能执行的操作。", "Reward 要同时考虑舒适度和能耗。"],
-                expected: "State 可包含当前温度/目标温度/室外温度；Action 可是升温、降温、保持；Reward 可奖励接近目标温度并惩罚耗电。"
-              },
-              code: {
-                title: "简单编程：写一个 step(state, action)，返回 next_state 和 reward。",
-                placeholder: "function step(state, action) {\n  // 根据 action 更新温度\n  // 计算 reward\n  return { nextState: ..., reward: ... };\n}",
-                keywords: ["reward", "next", "return"],
-                hints: ["先根据 action 得到 nextState。", "再用目标温度和能耗计算 reward。", "最后 return nextState 和 reward。"],
-                expected: "代码需要体现 nextState 更新、reward 计算、return 两个信息。"
-              }
-            }
-          },
-          en: {
-            tagline: "The mathematical ground for decision problems",
-            detail: "An MDP decomposes a decision problem into State, Action, Transition, Reward, and Discount, giving Value, Q-Learning, and PPO a shared language.",
-            why: "Learn it first so you know what RL observes, optimizes, and receives as feedback.",
-            next: "Continue Lesson 2: MDP",
-            questions: {
-              choice: {
-                title: "Multiple choice: What does Reward do in an MDP?",
-                options: [
-                  { text: "It directly gives the final correct answer", ok: false, feedback: "Not quite. Reward is not a labeled answer; it is a score after interaction." },
-                  { text: "It turns action outcomes into an optimizable score signal", ok: true, feedback: "Correct. Reward lets the Agent compare which behaviors are worth repeating." },
-                  { text: "It stores every historical trajectory", ok: false, feedback: "No. Trajectories store histories; Reward is one feedback value inside them." }
-                ],
-                hints: ["Think coins, damage, and level score in a game.", "Reward is feedback from the environment, not a human label.", "Without reward, the Agent cannot tell better actions from worse ones."],
-                expected: "Reward turns action outcomes into an optimizable score signal."
-              },
-              short: {
-                title: "Short answer: Use air-conditioner control to explain State, Action, and Reward.",
-                placeholder: "State contains current temperature... Action can be... Reward can be...",
-                keywords: ["temperature", "state", "action", "reward"],
-                hints: ["State is what the controller can observe.", "Action is what it can do.", "Reward should balance comfort and energy."],
-                expected: "State can include current/target/outdoor temperature; Action can heat, cool, or hold; Reward can reward comfort and penalize power use."
-              },
-              code: {
-                title: "Tiny coding: Write step(state, action), returning next_state and reward.",
-                placeholder: "function step(state, action) {\n  // update temperature from action\n  // compute reward\n  return { nextState: ..., reward: ... };\n}",
-                keywords: ["reward", "next", "return"],
-                hints: ["Update nextState from action first.", "Compute reward from target error and energy cost.", "Return both nextState and reward."],
-                expected: "The code should show nextState update, reward computation, and return both values."
-              }
-            }
-          }
-        },
-        value: {
-          label: "Value",
-          cn: {
-            tagline: "从现在往后能拿多少分",
-            detail: "Value 估计某个状态或动作从现在到未来的长期回报，帮助 Agent 不只看眼前奖励。",
-            why: "它让 Agent 学会延迟满足：现在少拿一点分，未来可能赢更多。",
-            next: "继续第03课 价值函数",
-            questions: {
-              choice: {
-                title: "选择题：Value 和单步 Reward 最大区别是什么？",
-                options: [
-                  { text: "Value 看长期累计回报，Reward 是当前一步反馈", ok: true, feedback: "正确。Value 是面向未来的估计，Reward 是当下收到的分数。" },
-                  { text: "Value 只在监督学习里出现", ok: false, feedback: "不对。Value 是 RL 的核心概念。" },
-                  { text: "Reward 一定比 Value 更重要", ok: false, feedback: "不对。短期 Reward 可能诱导短视行为。" }
-                ],
-                hints: ["想一手棋：眼前吃子不一定最好。", "Reward 是一步，Value 是从这里往后的总期望。", "Value 关心长期，不只关心当下。"],
-                expected: "Value 看长期累计回报，Reward 是当前一步反馈。"
-              },
-              short: {
-                title: "简答题：为什么只看眼前 Reward 会让 Agent 变短视？",
-                placeholder: "用游戏、投资、学习任意例子解释。",
-                keywords: ["长期", "未来", "短视"],
-                hints: ["眼前奖励高，不代表最终结果好。", "Value 把未来可能得到的奖励也算进去。", "可以用游戏里贪金币被怪打死举例。"],
-                expected: "只看 Reward 会选择眼前小利；Value 估计长期累计回报，能避免为了短期奖励牺牲未来收益。"
-              },
-              code: {
-                title: "简单编程：写一行伪代码表达 return = reward + gamma * next_value。",
-                placeholder: "target = ...",
-                keywords: ["reward", "gamma", "value"],
-                hints: ["先拿当前 reward。", "未来价值要乘 gamma。", "把两者相加就是目标回报。"],
-                expected: "target = reward + gamma * next_value"
-              }
-            }
-          },
-          en: {
-            tagline: "How much future return remains",
-            detail: "Value estimates long-term return from a state or action, so the Agent does not optimize only immediate reward.",
-            why: "It teaches delayed gratification: a smaller reward now can lead to much better future return.",
-            next: "Continue Lesson 3: Value Functions",
-            questions: {
-              choice: {
-                title: "Multiple choice: Key difference between Value and one-step Reward?",
-                options: [
-                  { text: "Value estimates long-term return; Reward is immediate feedback", ok: true, feedback: "Correct. Value is future-facing; Reward is the score received now." },
-                  { text: "Value only appears in supervised learning", ok: false, feedback: "No. Value is central to RL." },
-                  { text: "Reward is always more important than Value", ok: false, feedback: "No. Immediate reward can create short-sighted behavior." }
-                ],
-                hints: ["Think about one chess move: grabbing a piece now may not be best.", "Reward is one step; Value is expected future total.", "Value cares about the long run."],
-                expected: "Value estimates long-term return; Reward is immediate feedback."
-              },
-              short: {
-                title: "Short answer: Why can optimizing only immediate Reward make an Agent short-sighted?",
-                placeholder: "Use a game, investing, or learning example.",
-                keywords: ["long", "future", "short"],
-                hints: ["A high reward now may harm the final outcome.", "Value includes future rewards.", "Use an example like grabbing coins and dying."],
-                expected: "Immediate Reward can chase small gains; Value estimates cumulative return and avoids sacrificing the future."
-              },
-              code: {
-                title: "Tiny coding: Write pseudocode for return = reward + gamma * next_value.",
-                placeholder: "target = ...",
-                keywords: ["reward", "gamma", "value"],
-                hints: ["Start with current reward.", "Discount future value by gamma.", "Add them."],
-                expected: "target = reward + gamma * next_value"
-              }
-            }
-          }
-        },
-        policy: {
-          label: "Policy",
-          cn: {
-            tagline: "什么状态下该做什么",
-            detail: "Policy 是 Agent 的行为规则：看到某个 State 后选择哪个 Action，可以是表格规则，也可以是神经网络。",
-            why: "最终我们真正想学到的是一个好策略，而不只是背概念。",
-            next: "继续第04课 策略",
-            questions: {
-              choice: {
-                title: "选择题：Policy 最接近下面哪句话？",
-                options: [
-                  { text: "环境给出的分数", ok: false, feedback: "这是 Reward。" },
-                  { text: "状态到动作的决策规则", ok: true, feedback: "正确。Policy 负责决定看到某个状态时做什么。" },
-                  { text: "训练数据的标签", ok: false, feedback: "这是监督学习的语境，不是 Policy。" }
-                ],
-                hints: ["Policy 回答：现在该做什么？", "它可以写成 π(a|s)。", "State 进来，Action 出去。"],
-                expected: "Policy 是状态到动作的决策规则。"
-              },
-              short: {
-                title: "简答题：用一句话区分 Policy 和 Value。",
-                placeholder: "Policy 是……；Value 是……",
-                keywords: ["动作", "价值", "状态"],
-                hints: ["Policy 负责选动作。", "Value 负责评估好坏。", "一个像司机，一个像评分员。"],
-                expected: "Policy 决定在某个状态下做什么动作；Value 评估这个状态或动作长期有多好。"
-              },
-              code: {
-                title: "简单编程：写一个 epsilon-greedy policy 的伪代码。",
-                placeholder: "if random() < epsilon:\n  ...\nelse:\n  ...",
-                keywords: ["epsilon", "random", "argmax"],
-                hints: ["小概率随机探索。", "大概率选择 Q 最大的动作。", "关键词：epsilon、random、argmax。"],
-                expected: "if random() < epsilon then random action else argmax Q action"
-              }
-            }
-          },
-          en: {
-            tagline: "What to do in each state",
-            detail: "Policy is the Agent's behavior rule: given a State, choose an Action. It can be a table or a neural network.",
-            why: "The real target is learning a good policy, not memorizing terms.",
-            next: "Continue Lesson 4: Policy",
-            questions: {
-              choice: {
-                title: "Multiple choice: Which sentence best describes Policy?",
-                options: [
-                  { text: "The score from the environment", ok: false, feedback: "That is Reward." },
-                  { text: "A decision rule from states to actions", ok: true, feedback: "Correct. Policy decides what to do in a state." },
-                  { text: "The label of training data", ok: false, feedback: "That belongs to supervised learning." }
-                ],
-                hints: ["Policy answers: what should I do now?", "It can be written as π(a|s).", "State in, Action out."],
-                expected: "Policy is a decision rule from states to actions."
-              },
-              short: {
-                title: "Short answer: Distinguish Policy and Value in one sentence.",
-                placeholder: "Policy is...; Value is...",
-                keywords: ["action", "value", "state"],
-                hints: ["Policy chooses actions.", "Value evaluates goodness.", "One is a driver, one is a critic."],
-                expected: "Policy decides the action in a state; Value estimates how good that state/action is long-term."
-              },
-              code: {
-                title: "Tiny coding: Write pseudocode for an epsilon-greedy policy.",
-                placeholder: "if random() < epsilon:\n  ...\nelse:\n  ...",
-                keywords: ["epsilon", "random", "argmax"],
-                hints: ["Small probability: explore randomly.", "Otherwise choose the action with max Q.", "Keywords: epsilon, random, argmax."],
-                expected: "if random() < epsilon then random action else argmax Q action"
-              }
-            }
-          }
-        },
-        explore: {
-          label: "Explore",
-          cn: {
-            tagline: "试新动作还是用旧经验",
-            detail: "探索与利用决定 Agent 是尝试未知动作，还是选择当前看起来最好的动作。",
-            why: "没有探索，Agent 可能永远卡在局部最优；只有探索，又永远学不稳。",
-            next: "继续第05课 探索与利用",
-            questions: {
-              choice: {
-                title: "选择题：epsilon-greedy 中 epsilon 变大意味着什么？",
-                options: [
-                  { text: "更频繁随机探索", ok: true, feedback: "正确。epsilon 越大，随机试新动作的概率越高。" },
-                  { text: "更相信当前最优动作", ok: false, feedback: "这是 epsilon 变小的效果。" },
-                  { text: "奖励会自动变大", ok: false, feedback: "epsilon 只控制动作选择，不直接改变奖励。" }
-                ],
-                hints: ["epsilon 是探索概率。", "random() < epsilon 时随机选动作。", "训练早期通常探索多一些。"],
-                expected: "epsilon 越大，随机探索越频繁。"
-              },
-              short: {
-                title: "简答题：为什么不能一开始就永远选当前最优动作？",
-                placeholder: "解释局部最优、未知动作或试新店类比。",
-                keywords: ["探索", "未知", "局部"],
-                hints: ["当前最优只是目前见过的最优。", "没试过的动作可能更好。", "像总去老餐厅，永远不知道新店好不好。"],
-                expected: "因为当前最优基于有限经验，缺少探索会错过更好的未知动作，陷入局部最优。"
-              },
-              code: {
-                title: "简单编程：补全 epsilon-greedy 的 if/else 逻辑。",
-                placeholder: "if random() < epsilon:\n  action = ...\nelse:\n  action = ...",
-                keywords: ["random", "epsilon", "argmax"],
-                hints: ["if 分支做探索。", "else 分支做利用。", "利用时选 Q 最大的动作。"],
-                expected: "if random() < epsilon: random action; else: argmax Q action"
-              }
-            }
-          },
-          en: {
-            tagline: "Try new actions or exploit old knowledge",
-            detail: "Exploration vs exploitation decides whether the Agent tries unknown actions or uses the best-known action.",
-            why: "Without exploration, it can get stuck; with only exploration, it never stabilizes.",
-            next: "Continue Lesson 5: Exploration",
-            questions: {
-              choice: {
-                title: "Multiple choice: In epsilon-greedy, what does larger epsilon mean?",
-                options: [
-                  { text: "More random exploration", ok: true, feedback: "Correct. Larger epsilon means more random action trials." },
-                  { text: "More trust in the current best action", ok: false, feedback: "That happens when epsilon is smaller." },
-                  { text: "Reward automatically increases", ok: false, feedback: "Epsilon controls action selection, not reward directly." }
-                ],
-                hints: ["epsilon is exploration probability.", "When random() < epsilon, choose randomly.", "Early training often explores more."],
-                expected: "Larger epsilon means more random exploration."
-              },
-              short: {
-                title: "Short answer: Why not always choose the current best action from the beginning?",
-                placeholder: "Mention local optimum, unknown actions, or restaurant analogy.",
-                keywords: ["explore", "unknown", "local"],
-                hints: ["Current best only means best seen so far.", "Untried actions may be better.", "Always going to the same restaurant hides better ones."],
-                expected: "Because current best is based on limited experience; without exploration, better unknown actions may never be found."
-              },
-              code: {
-                title: "Tiny coding: Complete epsilon-greedy if/else logic.",
-                placeholder: "if random() < epsilon:\n  action = ...\nelse:\n  action = ...",
-                keywords: ["random", "epsilon", "argmax"],
-                hints: ["if branch explores.", "else branch exploits.", "Exploitation picks max-Q action."],
-                expected: "if random() < epsilon: random action; else: argmax Q action"
-              }
-            }
-          }
-        },
-        qlearning: {
-          label: "Q-Learning",
-          cn: {
-            tagline: "经典无模型方法",
-            detail: "Q-Learning 通过不断更新 Q(s,a) 表，学习在某个状态下做某个动作的长期价值。",
-            why: "它是理解 DQN 的入口：DQN 本质上是把 Q 表换成神经网络。",
-            next: "继续第06课 Q-Learning",
-            questions: {
-              choice: {
-                title: "选择题：Q-Learning 为什么叫无模型方法？",
-                options: [
-                  { text: "它不需要知道环境转移概率 P，只靠交互经验更新 Q", ok: true, feedback: "正确。无模型不是没有模型文件，而是不建环境动力学模型。" },
-                  { text: "它完全不需要环境", ok: false, feedback: "不对。Q-Learning 很依赖与环境交互得到样本。" },
-                  { text: "它不能计算价值", ok: false, feedback: "不对。Q-Learning 核心就是学习 Q-value。" }
-                ],
-                hints: ["Model 指的是环境模型，不是代码模型。", "它不需要提前知道 P(s'|s,a)。", "它靠试错样本更新 Q 表。"],
-                expected: "Q-Learning 不需要环境转移概率 P，只用交互经验更新 Q。"
-              },
-              short: {
-                title: "简答题：Q(s,a) 表示什么？",
-                placeholder: "用“在某状态做某动作，未来……”这句话回答。",
-                keywords: ["状态", "动作", "长期"],
-                hints: ["Q 同时绑定 state 和 action。", "它看的不是一步奖励，而是未来总回报。", "回答格式：在 s 做 a 的长期价值。"],
-                expected: "Q(s,a) 表示在状态 s 执行动作 a 后，未来能获得的预期累计回报。"
-              },
-              code: {
-                title: "简单编程：写出 Q-Learning 更新公式的伪代码。",
-                placeholder: "q[s,a] = q[s,a] + alpha * (...)",
-                keywords: ["alpha", "gamma", "max"],
-                hints: ["目标 = r + gamma * max Q(next_state, next_action)。", "误差 = 目标 - 当前 Q。", "用 alpha 控制更新步长。"],
-                expected: "Q[s,a] += alpha * (reward + gamma * max(Q[next]) - Q[s,a])"
-              }
-            }
-          },
-          en: {
-            tagline: "Classic model-free method",
-            detail: "Q-Learning updates Q(s,a) to learn the long-term value of taking an action in a state.",
-            why: "It is the gateway to DQN: DQN replaces the Q table with a neural network.",
-            next: "Continue Lesson 6: Q-Learning",
-            questions: {
-              choice: {
-                title: "Multiple choice: Why is Q-Learning model-free?",
-                options: [
-                  { text: "It does not need transition probabilities P; it learns Q from interaction", ok: true, feedback: "Correct. Model-free means no environment dynamics model." },
-                  { text: "It does not need an environment", ok: false, feedback: "No. It needs environment interaction samples." },
-                  { text: "It cannot compute value", ok: false, feedback: "No. It learns Q-values." }
-                ],
-                hints: ["Model means environment model, not a code model.", "It does not know P(s'|s,a) upfront.", "It updates Q from trial-and-error samples."],
-                expected: "Q-Learning does not need transition probabilities P; it updates Q from interaction."
-              },
-              short: {
-                title: "Short answer: What does Q(s,a) mean?",
-                placeholder: "Use: taking action a in state s will...",
-                keywords: ["state", "action", "long"],
-                hints: ["Q binds state and action.", "It is not just one-step reward.", "It estimates long-term return."],
-                expected: "Q(s,a) is the expected cumulative return after taking action a in state s."
-              },
-              code: {
-                title: "Tiny coding: Write Q-Learning update pseudocode.",
-                placeholder: "q[s,a] = q[s,a] + alpha * (...)",
-                keywords: ["alpha", "gamma", "max"],
-                hints: ["Target = r + gamma * max Q(next_state, next_action).", "Error = target - current Q.", "alpha controls step size."],
-                expected: "Q[s,a] += alpha * (reward + gamma * max(Q[next]) - Q[s,a])"
-              }
-            }
-          }
-        },
-        deep: {
-          label: "DQN / PPO",
-          cn: {
-            tagline: "深度强化学习代表",
-            detail: "DQN 用神经网络近似 Q 表；PPO 直接优化策略，是现代大规模 RL 的代表方法。",
-            why: "当状态空间太大，表格方法装不下，深度网络就负责做函数近似。",
-            next: "继续第07课 深度强化学习",
-            questions: {
-              choice: {
-                title: "选择题：DQN 解决了 Q-Learning 的哪个痛点？",
-                options: [
-                  { text: "状态太多导致 Q 表存不下", ok: true, feedback: "正确。DQN 用神经网络近似 Q(s,a)，替代巨大表格。" },
-                  { text: "完全不需要 Reward", ok: false, feedback: "不对。DQN 仍然需要 Reward 学习。" },
-                  { text: "让所有任务都不需要探索", ok: false, feedback: "不对。深度 RL 仍然需要探索策略。" }
-                ],
-                hints: ["Q 表是 state × action 的表。", "图像状态几乎无限，表格会爆炸。", "DQN = Deep Q-Network。"],
-                expected: "DQN 用神经网络近似 Q 值，解决 Q 表过大问题。"
-              },
-              short: {
-                title: "简答题：一句话区分 DQN 和 PPO。",
-                placeholder: "DQN 更像……；PPO 更像……",
-                keywords: ["Q", "策略", "神经网络"],
-                hints: ["DQN 是 value-based。", "PPO 是 policy optimization。", "一个学 Q，一个直接调策略。"],
-                expected: "DQN 用神经网络学习 Q-value；PPO 直接优化 Policy，使策略更新稳定。"
-              },
-              code: {
-                title: "简单编程：写一行伪代码表示用网络预测 Q 值并选最大动作。",
-                placeholder: "q_values = model(state)\naction = ...",
-                keywords: ["model", "argmax", "action"],
-                hints: ["网络输入 state。", "输出每个 action 的 Q 值。", "选择 argmax。"],
-                expected: "q_values = model(state); action = argmax(q_values)"
-              }
-            }
-          },
-          en: {
-            tagline: "Representative deep RL methods",
-            detail: "DQN approximates Q tables with neural networks; PPO optimizes policies directly and is common in modern large-scale RL.",
-            why: "When state spaces are too large for tables, neural networks provide function approximation.",
-            next: "Continue Lesson 7: Deep RL",
-            questions: {
-              choice: {
-                title: "Multiple choice: Which Q-Learning pain point does DQN solve?",
-                options: [
-                  { text: "Too many states for a Q table", ok: true, feedback: "Correct. DQN approximates Q(s,a) with a neural network." },
-                  { text: "No reward needed anymore", ok: false, feedback: "No. DQN still learns from Reward." },
-                  { text: "All exploration becomes unnecessary", ok: false, feedback: "No. Deep RL still needs exploration." }
-                ],
-                hints: ["A Q table is state × action.", "Image-like states make tables explode.", "DQN = Deep Q-Network."],
-                expected: "DQN uses a neural network to approximate Q values when Q tables are too large."
-              },
-              short: {
-                title: "Short answer: Distinguish DQN and PPO in one sentence.",
-                placeholder: "DQN is like...; PPO is like...",
-                keywords: ["Q", "policy", "network"],
-                hints: ["DQN is value-based.", "PPO is policy optimization.", "One learns Q; one adjusts policy directly."],
-                expected: "DQN learns Q-values with a neural network; PPO directly optimizes the policy with stable updates."
-              },
-              code: {
-                title: "Tiny coding: Predict Q values with a network and choose the best action.",
-                placeholder: "q_values = model(state)\naction = ...",
-                keywords: ["model", "argmax", "action"],
-                hints: ["Input state into the network.", "Output Q values for actions.", "Pick argmax."],
-                expected: "q_values = model(state); action = argmax(q_values)"
-              }
-            }
-          }
-        }
-      };
-
-      function setText(id, value) {
-        var el = document.getElementById(id);
-        if (el) el.textContent = value;
-      }
-
-      function setHtml(id, value) {
-        var el = document.getElementById(id);
-        if (el) el.innerHTML = value;
-      }
-
-      function renderStaticText() {
-        var t = uiText[lang];
-        document.title = t.title;
-        var meta = document.querySelector('meta[name="description"]');
-        if (meta) meta.setAttribute("content", t.description);
-
-        [
-          "navDemo", "navFeatures", "navInstall",
-          "heroTitle", "heroSubtitle", "heroDemoLink", "heroInstallLink",
-          "metricHtml", "metricBilingual", "metricRecord", "metricRetest",
-          "demoTitle", "demoIntro",
-          "flow1Title", "flow1Body", "flow2Title", "flow2Body",
-          "flow3Title", "flow3Body", "flow4Title", "flow4Body",
-          "lessonFileTitle", "tabUser", "tabBuilder", "tabAi",
-          "recordBoxTitle",
-          "featuresTitle", "featuresIntro",
-          "feature1Title", "feature1Body", "feature2Title", "feature2Body",
-          "feature3Title", "feature3Body", "feature4Title", "feature4Body",
-          "feature5Title", "feature5Body", "feature6Title", "feature6Body",
-          "proofTitle", "proofIntro",
-          "terminal1", "terminal2", "terminal3", "terminal4", "terminal5",
-          "recordLine1", "recordLine2", "recordLine3", "recordLine4", "recordLine5", "recordLine6",
-          "installTitle", "installIntro",
-          "footerCn", "footerEn"
-        ].forEach(function(id) {
-          setText(id, t[id]);
-        });
-
-        setHtml("triggerCommand", t.triggerCommand);
-
-        checkItems.forEach(function(item, index) {
-          var label = item.querySelector(".check-label");
-          var review = item.querySelector(".review-mini");
-          if (label) label.textContent = t.checks[index];
-          if (review) review.textContent = lang === "cn" ? "复习 →" : "Review →";
-        });
-
-        langCn.textContent = "中文";
-        langEn.textContent = "English";
-        var activeTab = tabButtons.filter(function(btn) { return btn.classList.contains("active"); })[0] || tabButtons[0];
-        tabPanel.textContent = panels[activeTab.getAttribute("data-tab")][lang];
-      }
-
-      function currentConcept() {
-        return concepts[activeTopic][lang];
-      }
-
-      function currentQuestion() {
-        if (availableModes[activeTopic].indexOf(activeMode) === -1) activeMode = "choice";
-        return currentConcept().questions[activeMode];
-      }
-
-      function resetAnswerState() {
-        hintIndex = 0;
-        selectedChoice = -1;
-        lastResult = { status: "unanswered", answer: "-", feedback: "", missing: [] };
-        shortAnswer.value = "";
-        codeAnswer.value = "";
-        hintBox.classList.remove("show");
-        hintBox.textContent = lang === "cn" ? "点击提示，会逐步展开解题线索。" : "Click hints to reveal guidance step by step.";
-        quizFeedback.textContent = lang === "cn" ? "先选择知识卡和题型，再作答。提示可以多次点击。" : "Choose a concept and question type, then answer. Hints can be clicked repeatedly.";
-        quizFeedback.className = "feedback";
-      }
-
-      function renderConcept() {
-        mapNodes.forEach(function(node) {
-          var topic = node.getAttribute("data-topic");
-          var concept = concepts[topic][lang];
-          node.classList.toggle("hot", topic === activeTopic);
-          node.querySelector("strong").textContent = concepts[topic].label;
-          node.querySelector("span").textContent = concept.tagline;
-        });
-
-        var label = concepts[activeTopic].label;
-        var c = currentConcept();
-        conceptDetail.innerHTML =
-          "<strong>" + (lang === "cn" ? "当前选中：" : "Selected: ") + label + "</strong>" +
-          "<p>" + c.detail + "</p>" +
-          "<p>" + c.why + "</p>";
-        renderTraps();
-      }
-
-      function renderTraps() {
-        var items = traps[activeTopic][lang];
-        trapTitle.textContent = lang === "cn" ? "⚠ 常见陷阱与初学忽略项" : "⚠ Common Traps Beginners Miss";
-        trapList.innerHTML = items.map(function(item) {
-          return '<div class="trap-card"><strong>' + item.title + '</strong><span>' + item.body + '</span></div>';
-        }).join("");
-      }
-
-      function renderQuestion() {
-        var q = currentQuestion();
-        quizTitle.textContent = q.title;
-        choiceArea.innerHTML = "";
-        shortArea.classList.toggle("hidden", activeMode !== "short");
-        codeArea.classList.toggle("hidden", activeMode !== "code");
-        choiceArea.classList.toggle("hidden", activeMode !== "choice");
-        shortAnswer.placeholder = q.placeholder || "";
-        codeAnswer.placeholder = q.placeholder || "";
-        checkButton.textContent = lang === "cn" ? "提交评判" : "Check answer";
-        hintButton.textContent = lang === "cn" ? "提示 1" : "Hint 1";
-        quizNote.textContent = lang === "cn"
-          ? "默认是轻量选择题；只有少数模块开放简答或小代码体验，不制造刷题压力。"
-          : "Default is lightweight multiple choice; only a few concepts unlock short-answer or tiny coding.";
-        lessonModePill.textContent = lang === "cn" ? "轻量选择题为主" : "Choice-first";
-
-        modeButtons.forEach(function(btn) {
-          var mode = btn.getAttribute("data-mode");
-          var available = availableModes[activeTopic].indexOf(mode) !== -1;
-          btn.textContent = modeLabels[lang][mode];
-          btn.classList.toggle("hidden", !available);
-          btn.classList.toggle("active", mode === activeMode);
-        });
-
-        if (activeMode === "choice") {
-          q.options.forEach(function(opt, idx) {
-            var btn = document.createElement("button");
-            btn.className = "quiz-option";
-            btn.type = "button";
-            btn.textContent = opt.text;
-            btn.addEventListener("click", function() {
-              selectedChoice = idx;
-              Array.prototype.slice.call(choiceArea.querySelectorAll(".quiz-option")).forEach(function(optionBtn) {
-                optionBtn.classList.remove("selected", "correct", "wrong");
-              });
-              btn.classList.add("selected");
-              quizFeedback.textContent = lang === "cn" ? "已选择，点击“提交评判”查看标准答案。" : "Selected. Click Check answer to see the standard answer.";
-              quizFeedback.className = "feedback";
-            });
-            choiceArea.appendChild(btn);
-          });
-        }
-        updateRecord();
-      }
-
-      function gradeChoice(idx) {
-        var q = currentQuestion();
-        var options = Array.prototype.slice.call(choiceArea.querySelectorAll(".quiz-option"));
-        options.forEach(function(opt) { opt.classList.remove("selected", "correct", "wrong"); });
-        var picked = q.options[idx];
-        options[idx].classList.add(picked.ok ? "correct" : "wrong");
-        lastResult = {
-          status: picked.ok ? "correct" : "wrong",
-          answer: picked.text,
-          feedback: picked.feedback,
-          missing: picked.ok ? [] : [q.expected]
-        };
-        quizFeedback.textContent = picked.feedback + "\n" + (lang === "cn" ? "标准答案：" : "Standard answer: ") + q.expected;
-        quizFeedback.className = "feedback " + (picked.ok ? "ok" : "no");
-        updateRecord();
-      }
-
-      function gradeTextAnswer(text) {
-        var q = currentQuestion();
-        var lower = text.toLowerCase();
-        var hits = [];
-        var missing = [];
-        q.keywords.forEach(function(keyword) {
-          if (lower.indexOf(keyword.toLowerCase()) !== -1) hits.push(keyword);
-          else missing.push(keyword);
-        });
-        var status = hits.length >= Math.max(2, q.keywords.length - 1) ? "correct" : (hits.length > 0 ? "partial" : "wrong");
-        var feedback = "";
-        if (status === "correct") {
-          feedback = lang === "cn" ? "很好，关键要点基本齐了。" : "Good. The key points are mostly covered.";
-        } else if (status === "partial") {
-          feedback = (lang === "cn" ? "方向对，但还缺这些关键词：" : "Good direction, but missing: ") + missing.join(", ");
-        } else {
-          feedback = lang === "cn" ? "还没命中核心。先点提示，再补上关键概念。" : "The core idea is still missing. Use hints, then add the key concepts.";
-        }
-        lastResult = {
-          status: status,
-          answer: text || "-",
-          feedback: feedback,
-          missing: missing
-        };
-        quizFeedback.textContent = feedback + "\n" + (lang === "cn" ? "标准答案：" : "Standard answer: ") + q.expected;
-        quizFeedback.className = "feedback " + (status === "correct" ? "ok" : (status === "partial" ? "partial" : "no"));
-        updateRecord();
-      }
-
-      function showNextHint() {
-        var q = currentQuestion();
-        if (hintIndex < q.hints.length) hintIndex += 1;
-        var shown = q.hints.slice(0, hintIndex).map(function(hint, idx) {
-          return (idx + 1) + ". " + hint;
-        }).join("\n");
-        hintBox.textContent = shown || (lang === "cn" ? "暂无提示。" : "No hint yet.");
-        hintBox.classList.add("show");
-        hintButton.textContent = (lang === "cn" ? "提示 " : "Hint ") + Math.min(hintIndex + 1, q.hints.length) + "/" + q.hints.length;
-        updateRecord();
-      }
-
-      function checkedDetails(done) {
-        return checkItems.filter(function(item) {
-          return item.classList.contains("done") === done;
-        }).map(function(item) {
-          var label = item.querySelector(".check-label");
-          return label ? label.textContent.trim() : item.textContent.trim();
-        });
-      }
-
-      function updateRecord() {
-        var checked = checkedDetails(true);
-        var unchecked = checkedDetails(false);
-        var quizDone = lastResult.status !== "unanswered";
-        var quizScore = lastResult.status === "correct" ? 1 : 0;
-        var total = 1 + checkItems.length;
-        var done = (quizDone ? 1 : 0) + checked.length;
-        var percent = Math.round(done * 100 / total);
-        var q = currentQuestion();
-        var c = currentConcept();
-        var hintsUsed = hintIndex + "/" + q.hints.length;
-
-        recordPercent.textContent = percent + "% complete";
-        recordSummary.textContent = (lang === "cn" ? "完成度: " : "Completion: ") + percent + "% | " +
-          (lang === "cn" ? "模块: " : "Concept: ") + concepts[activeTopic].label + " | " +
-          (lang === "cn" ? "题型: " : "Mode: ") + modeLabels[lang][activeMode] + " | " +
-          (lang === "cn" ? "测验: " : "Quiz: ") + quizScore + "/1 | " +
-          (lang === "cn" ? "自检: " : "Checklist: ") + checked.length + "/" + checkItems.length + " | " +
-          (lang === "cn" ? "提示: " : "Hints: ") + hintsUsed;
-
-        var statusText = {
-          cn: { unanswered: "未提交", correct: "正确", partial: "部分正确", wrong: "错误" },
-          en: { unanswered: "Unanswered", correct: "Correct", partial: "Partially correct", wrong: "Wrong" }
-        };
-        var usedHints = q.hints.slice(0, hintIndex);
-        var report = lang === "cn"
-          ? "# 学习记录 — 强化学习 第01课 全局地图\n" +
-            "- 当前模块: " + concepts[activeTopic].label + " — " + c.tagline + "\n" +
-            "- 题型: " + modeLabels[lang][activeMode] + "\n" +
-            "- 题目: " + q.title + "\n" +
-            "- 作答状态: " + statusText.cn[lastResult.status] + "\n" +
-            "- 我的答案: " + lastResult.answer + "\n" +
-            "- 正确要点: " + q.expected + "\n" +
-            "- 诊断反馈: " + (lastResult.feedback || "尚未提交，AI 会等待你的回答。") + "\n" +
-            "- 缺失关键词/薄弱点: " + (lastResult.missing && lastResult.missing.length ? lastResult.missing.join(", ") : "暂无") + "\n" +
-            "- 已查看提示: " + hintsUsed + (usedHints.length ? "\n  - " + usedHints.join("\n  - ") : "\n  - 未查看") + "\n" +
-            "- 已勾选自检 (" + checked.length + "/" + checkItems.length + "): " + (checked.length ? "\n  - " + checked.join("\n  - ") : "无") + "\n" +
-            "- 未勾选自检: " + (unchecked.length ? "\n  - " + unchecked.join("\n  - ") : "无") + "\n" +
-            "- 下一步: " + c.next
-          : "# Learning Record — Reinforcement Learning Lesson 01 Global Map\n" +
-            "- Current concept: " + concepts[activeTopic].label + " — " + c.tagline + "\n" +
-            "- Question type: " + modeLabels[lang][activeMode] + "\n" +
-            "- Question: " + q.title + "\n" +
-            "- Status: " + statusText.en[lastResult.status] + "\n" +
-            "- My answer: " + lastResult.answer + "\n" +
-            "- Expected points: " + q.expected + "\n" +
-            "- Diagnostic feedback: " + (lastResult.feedback || "Not submitted yet. AI should wait for the answer.") + "\n" +
-            "- Missing keywords / weak spots: " + (lastResult.missing && lastResult.missing.length ? lastResult.missing.join(", ") : "None") + "\n" +
-            "- Hints viewed: " + hintsUsed + (usedHints.length ? "\n  - " + usedHints.join("\n  - ") : "\n  - None") + "\n" +
-            "- Checked self-checks (" + checked.length + "/" + checkItems.length + "): " + (checked.length ? "\n  - " + checked.join("\n  - ") : "None") + "\n" +
-            "- Unchecked self-checks: " + (unchecked.length ? "\n  - " + unchecked.join("\n  - ") : "None") + "\n" +
-            "- Next: " + c.next;
-        recordPreview.textContent = report;
-      }
-
-      function selectTopic(topic) {
-        activeTopic = topic;
-        if (availableModes[activeTopic].indexOf(activeMode) === -1) activeMode = "choice";
-        resetAnswerState();
-        renderConcept();
-        renderQuestion();
-      }
-
-      function setMode(mode) {
-        if (availableModes[activeTopic].indexOf(mode) === -1) return;
-        activeMode = mode;
-        resetAnswerState();
-        renderQuestion();
-      }
-
-      function setLanguage(next) {
-        lang = next;
-        langCn.classList.toggle("active", lang === "cn");
-        langEn.classList.toggle("active", lang === "en");
-        langPill.textContent = lang === "cn" ? "中文模式" : "English mode";
-        crumb.textContent = lang === "cn" ? "强化学习 / 第01课" : "Reinforcement Learning / Lesson 01";
-        document.documentElement.lang = lang === "cn" ? "zh-CN" : "en";
-        copyRecord.textContent = copyLabels[lang].ready;
-        renderStaticText();
-        resetAnswerState();
-        renderConcept();
-        renderQuestion();
-      }
-
-      mapNodes.forEach(function(node) {
-        node.addEventListener("click", function() {
-          selectTopic(node.getAttribute("data-topic"));
-        });
-      });
-
-      modeButtons.forEach(function(btn) {
-        btn.addEventListener("click", function() {
-          setMode(btn.getAttribute("data-mode"));
-        });
-      });
-
-      checkButton.addEventListener("click", function() {
-        if (activeMode === "choice") {
-          if (selectedChoice === -1) {
-            quizFeedback.textContent = lang === "cn" ? "先选择一个选项，也可以先点提示。" : "Choose an option first, or use hints.";
-            quizFeedback.className = "feedback partial";
-          } else {
-            gradeChoice(selectedChoice);
-          }
-        } else if (activeMode === "short") {
-          gradeTextAnswer(shortAnswer.value.trim());
-        } else {
-          gradeTextAnswer(codeAnswer.value.trim());
-        }
-      });
-
-      hintButton.addEventListener("click", showNextHint);
-
-      checkItems.forEach(function(item) {
-        item.addEventListener("click", function() {
-          item.classList.toggle("done");
-          updateRecord();
-        });
-      });
-
-      Array.prototype.slice.call(document.querySelectorAll(".review-mini")).forEach(function(link) {
-        link.addEventListener("click", function(event) {
-          event.stopPropagation();
-          conceptDetail.scrollIntoView({ behavior: "smooth", block: "center" });
-        });
-      });
-
-      tabButtons.forEach(function(btn) {
-        btn.addEventListener("click", function() {
-          tabButtons.forEach(function(b) { b.classList.remove("active"); });
-          btn.classList.add("active");
-          tabPanel.textContent = panels[btn.getAttribute("data-tab")][lang];
-        });
-      });
-
-      langCn.addEventListener("click", function() { setLanguage("cn"); });
-      langEn.addEventListener("click", function() { setLanguage("en"); });
-
-      copyRecord.addEventListener("click", function() {
-        var text = recordPreview.textContent;
-        function fallbackCopy() {
-          var area = document.createElement("textarea");
-          area.value = text;
-          document.body.appendChild(area);
-          area.select();
-          document.execCommand("copy");
-          document.body.removeChild(area);
-        }
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text).catch(fallbackCopy);
-        } else {
-          fallbackCopy();
-        }
-        copyRecord.textContent = copyLabels[lang].done;
-        setTimeout(function() {
-          copyRecord.textContent = copyLabels[lang].ready;
-        }, 1500);
-      });
-
-      setLanguage("cn");
-    })();
-  </script>
+  <footer>
+    <span>LearnMap</span>
+    <span><a href="https://github.com/lwbscu/ai-10x-learning-coach/blob/main/README.cn.md">中文文档</a> · <a href="https://github.com/lwbscu/ai-10x-learning-coach/blob/main/README.en.md">English Docs</a> · <a href="https://github.com/lwbscu/ai-10x-learning-coach">GitHub</a></span>
+  </footer>
 </body>
 </html>
