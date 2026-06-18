@@ -7,21 +7,21 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/lwbscu/ai-10x-learning-coach"><img alt="GitHub Repo" src="https://img.shields.io/badge/GitHub-Repo-181717?style=for-the-badge&logo=github&logoColor=white"></a>
-  <a href="https://lwbscu.github.io/ai-10x-learning-coach/promo-video.html"><img alt="60s Demo" src="https://img.shields.io/badge/60s-Demo-ff4d4f?style=for-the-badge&logo=youtube&logoColor=white"></a>
-  <a href="README.en.md"><img alt="Documentation" src="https://img.shields.io/badge/Documentation-6f42c1?style=for-the-badge&logo=readthedocs&logoColor=white"></a>
-  <a href="README.cn.md"><img alt="Chinese Documentation" src="https://img.shields.io/badge/%E4%B8%AD%E6%96%87-%E6%96%87%E6%A1%A3-d9534f?style=for-the-badge&logo=readme&logoColor=white"></a>
-  <a href="https://lwbscu.github.io/ai-10x-learning-coach/"><img alt="Live Demo" src="https://img.shields.io/badge/Live-Demo-00a6d6?style=for-the-badge&logo=gitbook&logoColor=white"></a>
-  <a href="https://mp.weixin.qq.com/s/mO-GAe4arXsKBZTzipwLuA"><img alt="WeChat" src="https://img.shields.io/badge/WeChat-07C160?style=for-the-badge&logo=wechat&logoColor=white"></a>
-  <a href="https://zhuanlan.zhihu.com/p/2050915019571963028"><img alt="Zhihu" src="https://img.shields.io/badge/Zhihu-0084FF?style=for-the-badge&logo=zhihu&logoColor=white"></a>
+  <a href="https://github.com/lwbscu/ai-10x-learning-coach"><img alt="GitHub Repo" src="https://img.shields.io/badge/GitHub-Repo-181717?style=flat&logo=github&logoColor=white"></a>
+  <a href="https://lwbscu.github.io/ai-10x-learning-coach/promo-video.html"><img alt="60s Demo" src="https://img.shields.io/badge/60s-Demo-ff4d4f?style=flat&logo=youtube&logoColor=white"></a>
+  <a href="README.en.md"><img alt="Documentation" src="https://img.shields.io/badge/Documentation-6f42c1?style=flat&logo=readthedocs&logoColor=white"></a>
+  <a href="README.cn.md"><img alt="Chinese Documentation" src="https://img.shields.io/badge/%E4%B8%AD%E6%96%87-%E6%96%87%E6%A1%A3-d9534f?style=flat&logo=readme&logoColor=white"></a>
+  <a href="https://lwbscu.github.io/ai-10x-learning-coach/"><img alt="Live Demo" src="https://img.shields.io/badge/Live-Demo-00a6d6?style=flat&logo=gitbook&logoColor=white"></a>
+  <a href="https://mp.weixin.qq.com/s/mO-GAe4arXsKBZTzipwLuA"><img alt="WeChat" src="https://img.shields.io/badge/WeChat-07C160?style=flat&logo=wechat&logoColor=white"></a>
+  <a href="https://zhuanlan.zhihu.com/p/2050915019571963028"><img alt="Zhihu" src="https://img.shields.io/badge/Zhihu-0084FF?style=flat&logo=zhihu&logoColor=white"></a>
 </p>
 
 <p align="center">
-  <a href="LICENSE"><img alt="License MIT" src="https://img.shields.io/badge/License-MIT-f0ad4e?style=for-the-badge"></a>
-  <a href="https://skills.sh"><img alt="Agent Skill" src="https://img.shields.io/badge/Agent-Skill-38bdf8?style=for-the-badge"></a>
-  <img alt="Version 2.5" src="https://img.shields.io/badge/version-2.5-38bdf8?style=for-the-badge">
-  <a href="README.en.md"><img alt="English" src="https://img.shields.io/badge/lang-English-007ec6?style=for-the-badge"></a>
-  <a href="README.cn.md"><img alt="Simplified Chinese" src="https://img.shields.io/badge/%E8%AF%AD%E8%A8%80-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-d9534f?style=for-the-badge"></a>
+  <a href="LICENSE"><img alt="License MIT" src="https://img.shields.io/badge/License-MIT-f0ad4e?style=flat"></a>
+  <a href="https://skills.sh"><img alt="Agent Skill" src="https://img.shields.io/badge/Agent-Skill-38bdf8?style=flat"></a>
+  <img alt="Version 2.5" src="https://img.shields.io/badge/version-2.5-38bdf8?style=flat">
+  <a href="README.en.md"><img alt="English" src="https://img.shields.io/badge/lang-English-007ec6?style=flat"></a>
+  <a href="README.cn.md"><img alt="Simplified Chinese" src="https://img.shields.io/badge/%E8%AF%AD%E8%A8%80-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-d9534f?style=flat"></a>
 </p>
 
 **Map first. Learn faster.**
