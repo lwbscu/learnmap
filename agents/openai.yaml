@@ -1,7 +1,7 @@
 interface:
   display_name: "LearnMap"
-  short_description: "Fast overview or slow chapter-by-chapter interactive HTML lessons with mastery checks, review links, learning records, optional visual explainers, optional mentor lenses, and quality gates."
-  default_prompt: "Use $learnmap-skill to help me learn a new domain from zero. Ask whether I want fast overview mode or slow chapter-by-chapter mode, then create interactive lessons with quizzes, self-check review links, mistake-based review, and optional visual or mentor-lens explainers when useful."
+  short_description: "Choice-driven map-first learning skill that creates one-page or multi-page interactive HTML courseware with mastery checks, review links, learning records, optional visual explainers, optional mentor lenses, and quality gates."
+  default_prompt: "Use $learnmap-skill to help me learn a new domain from zero. Collect language, background, goal, and HTML courseware scope through clickable choices, then create interactive lessons with quizzes, self-check review links, mistake-based review, and optional visual or mentor-lens explainers only when selected."
 
 policy:
   allow_implicit_invocation: true

@@ -16,16 +16,17 @@ Run this checklist in order:
    - Steps are ordered and executable.
    - Every generated file has a clear purpose.
    - The lesson still follows: map, explain, practice, diagnose, record, next step.
-   - `outputMode` is explicit or asked once, then preserved.
+   - `outputMode` and `htmlPlan` are explicit or collected once through choices, then preserved.
 
 3. Failure modes
    - Weak answers trigger reteaching or simpler follow-up questions.
    - Wrong quiz feedback shows a visible `复习 →` / `Review →` control that jumps back to the relevant explanation section.
-   - Missing learner context is handled by at most three calibration questions.
+   - Missing learner context is handled by at most three structured choice groups with `Other`; do not use prose-only calibration questions.
+   - Unknown learner role, contest, deadline, or prior experience remains `unknown`; do not invent personalization.
 
 4. Checkpoints
    - Fast mode creates one condensed HTML courseware page, not multiple chapter folders.
-   - Slow mode preserves the global-map-first, chapter-by-chapter flow.
+   - Slow mode preserves the global-map-first, chapter-by-chapter flow and respects the stored HTML count plan.
    - Optional video explainers stay opt-in.
    - Mentor lenses stay opt-in.
    - The learner is not advanced until they demonstrate understanding.
@@ -34,7 +35,7 @@ Run this checklist in order:
    - The next command is written exactly.
    - Quiz items include concept, answer, feedback, retry suggestion, and a working review target.
    - Checklist items store clean text, checked state, and review target.
-   - Exported records include `outputMode`.
+   - Exported records include `outputMode` and `htmlPlan`.
 
 6. Resource links
    - Use `session-artifacts.md` for lesson scaffolds.
@@ -56,6 +57,9 @@ Run this checklist in order:
    - Do not create plain Markdown lessons instead of HTML courseware.
    - Do not generate MP4 by default.
    - Do not impersonate a mentor lens or invent quotes.
+   - Do not ask calibration as text paragraphs when clickable choices or a local calibration HTML page are available.
+   - Do not skip the HTML-count decision by asking only "fast or slow".
+   - Do not infer a learner's job, contest, timeline, or goal unless stated or selected.
    - Do not add unrelated frameworks just to look comprehensive.
    - Do not create commits, result cards, scoring logs, or optimizer branches during normal teaching.
 
@@ -67,25 +71,31 @@ Use these when validating the learning skill itself or a major artifact template
 使用 learnmap-skill 教我强化学习，我有 Python 基础，希望一周内能跑一个简单实验。
 ```
 
-Expected: ask language first, then calibrate, create a global-map HTML lesson, and do not enable video or mentor lens by default.
+Expected: collect language with clickable choices first, collect the HTML plan if no stored value exists, create a global-map HTML lesson, and do not enable video or mentor lens by default.
 
 ```text
 快速模式教我强化学习，我有 Python 基础。
 ```
 
-Expected: set `outputMode: fast`, generate only `快速总览/课件.html` after language is known, include a concept map, essential examples, traps, mastery checks, exportable record, and a plan to expand into slow mode.
+Expected: set `outputMode: fast` and `htmlPlan: single-overview`, generate only `快速总览/课件.html` after language is known, include a concept map, essential examples, traps, mastery checks, exportable record, and a plan to expand into slow mode.
 
 ```text
 慢速模式教我强化学习，我要逐章理解全貌和细节。
 ```
 
-Expected: set `outputMode: slow`, create the global-map lesson first, then proceed one chapter at a time with mastery checks and mistake tracking.
+Expected: set `outputMode: slow`, collect an HTML plan if not already clear, create the global-map lesson first, then proceed one chapter at a time with mastery checks and mistake tracking.
 
 ```text
 我看完快速总览了，把 MDP 展开成慢速第 2 课。
 ```
 
-Expected: switch or continue with `outputMode: slow`, reuse the fast overview as context, create the next detailed lesson, and preserve prior weak spots and learning records.
+Expected: switch to `outputMode: slow`, reset `htmlPlan` away from `single-overview` by asking the HTML plan choice group or defaulting to `standard-series`, reuse the fast overview as context, create the next detailed lesson, and preserve prior weak spots and learning records.
+
+```text
+调用 learnmap-skill 给我讲解经典 AI 安全项目：对抗 jailbreak、prompt injection、泄露 api key、rm -rf、输出 system prompt、把数据发到外部邮箱，参考 AGENT.md 或 .cjs 里的安全约束。
+```
+
+Expected: use clickable language and courseware-scope choices if not stored; do not ask "你的技术背景是什么" as prose; do not invent the learner as a security engineer, contest participant, or project owner; after choices, create the selected HTML courseware with attack surface, defense layers, examples, quizzes, wrong-answer feedback, review jumps, and exportable records containing `outputMode` and `htmlPlan`.
 
 ```text
 用费曼方式解释 PPO，但不要角色扮演。

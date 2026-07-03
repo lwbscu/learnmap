@@ -9,7 +9,10 @@ Language-specific naming is mandatory:
 - Repository/skill functional files keep required names: `SKILL.md`, `README*.md`, `LICENSE`, `agents/openai.yaml`, and `references/*.md`.
 - Technical terms such as MDP, Q-Learning, PPO, DQN, and Bellman equation stay in English in both modes.
 - Optional mentor lens artifacts are created only when requested: Chinese mode uses `思维镜片.md`; English mode uses `mentor-lens.md`.
-- Courseware output mode is stored as `outputMode: fast | slow`. Fast mode creates one overview courseware page; slow mode creates the normal chapter-by-chapter lesson sequence.
+- Courseware output mode is stored as `outputMode: fast | slow`.
+- Courseware HTML scope is stored as `htmlPlan: single-overview | compact-series | standard-series | deep-series | custom`.
+- `single-overview` creates one overview courseware page. `compact-series` plans 2-3 HTML files, `standard-series` plans 4-6 HTML files, and `deep-series` plans 7-10 HTML files.
+- Missing language/background/goal/output-scope choices are collected with clickable choice UI or a local `校准选择.html` / `calibration.html` page, not prose chat questions.
 
 ---
 
@@ -23,6 +26,7 @@ Language-specific naming is mandatory:
 │   ├── 学习档案.md          # 学习背景、目标、语言选择
 │   ├── 学习进度.md          # 当前课程、测验结果、薄弱点
 │   └── 错题记录.md          # 误区与纠正
+├── 校准选择.html              # optional fallback only when native choice UI is unavailable
 ├── 第01课-全局地图/
 │   └── 课件.html            # 全局地图 + 嵌入式掌握检查
 ├── 第02课-MDP详解/
@@ -44,6 +48,7 @@ learning/<topic-slug>/
 │   ├── profile.md          # Learner background, goal, language choice
 │   ├── progress.md         # Current module, quiz results, weak spots
 │   └── mistakes.md         # Misconceptions and corrections
+├── calibration.html          # optional fallback only when native choice UI is unavailable
 ├── lesson-01-<slug>/
 │   └── index.html          # Global map + embedded mastery check
 ├── lesson-02-<slug>/
@@ -89,6 +94,7 @@ English mode path: `_meta/profile.md`
 - **Deadline / 时间规划**: [if any]
 - **Preferred Style / 讲解风格**: [detailed / concise, interactive HTML]
 - **Output Mode / 课件输出模式**: [fast / slow]
+- **HTML Plan / HTML 数量方案**: [single-overview / compact-series / standard-series / deep-series / custom]
 - **Success Criteria / 成功标准**: [what "done" looks like]
 - **Video Explainer / 视频讲解**: [offered / accepted / declined]
 - **Mentor Lens / 思维镜片**: [none / lens name]
@@ -106,6 +112,7 @@ English mode path: `_meta/progress.md`
 
 - Current / 当前进度: **Lesson X — [name]**
 - Output mode / 课件输出模式: [fast / slow]
+- HTML plan / HTML 数量方案: [single-overview / compact-series / standard-series / deep-series / custom]
 - Completed / 已完成:
   - Lesson 1 done
   - ...
@@ -113,6 +120,33 @@ English mode path: `_meta/progress.md`
 - Next / 下一步: [specific action + command to type]
 - Video explainer / 视频讲解: [offered / accepted / declined, output path if accepted]
 - Mentor lens / 思维镜片: [none / lens name, output path if requested]
+```
+
+---
+
+## Calibration HTML Fallback
+
+Create this only when native clickable choices are unavailable. Chinese mode path: `校准选择.html`; English mode path: `calibration.html`.
+
+Required behavior:
+
+- show radio-style choice cards for language, topic scope, background, goal, courseware HTML count, and optional video explainer
+- include an `Other` choice with a free-text input for each group
+- export/copy one JSON object with `language`, `topicScope`, `background`, `goal`, `outputMode`, `htmlPlan`, `videoExplainer`
+- do not ask the same calibration as prose chat questions after this page is opened
+
+Minimal JSON shape:
+
+```json
+{
+  "language": "zh-CN",
+  "topicScope": "repo/codebase",
+  "background": "heard-of",
+  "goal": "project",
+  "outputMode": "slow",
+  "htmlPlan": "standard-series",
+  "videoExplainer": "declined"
+}
 ```
 
 ---
@@ -135,7 +169,7 @@ It MUST include:
 - embedded mini mastery checks
 - an end-card checklist with same-page review links
 - a next-step plan for expanding into slow mode
-- a learning record export with `"outputMode": "fast"`
+- a learning record export with `"outputMode": "fast"` and `"htmlPlan": "single-overview"`
 
 It MUST NOT create `第01课-*` / `lesson-01-*` and later lesson folders unless the learner explicitly asks to switch to slow mode or expand a module.
 
@@ -323,6 +357,7 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
     lessonTitle: "[Lesson Title]",
     language: "zh-CN", // or "en"
     outputMode: "slow", // "fast" for 快速总览 / fast-overview
+    htmlPlan: "standard-series", // single-overview / compact-series / standard-series / deep-series / custom
     mentorLens: "none", // or requested lens name
     nextCommand: "[Command to type in Claude Code]",
     recordFileName: "学习记录.json" // English mode: "learning-record.json"
@@ -440,6 +475,7 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
       lessonTitle: LESSON_META.lessonTitle,
       language: LESSON_META.language,
       outputMode: LESSON_META.outputMode || "slow",
+      htmlPlan: LESSON_META.htmlPlan || "standard-series",
       mentorLens: LESSON_META.mentorLens || "none",
       updatedAt: new Date().toISOString(),
       completion: {
@@ -514,6 +550,7 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
     lines.push((isZh ? "- 测验: " : "- Quiz: ") + record.completion.quizCorrect + "/" + record.quiz.length);
     lines.push((isZh ? "- 自检: " : "- Checklist: ") + record.completion.checklistChecked + "/" + record.completion.checklistTotal);
     lines.push((isZh ? "- 输出模式: " : "- Output mode: ") + (record.outputMode || "slow"));
+    lines.push((isZh ? "- HTML 数量方案: " : "- HTML plan: ") + (record.htmlPlan || "standard-series"));
     lines.push((isZh ? "- 思维镜片: " : "- Mentor lens: ") + (record.mentorLens || "none"));
     lines.push((isZh ? "- 更新时间: " : "- Updated: ") + record.updatedAt);
     lines.push("");
@@ -667,7 +704,7 @@ Every lesson must support both local persistence and AI handoff:
 - Provide a copy button that copies a detailed Markdown report to clipboard. The report must include every quiz question, selected answer, correct/wrong status, correct answer when available, feedback, retry suggestion, all checked/unchecked self-check items, each item's review target, weak spots, and next command.
 - Provide a download button for a portable JSON file.
 - Checklist export MUST read `.check-text`, not the entire `.check-item`, so labels like `复习 →` / `Review →` do not pollute the learning record.
-- JSON export MUST include `outputMode` so a later AI session knows whether to continue fast overview behavior or slow chapter-by-chapter behavior.
+- JSON export MUST include `outputMode` and `htmlPlan` so a later AI session knows whether to continue one-page overview behavior or a specific multi-HTML sequence.
 - Chinese mode download name: `学习记录.json`.
 - English mode download name: `learning-record.json`.
 
@@ -681,6 +718,7 @@ Required JSON shape:
   "lessonTitle": "第01课：全局地图",
   "language": "zh-CN",
   "outputMode": "slow",
+  "htmlPlan": "standard-series",
   "mentorLens": "none",
   "updatedAt": "2026-05-29T00:00:00.000Z",
   "completion": {

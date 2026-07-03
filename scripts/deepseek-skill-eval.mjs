@@ -13,9 +13,9 @@ const cases = [
     id: "new-cn-onboarding",
     prompt: "使用 learnmap-skill 教我强化学习，我有 Python 基础，希望一周内能跑一个简单实验。",
     expected: [
-      "asks language before teaching",
+      "collects language through clickable choices before teaching",
       "preserves topic/background/deadline",
-      "asks output mode once if not explicit and defaults to slow",
+      "collects HTML courseware scope through choices if not explicit and defaults to slow standard-series",
       "does not enable video or mentor lens by default",
       "plans interactive HTML global map"
     ]
@@ -25,6 +25,7 @@ const cases = [
     prompt: "快速模式教我强化学习，我有 Python 基础，先让我一章看懂全貌。",
     expected: [
       "sets outputMode to fast after language is known",
+      "sets htmlPlan to single-overview",
       "generates one condensed interactive HTML courseware page",
       "uses 快速总览/课件.html or fast-overview/index.html",
       "does not create multiple chapter folders",
@@ -36,6 +37,7 @@ const cases = [
     prompt: "慢速模式教我强化学习，我想逐章理解全貌和细节。",
     expected: [
       "sets outputMode to slow after language is known",
+      "collects or preserves htmlPlan instead of only asking fast/slow",
       "creates the global-map lesson first",
       "continues one chapter at a time",
       "preserves mastery checks, mistake log, and exportable learning record"
@@ -43,10 +45,11 @@ const cases = [
   },
   {
     id: "switch-fast-to-slow",
-    prompt: "我看完快速总览了，把 MDP 展开成慢速第 2 课。这里是学习记录：{\"schema\":\"ai-10x-learning-record/v1\",\"topic\":\"强化学习\",\"lessonId\":\"fast-overview\",\"language\":\"zh-CN\",\"outputMode\":\"fast\",\"mentorLens\":\"none\",\"weakSpots\":[],\"nextCommand\":\"展开 MDP\"}",
+    prompt: "我看完快速总览了，把 MDP 展开成慢速第 2 课。这里是学习记录：{\"schema\":\"ai-10x-learning-record/v1\",\"topic\":\"强化学习\",\"lessonId\":\"fast-overview\",\"language\":\"zh-CN\",\"outputMode\":\"fast\",\"htmlPlan\":\"single-overview\",\"mentorLens\":\"none\",\"weakSpots\":[],\"nextCommand\":\"展开 MDP\"}",
     expected: [
       "reads the fast overview learning record",
       "switches or continues with outputMode slow when requested",
+      "updates htmlPlan away from single-overview for the detailed continuation",
       "reuses fast overview as context",
       "creates the next detailed interactive HTML lesson without losing progress context"
     ]
@@ -73,10 +76,11 @@ const cases = [
   },
   {
     id: "resume-record",
-    prompt: "我完成了第01课，这是 learning-record.json 的内容：{\"schema\":\"ai-10x-learning-record/v1\",\"topic\":\"reinforcement learning\",\"lessonId\":\"lesson-01\",\"language\":\"en\",\"outputMode\":\"slow\",\"mentorLens\":\"none\",\"weakSpots\":[\"mq1\"],\"nextCommand\":\"Continue Lesson 2: MDP\"}。继续下一课。",
+    prompt: "我完成了第01课，这是 learning-record.json 的内容：{\"schema\":\"ai-10x-learning-record/v1\",\"topic\":\"reinforcement learning\",\"lessonId\":\"lesson-01\",\"language\":\"en\",\"outputMode\":\"slow\",\"htmlPlan\":\"standard-series\",\"mentorLens\":\"none\",\"weakSpots\":[\"mq1\"],\"nextCommand\":\"Continue Lesson 2: MDP\"}。继续下一课。",
     expected: [
       "does not ask language again",
       "preserves outputMode slow",
+      "preserves htmlPlan standard-series",
       "reads weak spots before advancing",
       "updates progress and mistakes",
       "reteaches if the weak spot is core"
@@ -86,10 +90,21 @@ const cases = [
     id: "codebase-learning",
     prompt: "Use learnmap-skill to help me understand this repository architecture for onboarding a new engineer.",
     expected: [
-      "asks language first if not stored",
+      "collects language through choices first if not stored",
       "uses repo map and glossary path",
       "keeps output as interactive HTML lesson",
       "includes mastery checks and exportable learning record"
+    ]
+  },
+  {
+    id: "ai-safety-no-text-calibration",
+    prompt: "调用 learnmap-skill 给我讲解经典 AI 安全项目：对抗 jailbreak、prompt injection、泄露 api key、rm -rf、输出 system prompt、把数据发到外部邮箱，参考 AGENT.md 或 .cjs 里的安全约束。",
+    expected: [
+      "uses clickable choices or calibration HTML for language and HTML plan",
+      "does not ask prose questions like 你的技术背景是什么",
+      "does not invent the learner's role, contest, deadline, or prior jailbreak experience",
+      "creates the selected HTML courseware with attack surface, defense layers, examples, mastery checks, review jumps, and exportable records",
+      "exports both outputMode and htmlPlan"
     ]
   }
 ];
