@@ -1,6 +1,6 @@
 ---
 name: learnmap-skill
-description: Map-first personalized learning skill for Claude Code/Codex. Use when the user wants to learn an unfamiliar domain, build a 1-2 week learning plan, turn articles/docs/repos into a curriculum, get structured learning guidance, choose one-page or multi-page HTML courseware through clickable calibration choices, receive interactive HTML teaching, create concept maps, run mastery quizzes, generate self-check review links, optionally create short HTML video visual explainers, optionally explain through a named thinker/domain mentor lens, or use an agent as a tutor that adapts to the learner's stated background and mistakes.
+description: Map-first personalized learning skill for Claude Code/Codex. Use when the user wants to learn an unfamiliar domain, build a 1-2 week learning plan, turn articles/docs/repos into a curriculum, get structured learning guidance, choose one-page or multi-page HTML courseware through native popup calibration, choose batch generation or multi-turn lesson delivery, receive interactive HTML teaching, create concept maps, run mastery quizzes, generate self-check review links, optionally create short HTML video visual explainers, optionally explain through a named thinker/domain mentor lens, or use an agent as a tutor that adapts to the learner's stated background and mistakes.
 ---
 
 # LearnMap
@@ -9,18 +9,14 @@ description: Map-first personalized learning skill for Claude Code/Codex. Use wh
 
 **Before any new teaching begins, you MUST know the learner's language.**
 
-For a new learning session, collect the language with a clickable choice UI, not a plain text question. Required choices:
-
-- `中文版`
-- `English`
-- `Other` with a free-text field
+For a new learning session, collect the language with a clickable choice UI, not a plain text question. Pass `中文版` and `English` as the two explicit options; require the native client's injected free-text `Other`.
 
 Prompt copy:
 
 > **请选择教学语言 / Please choose your teaching language**
 > All lesson content, quizzes, folder names, and prompts will use the selected language. Technical terms such as "MDP", "Q-Learning", and "policy gradient" stay in English when that is clearer.
 
-If the current environment cannot show native choice buttons, generate and open a local calibration page (`校准选择.html` / `calibration.html`) with radio buttons and an `Other` text input. Only fall back to a compact numbered list when neither native choices nor local HTML are possible.
+Use the current agent surface's native structured choice tool (for example, `request_user_input`) so the choices render as an in-dialog popup. Do not generate or open a local calibration HTML page, and do not replace the popup with prose or a numbered chat list. If the current surface cannot display native choices, state that calibration requires a surface with native choice UI and pause before teaching.
 
 If the learner is resuming and a profile/progress file or exported learning record already contains `language`, use that stored language and do not ask again.
 
@@ -39,13 +35,15 @@ Once the learner chooses:
 
 Record the language choice in the language-specific profile file: `元数据/学习档案.md` for Chinese mode, `_meta/profile.md` for English mode.
 
-Also initialize `videoExplainer: offered | accepted | declined` in the profile/progress files once the optional video explainer has been offered.
+Also initialize `videoExplainer: offered | accepted | declined` and `videoInstructions: null | <learner text>` in the profile/progress files once video is offered. Store custom `Other` requirements in `videoInstructions`; otherwise keep it `null`.
 
 Also initialize `mentorLens: none | <lens-name>` in the profile/progress files. Keep it as `none` unless the learner explicitly asks for a named thinker, expert, or domain framework lens.
 
 Also initialize `outputMode: fast | slow` in the profile/progress files. Use `slow` by default unless the learner explicitly asks for fast mode, quick overview, one-chapter overview, or similar wording.
 
-Also initialize `htmlPlan: single-overview | compact-series | standard-series | deep-series | custom` in the profile/progress files. Use `standard-series` by default when the learner does not choose.
+Also initialize `htmlPlan: single-overview | compact-series | standard-series | deep-series | custom` and `htmlPlanInstructions: null | <learner text>` in the profile/progress files. Use `standard-series` by default; preserve courseware-scope `Other` text even if normalization later maps the plan to `single-overview`, otherwise store `null`.
+
+Also initialize `deliveryMode: batch | interactive | custom` and `deliveryInstructions: null | <learner text>` in the profile/progress files. `batch` generates all files in a selected multi-HTML plan in one run; `interactive` generates one lesson at a time across learner-agent turns; `custom` stores the learner's `Other` text in `deliveryInstructions`. Use `interactive` by default for multi-HTML plans. A `single-overview` is inherently `batch` because it contains only one HTML file.
 
 ---
 
@@ -60,10 +58,10 @@ This skill is distilled from the workflow in the article "如何用 Claude Code 
 ## Core Rules
 
 - **Step 0 is mandatory for new sessions.** Always establish language first, before teaching. Reuse stored language when resuming from profile/progress files or exported learning records.
-- **Calibration is choice-driven.** Do not ask learner-background, goal, output-mode, page-count, or video-explainer calibration as prose chat questions. Use clickable choices or a local HTML calibration page. Every choice group must include `Other` with free text.
+- **Calibration is native-choice-driven.** Do not ask learner-background, goal, output-mode, page-count, generation-cadence, or video-explainer calibration as prose chat questions. Use only the current agent surface's native clickable choice popup. Every choice group must include `Other` with free text. Never create calibration HTML.
 - **Do not invent personalization.** Only write background, role, contest, deadline, prior experience, and constraints that the learner stated or selected. If unknown, store `unknown` and calibrate via choices.
 - Start with a global map before details.
-- Teach one module at a time in slow mode. In fast mode, compress the map, essentials, examples, traps, and checks into one complete overview page.
+- Structure slow-mode learning one module at a time. `deliveryMode: batch` may pre-generate every planned module page, but mastery and progress still advance module by module. In fast mode, compress the map, essentials, examples, traps, and checks into one complete overview page.
 - **Generate interactive HTML lessons** as the primary teaching medium (not plain markdown).
 - Explain concepts from at least three perspectives when useful: end user, business/operator, implementer/builder.
 - Use concrete examples immediately after abstract concepts.
@@ -72,11 +70,11 @@ This skill is distilled from the workflow in the article "如何用 Claude Code 
 - Require active recall: make the learner answer, summarize, compare, or apply.
 - Do not advance after "I explained it"; advance only after the learner demonstrates understanding.
 - Keep a mistake log and use it to adapt future explanations and questions.
-- Avoid generating a giant complete textbook in one response.
+- Avoid generating a giant complete textbook unless the learner explicitly selects `deliveryMode: batch`; even then, stay within the chosen `htmlPlan` and keep each page focused.
 - Keep interactive HTML lessons as the default teaching artifact. Offer a short video-style visual explainer only once per topic or lesson, and do not generate it unless the learner accepts.
 - Keep neutral teaching as the default. Use a mentor lens only when the learner explicitly asks for one, such as "用费曼方式解释 PPO", "explain this like Karpathy", or "use a Munger-style lens".
 - When a mentor lens is active, use it to shape explanation structure, examples, questions, and boundaries. Do not role-play as the person, invent quotes, or claim the answer is the person's real view.
-- Support courseware scope as `outputMode` plus `htmlPlan`: `fast`/`single-overview` creates one condensed but complete interactive HTML overview; `slow` with `compact-series`, `standard-series`, or `deep-series` creates a multi-HTML course sequence. Default to `slow` + `standard-series`.
+- Support courseware shape as three separate but constrained fields: `outputMode` controls fast/slow, `htmlPlan` controls HTML count, and `deliveryMode` controls one-run batch generation versus multi-turn interactive generation. Default to `slow` + `standard-series` + `interactive`.
 - Run a lightweight quality gate before finalizing lesson artifacts: verify workflow clarity, failure modes, review links, export data, browser interactions, and 2-3 dry-run prompts.
 - **v2.2 review loop:** every self-check checklist item MUST include a review link back to the exact explanation section in the same HTML page. Every mini-quiz MUST include a tested concept and a `复习 / Review` jump target. Wrong-answer feedback MUST render a visible `复习 →` / `Review →` control that jumps back to the exact section that taught the tested concept.
 
@@ -86,20 +84,22 @@ This skill is distilled from the workflow in the article "如何用 Claude Code 
 
 ### 1. Calibrate The Learner
 
-If the request is vague, calibrate with at most three structured choice groups. Do not ask prose questions. Use native clickable choices when available; otherwise create/open `校准选择.html` / `calibration.html` with radio groups and an `Other` free-text input.
+If the request is vague, collect missing learner context with at most three context choice groups. This limit applies only to topic scope, background, and goal; language, courseware scope, delivery mode, and optional video are separate operational stages. Keep each native popup to at most three choice groups. Do not ask prose questions and do not generate calibration HTML.
 
 Use these groups only for missing fields:
 
-- Topic scope: `系统理解一个领域`, `读懂一篇文章/文档`, `读懂一个 repo/codebase`, `为项目/比赛快速上手`, `Other`
-- Learner background: `零基础`, `听说过但不清楚`, `用过相关工具/概念`, `正在做相关项目`, `Other`
-- Learning goal: `快速建立全貌`, `能动手做项目`, `准备面试/考试`, `写作/分享`, `Other`
+- Topic scope: `系统理解一个领域`, `读懂资料或 repo/codebase`, `为项目/比赛快速上手`
+- Learner background: `零基础`, `听说过/了解概念`, `有工具或项目实践`
+- Learning goal: `快速建立全貌`, `能动手做项目`, `准备考核或输出分享`
+
+Rely on the native client's injected free-text `Other` for each context question.
 
 If the user already gave enough context, store only the stated facts and proceed. Do not infer unsupported identity, competition, deadline, teammates, or prior experience.
 
 When Step 0 preserved context from the first user message, merge it into calibration:
 
 - topic/background/deadline become profile fields
-- explicit fast-mode requests set `outputMode: fast` and `htmlPlan: single-overview`
+- explicit fast-mode requests set `outputMode: fast`, `htmlPlan: single-overview`, and `deliveryMode: batch`
 - explicit slow-mode or deep-learning requests set `outputMode: slow`
 - explicit video requests set `videoExplainer: accepted`
 - explicit mentor-lens requests set `mentorLens: <lens-name>` and route to [cognitive-distillation.md](references/cognitive-distillation.md) after language selection
@@ -107,17 +107,26 @@ When Step 0 preserved context from the first user message, merge it into calibra
 
 Choose the courseware scope before creating lesson files:
 
-- If the learner asks for "快速模式", "快速总览", "一章讲完", "quick overview", "fast mode", or a similar compressed overview, set `outputMode: fast` and `htmlPlan: single-overview`.
+- If the learner asks for "快速模式", "快速总览", "一章讲完", "quick overview", "fast mode", or a similar compressed overview, set `outputMode: fast`, `htmlPlan: single-overview`, and `deliveryMode: batch`.
 - If the learner asks for "慢速模式", "逐章", "深入细节", "deep dive", "slow mode", or a similar progressive course, set `outputMode: slow`; if no page count is explicit, ask the HTML plan choice group once.
 - If the learner is expanding from a completed fast overview into slow/deep learning, switch `outputMode: slow` and do not keep `htmlPlan: single-overview`. Ask the HTML plan choice group once; if unanswered, set `htmlPlan: standard-series`.
-- If the mode or HTML count is not explicit and no stored profile/progress value exists, ask once with clickable choices:
-  - `单页总览：1 个 HTML` -> `outputMode: fast`, `htmlPlan: single-overview`
-  - `精简系列：2-3 个 HTML` -> `outputMode: slow`, `htmlPlan: compact-series`
-  - `标准系列：4-6 个 HTML` -> `outputMode: slow`, `htmlPlan: standard-series`
-  - `深度系列：7-10 个 HTML` -> `outputMode: slow`, `htmlPlan: deep-series`
-  - `Other` -> `outputMode: slow`, `htmlPlan: custom`, store the learner's requested HTML count/scope
+- If the mode or HTML count is not explicit and no stored profile/progress value exists, use staged native popup choices so no question exceeds three explicit options:
+  1. Ask `单页总览：1 个 HTML`, `精简系列：2-3 个 HTML`, or `更多页面：4-10 个 HTML`; the native client also provides `Other`.
+  2. Only when the learner selects `更多页面`, ask `标准系列：4-6 个 HTML` or `深度系列：7-10 个 HTML`; the native client also provides `Other`.
+  3. Normalize `1` -> `outputMode: fast`, `htmlPlan: single-overview`; `2-3` -> `slow` + `compact-series`; `4-6` -> `slow` + `standard-series`; `7-10` -> `slow` + `deep-series`; `Other` -> `htmlPlan: custom` and store the text in `htmlPlanInstructions`.
 - If the learner does not answer the choice group, continue with `outputMode: slow` and `htmlPlan: standard-series`.
 - When resuming, use stored `outputMode` and `htmlPlan`; do not ask again unless the learner wants to switch.
+
+For a multi-HTML plan, collect delivery cadence once with a native clickable choice popup:
+
+- `一次性生成全部课件 / Generate all HTML files now` -> `deliveryMode: batch`
+- `分多次互动，逐课生成 / Generate one lesson per interaction` -> `deliveryMode: interactive`
+
+Map the native client's injected `Other` to `deliveryMode: custom` and store its text in `deliveryInstructions`.
+
+Do not ask this group for `htmlPlan: single-overview`; set `deliveryMode: batch`. If a multi-HTML learner does not answer, use `deliveryMode: interactive`. On resume, preserve the stored `deliveryMode` unless the learner asks to change it. For a legacy record with no `deliveryMode`, infer `batch` only when `htmlPlan: single-overview`; otherwise collect the native delivery popup once and persist the answer.
+
+Normalize invalid or legacy combinations before generating or resuming by following the state matrix in [session-artifacts.md](references/session-artifacts.md). Always collapse fast/one-page states to `fast + single-overview + batch`, but never discard learner-entered `Other` text during normalization.
 
 Offer the optional video explainer once during calibration or at the end of a lesson:
 
@@ -125,9 +134,8 @@ Use clickable choices:
 
 - `暂不需要，先生成交互式 HTML 课件`
 - `需要 HTML 视频式讲解`
-- `Other`
 
-If the learner declines or does not answer, continue with the normal HTML lesson workflow. If the learner accepts, read [video-visualization.md](references/video-visualization.md) and generate the explainer after the current lesson artifact is complete.
+Map the native client's injected `Other` text to `videoInstructions`; treat it as `accepted` unless it clearly declines video. If the learner declines or does not answer, continue with the normal HTML lesson workflow. If the learner accepts, read [video-visualization.md](references/video-visualization.md) and generate the explainer after the current lesson artifact is complete.
 
 Create a learning workspace with **organized per-mode structure**.
 
@@ -139,7 +147,6 @@ Chinese mode MUST use this naming style:
 │   ├── 学习档案.md          # 学习背景、目标、语言选择
 │   ├── 学习进度.md          # 当前课程、测验结果、薄弱点
 │   └── 错题记录.md          # 误区与纠正
-├── 校准选择.html              # optional fallback only when native choices are unavailable
 ├── 第01课-全局地图/
 │   └── 课件.html            # 全局地图 + 嵌入式掌握检查
 ├── 第02课-MDP详解/
@@ -161,7 +168,6 @@ learning/<topic-slug>/
 │   ├── profile.md          # Learner background, goal, language choice
 │   ├── progress.md         # Current module, quiz results, weak spots
 │   └── mistakes.md         # Misconceptions and corrections
-├── calibration.html          # optional fallback only when native choices are unavailable
 ├── lesson-01-<slug>/
 │   └── index.html          # Global map + embedded mastery check
 ├── lesson-02-<slug>/
@@ -202,9 +208,9 @@ Fast mode is a complete compressed overview, not a thin summary. It MUST include
 - common traps and false friends
 - embedded mini mastery checks and self-check review links
 - a next-step slow-learning plan that can expand any module into chapter-by-chapter lessons
-- a learning record export with `outputMode: fast` and `htmlPlan: single-overview`
+- a learning record export with `outputMode: fast`, `htmlPlan: single-overview`, and `deliveryMode: batch`
 
-Do not create multiple lesson folders in fast mode. If the learner later asks to go deeper, switch to `outputMode: slow`, ask or default `htmlPlan` to a multi-HTML series (`standard-series` if unanswered), and use the fast overview as Lesson 1 context.
+Do not create multiple lesson folders in fast mode. Set `deliveryMode: batch` for the single overview. If the learner later asks to go deeper, switch to `outputMode: slow`, ask or default `htmlPlan` to a multi-HTML series (`standard-series` if unanswered), collect `deliveryMode`, and use the fast overview as Lesson 1 context.
 
 If `outputMode: slow`, build the normal global-map lesson first and continue chapter by chapter. Use `htmlPlan` to limit the planned lesson count:
 
@@ -212,6 +218,12 @@ If `outputMode: slow`, build the normal global-map lesson first and continue cha
 - `standard-series`: global map + 3-5 focused follow-up lessons
 - `deep-series`: global map + 6-9 focused follow-up lessons
 - `custom`: follow the stored custom count/scope
+
+Apply `deliveryMode` after the lesson plan is defined:
+
+- `batch`: generate every HTML file allowed by `htmlPlan` in the current run. Keep the course order, per-page mastery checks, review jumps, and learning-record exports intact. Pre-generating later pages does not mark them mastered.
+- `interactive`: generate only the global-map lesson on the first run. After each imported learning record or learner feedback, diagnose weak spots and generate at most one next lesson. Do not pre-create later lesson HTML files.
+- `custom`: follow the stored cadence instructions without changing `htmlPlan`.
 
 ### 2A. Build The Global Map First In Slow Mode
 
@@ -232,7 +244,7 @@ Then use the HTML page itself to collect active recall: include a short self-che
 
 For Lesson 1, embed a **mastery check section** with 3-4 questions inside the same HTML page. The learner should not need to open a separate quiz file.
 
-### 3. Teach One Module At A Time (Interactive HTML)
+### 3. Teach And Assess One Module At A Time (Interactive HTML)
 
 Use this section for slow mode lessons and for any later expansion from fast mode into a deep chapter.
 
@@ -281,7 +293,7 @@ Each HTML lesson MUST include:
 - **Save-on-interaction** — every quiz answer and checklist toggle calls `saveRecord()` and `updateRecordUI()`.
 - **Restore-on-load** — when the page loads, call `loadRecord()` to restore previous quiz/checklist state from `localStorage`.
 - **Copy format** — clipboard text MUST be a detailed Markdown report, not a terse dashboard. It must list every quiz question, whether it was correct, the learner's selected answer, the correct answer when available, feedback/retry notes, every checked/unchecked checklist item, weak spots, and next command.
-- **Export format** — exported JSON MUST include `topic`, `lessonId`, `lessonTitle`, `language`, `outputMode`, `htmlPlan`, `mentorLens`, `updatedAt`, `completion`, `quiz`, `checklist`, `weakSpots`, and `nextCommand`. Each `quiz` item MUST include `id`, `question`, `concept`, `answered`, `correct`, `choiceIndex`, `choiceText`, `correctAnswer`, `feedback`, `retrySuggestion`, and `reviewTarget` when available. Each checklist item MUST include clean `text`, `checked`, and `reviewTarget`.
+- **Export format** — exported JSON MUST include `topic`, `lessonId`, `lessonTitle`, `language`, `outputMode`, `htmlPlan`, `htmlPlanInstructions`, `deliveryMode`, `deliveryInstructions`, `mentorLens`, `videoInstructions`, `updatedAt`, `completion`, `quiz`, `checklist`, `weakSpots`, and `nextCommand`. Each `quiz` item MUST include `id`, `question`, `concept`, `answered`, `correct`, `choiceIndex`, `choiceText`, `correctAnswer`, `feedback`, `retrySuggestion`, and `reviewTarget` when available. Each checklist item MUST include clean `text`, `checked`, and `reviewTarget`.
 - **Tab switching** — MUST query panels from the parent section (`section.querySelectorAll(".tab-panel")`), NOT from the tabs container (`.tabs` only contains buttons, not panels — this is a verified bug pattern to avoid)
 - **All JS uses `function` keyword and `var`** (not arrow functions or `const`/`let`) for maximum browser compatibility
 
@@ -370,17 +382,21 @@ After each module:
 - Preserve `mentorLens` in the profile/progress files. Values: `none` or the active lens name.
 - Preserve `outputMode` in the profile/progress files. Values: `fast` or `slow`. Use stored mode on resume unless the learner asks to switch.
 - Preserve `htmlPlan` in the profile/progress files. Values: `single-overview`, `compact-series`, `standard-series`, `deep-series`, or `custom`. Use stored plan on resume unless the learner asks to switch.
+- Preserve learner-entered `htmlPlanInstructions` even if normalization maps a one-page custom request to `single-overview`; otherwise store `null`.
+- Preserve `deliveryMode` in the profile/progress files. Values: `batch`, `interactive`, or `custom`. Use the stored cadence on resume unless the learner asks to switch.
+- Preserve learner-entered `deliveryInstructions` even if combination normalization changes `deliveryMode`; otherwise store `null`.
+- Preserve `videoInstructions` for custom accepted video requests; otherwise store `null`.
 - update the map if the learner discovered a better structure
 - add a short retrieval prompt for later review
 
-When resuming a session, read the language-specific progress/profile files, stored `outputMode`, stored `htmlPlan`, and the latest lesson before teaching. Do not restart from scratch unless requested.
+When resuming a session, read the language-specific progress/profile files, stored `outputMode`, stored `htmlPlan`, stored `deliveryMode`, and the latest lesson before teaching. Do not restart from scratch unless requested.
 
 ### 6. Produce Useful Outputs
 
 Choose outputs based on the user's goal:
 
 - fast output mode / quick overview: one condensed interactive HTML courseware page with a concept map, core examples, mastery checks, and a slow-learning expansion plan
-- slow output mode / deep onboarding: global-map HTML lesson + chapter plan constrained by `htmlPlan` + one interactive HTML lesson per module + mastery quizzes
+- slow output mode / deep onboarding: global-map HTML lesson + chapter plan constrained by `htmlPlan` + delivery cadence constrained by `deliveryMode` + one interactive HTML lesson per module + mastery quizzes
 - project delivery: map + implementation decision checklist + risk list
 - exam/interview: map + flashcards + graded mock questions
 - blog/writing: map + analogies + examples + outline
@@ -433,16 +449,20 @@ This is not an autonomous optimizer. Do not create branches, commits, scoring lo
 
 Use this contract for every new session and every missing calibration field:
 
-1. Prefer native clickable choices in the current agent UI.
-2. If native choices are unavailable, generate and open a local calibration HTML page with radio buttons, one `Other` free-text input per group, and a copyable JSON result.
-3. Use a compact numbered fallback only if neither native choices nor local HTML are possible. The fallback must still include `Other`; do not ask open-ended prose questions.
+1. Use the current agent UI's native structured choice tool (for example, `request_user_input`) to render clickable popup choices.
+2. Do not generate, open, or link to calibration HTML. Do not ask the same fields as prose or numbered chat questions.
+3. If native choices are unavailable, explain that this surface cannot complete LearnMap calibration and pause before generating lessons.
+4. Respect the host tool limit: use 2-3 explicit options per question. If the client automatically injects a free-text `Other`, do not add a duplicate explicit `Other`; otherwise include one.
 
 Required choice groups:
 
-- Language: `中文版`, `English`, `Other`
+- Language explicit options: `中文版`, `English`
 - Context when missing: topic scope, learner background, and learning goal; at most three groups
-- Courseware scope: `1 个 HTML`, `2-3 个 HTML`, `4-6 个 HTML`, `7-10 个 HTML`, `Other`
-- Optional video explainer: `暂不需要`, `需要 HTML 视频式讲解`, `Other`
+- Courseware scope explicit options: stage `1 个 HTML`, `2-3 个 HTML`, `4-10 个 HTML`; when `4-10` is selected, follow with `4-6 个 HTML`, `7-10 个 HTML`
+- Delivery mode explicit options for multi-HTML plans: `一次性生成全部`, `分多次互动逐课生成`
+- Optional video explainer explicit options: `暂不需要`, `需要 HTML 视频式讲解`
+
+Every group relies on the native client's injected free-text `Other`; do not add a duplicate explicit option.
 
 Record the chosen values in profile/progress files before generating lesson files. Unknown fields stay `unknown`; never fill them with guessed personal details.
 
@@ -451,7 +471,7 @@ Record the chosen values in profile/progress files before generating lesson file
 ## Failure Modes To Avoid
 
 - **Skipping Step 0** — never assume the language. Always ask.
-- **Text-only calibration** — do not ask "你的技术背景是什么？" or similar prose calibration questions when choices/HTML UI can be shown.
+- **Text-only or HTML calibration** — do not ask "你的技术背景是什么？" as prose and never generate `calibration.html` / `校准选择.html`; use the native popup.
 - **Missing HTML-count decision** — do not ask only "fast or slow"; collect the actual courseware scope: 1, 2-3, 4-6, 7-10, or custom HTML files.
 - **Unsupported personalization** — never invent the learner's role, contest, deadline, teammates, prior cases, or project goal from a vague prompt.
 - Dumping a 10,000-word guide before the learner has a map.
@@ -463,6 +483,7 @@ Record the chosen values in profile/progress files before generating lesson file
 - Generating video explainers by default or blocking the normal lesson loop while waiting for a video decision.
 - Asking the output-mode question repeatedly after `outputMode` is stored.
 - Asking the HTML-plan question repeatedly after `htmlPlan` is stored.
+- Asking the delivery-mode question repeatedly after `deliveryMode` is stored.
 - Treating fast mode as a shallow summary; it must still be an interactive HTML lesson with checks and export.
 - Creating multiple chapter folders in fast mode before the learner asks to expand.
 - Rendering MP4 by default when the learner only asked for learning help; start with HTML preview unless MP4 is explicitly requested.
