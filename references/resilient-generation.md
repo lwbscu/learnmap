@@ -1,6 +1,6 @@
 # Resilient Multi-HTML Generation
 
-Use this protocol before creating any multi-HTML courseware. It keeps batch generation resumable across provider disconnects and keeps generated files separate from learner mastery.
+Use this protocol before creating any lesson HTML, including a single overview. It keeps generation resumable across provider disconnects and keeps generated files separate from learner mastery.
 
 ## Contents
 
@@ -20,7 +20,7 @@ Use this protocol before creating any multi-HTML courseware. It keeps batch gene
 
 ## 2. Generation State
 
-Create an agent-maintained state file before writing lesson HTML:
+Create an agent-maintained state file before writing any lesson HTML, including `single-overview`:
 
 - Chinese: `元数据/生成状态.json`
 - English: `_meta/generation-state.json`
@@ -31,6 +31,8 @@ Create an agent-maintained state file before writing lesson HTML:
   "planRevision": 1,
   "outputMode": "slow",
   "htmlPlan": "deep-series",
+  "coursewareTier": "high-quality",
+  "coursewareTierInstructions": null,
   "deliveryMode": "batch",
   "plannedLessonCount": 8,
   "generatedThrough": 1,
@@ -45,6 +47,8 @@ Create an agent-maintained state file before writing lesson HTML:
       "lessonId": "lesson-01",
       "title": "全局地图",
       "finalPath": "第01课-全局地图/课件.html",
+      "coursewareTier": "high-quality",
+      "coursewareTierInstructions": null,
       "status": "committed",
       "byteSize": 34816,
       "sha256": "<validator output>"
@@ -60,6 +64,8 @@ Allowed lesson `status` values: `planned`, `rendering`, `committed`, `legacy-val
 
 Write state atomically: write a sibling `.tmp`, close it, then replace the official JSON. A stale or malformed state file never overrides valid final HTML files.
 
+Preserve `coursewareTier` across interruption. Missing legacy values normalize to `standard` without rewriting committed pages. A learner-requested tier change increments `planRevision` and applies only to future lessons unless regeneration is explicit.
+
 ## 3. Per-Lesson Transaction
 
 Process lessons strictly in plan order. Do not create all future lesson directories up front.
@@ -69,7 +75,7 @@ Process lessons strictly in plan order. Do not create all future lesson director
 3. Create a staging directory beside the final lesson directory, such as `.learnmap-staging/lesson-02/`.
 4. Generate exactly one complete HTML file as `课件.html.partial` or `index.html.partial` in the staging directory. One provider/tool turn writes at most one lesson HTML.
 5. Do not echo the HTML source in chat. Tool output and chat summaries should contain paths and compact validation results only.
-6. Validate the partial file with `node "<loaded-learnmap-skill-root>/scripts/validate-courseware.mjs" <partial-path>`. Resolve the script from the directory containing the loaded LearnMap `SKILL.md`, never from the user's current project directory.
+6. Validate with `node "<loaded-learnmap-skill-root>/scripts/validate-courseware.mjs" <partial-path> --tier <current-lesson.coursewareTier>`. Resolve the script from the loaded Skill, and require the state tier to match the HTML-embedded tier.
 7. If validation fails, keep the final path untouched, record `failed`, and retry only the current lesson.
 8. If validation passes, rename the `.partial` file inside staging to its final basename (`课件.html` or `index.html`). Remove an existing final lesson directory only when it is empty; preserve any non-empty legacy or user-authored directory. Then atomically rename the staging lesson directory itself to the final lesson directory on the same filesystem.
 9. Immediately checkpoint `status: committed`, byte size, SHA-256, and the next lesson index.
@@ -79,9 +85,10 @@ Never claim “课件已生成 / lesson generated” in progress metadata before
 
 ## 4. Output Budget
 
-- Target 24–60 KiB of UTF-8 source per lesson; hard ceiling 96 KiB unless the learner explicitly requests a larger standalone artifact.
+- Read [courseware-tiers.md](courseware-tiers.md) and use the selected tier: compact targets 16–32 KiB with a 40 KiB ceiling, standard 24–60 KiB with a 72 KiB ceiling, and high-quality 48–88 KiB with a 96 KiB ceiling.
+- Custom defaults to the standard budget unless the learner specifies a smaller ceiling; 96 KiB is the absolute per-page maximum.
 - Line count is not a quality metric. Prefer compact CSS/JS and focused content over a 1000-line scaffold.
-- Keep 5–9 map modules, 2–4 mastery questions, and the required interactions. Put deep detail in its planned lesson instead of expanding Lesson 1 into the whole textbook.
+- Every tier keeps the complete interaction contract. High-quality must satisfy its evidence/chain/extension rubric; byte count alone never proves quality.
 - If a lesson would exceed the ceiling, reduce duplicated boilerplate and move non-core detail to another planned page. Do not silently add extra pages beyond `htmlPlan`.
 - A provider/tool turn writes one lesson HTML. Other small state/tool calls may occur in the same turn.
 
@@ -98,7 +105,7 @@ On every resume, treat disk artifacts as the source of truth and metadata as a c
 7. Preserve current-contract `committed` and structurally complete `legacy-valid` lessons. Retry only the first invalid/missing lesson.
 8. If a committed file hash changed, mark `user-modified` and preserve it; do not overwrite it silently.
 9. A `legacy-valid` page stays in place and allows recovery to continue at the next lesson. Do not silently overwrite it; offer a separate upgrade later if its missing interactions matter. If even `--legacy` fails, preserve the invalid artifact under a timestamped backup name before generating a replacement.
-10. Keep `deliveryMode` unchanged on recovery. A batch resumes as batch; interactive still requires the normal mastery handoff.
+10. Keep `deliveryMode` and `coursewareTier` unchanged on recovery. A batch resumes as batch; interactive still requires the normal mastery handoff.
 
 ## 6. Completion Rules
 

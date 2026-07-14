@@ -7,21 +7,27 @@ import path from "node:path";
 const args = process.argv.slice(2);
 let fileArg = null;
 let maxBytes = 96 * 1024;
+let maxBytesProvided = false;
 let legacyMode = false;
+let tierOverride = null;
 
 for (let index = 0; index < args.length; index += 1) {
   if (args[index] === "--max-bytes") {
     maxBytes = Number(args[index + 1]);
+    maxBytesProvided = true;
     index += 1;
   } else if (args[index] === "--legacy") {
     legacyMode = true;
+  } else if (args[index] === "--tier") {
+    tierOverride = args[index + 1];
+    index += 1;
   } else if (!args[index].startsWith("--") && !fileArg) {
     fileArg = args[index];
   }
 }
 
 if (!fileArg || !Number.isFinite(maxBytes) || maxBytes <= 0) {
-  console.error("Usage: node scripts/validate-courseware.mjs <html-path> [--max-bytes 98304] [--legacy]");
+  console.error("Usage: node scripts/validate-courseware.mjs <html-path> [--tier compact|standard|high-quality|custom] [--max-bytes N] [--legacy]");
   process.exit(2);
 }
 
@@ -38,10 +44,28 @@ if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
 const sourceBuffer = fs.readFileSync(filePath);
 const source = sourceBuffer.toString("utf8");
 const byteSize = sourceBuffer.length;
+const tierMatch = source.match(/["']?coursewareTier["']?\s*:\s*["'](compact|standard|high-quality|custom)["']/i);
+const embeddedTier = tierMatch?.[1]?.toLowerCase() || null;
+const detectedTier = tierOverride || embeddedTier;
+const allowedTiers = ["compact", "standard", "high-quality", "custom"];
+const coursewareTier = allowedTiers.includes(detectedTier) ? detectedTier : "standard";
+if (detectedTier && !allowedTiers.includes(detectedTier)) contractProblem(`Invalid courseware tier: ${detectedTier}.`);
+if (tierOverride && embeddedTier && tierOverride !== embeddedTier) contractProblem(`Tier override ${tierOverride} does not match embedded tier ${embeddedTier}.`);
+const tierBudgets = {
+  compact: { targetMin: 16 * 1024, targetMax: 32 * 1024, hardMax: 40 * 1024 },
+  standard: { targetMin: 24 * 1024, targetMax: 60 * 1024, hardMax: 72 * 1024 },
+  "high-quality": { targetMin: 48 * 1024, targetMax: 88 * 1024, hardMax: 96 * 1024 },
+  custom: { targetMin: 24 * 1024, targetMax: 60 * 1024, hardMax: 96 * 1024 }
+};
+const tierHardMax = coursewareTier === "custom" && !maxBytesProvided ? 72 * 1024 : tierBudgets[coursewareTier].hardMax;
+const resolvedMaxBytes = legacyMode && !detectedTier ? maxBytes : Math.min(maxBytes, tierHardMax);
 
 if (byteSize === 0) errors.push("HTML file is empty.");
-if (byteSize > maxBytes) errors.push(`HTML exceeds the ${maxBytes}-byte ceiling.`);
+if (byteSize > resolvedMaxBytes) errors.push(`HTML exceeds the ${coursewareTier} tier ceiling of ${resolvedMaxBytes} bytes.`);
 if (byteSize < 8 * 1024) warnings.push("HTML is smaller than 8 KiB; check for truncated or overly thin content.");
+if (byteSize < tierBudgets[coursewareTier].targetMin || byteSize > tierBudgets[coursewareTier].targetMax) {
+  warnings.push(`HTML is outside the ${coursewareTier} target range; verify density without adding filler.`);
+}
 if (!/<!doctype\s+html/i.test(source)) errors.push("Missing <!DOCTYPE html>.");
 if (!/<\/html>\s*$/i.test(source.trim())) errors.push("Missing closing </html>.");
 
@@ -50,12 +74,15 @@ const requiredTokens = [
   "data-review-target",
   "outputMode",
   "htmlPlan",
+  "coursewareTier",
+  "coursewareTierInstructions",
   "deliveryMode",
   "nextCommand"
 ];
 requiredTokens.forEach((token) => {
   if (!source.includes(token)) contractProblem(`Missing required token: ${token}`);
 });
+if (!embeddedTier) contractProblem("Missing or invalid embedded coursewareTier; legacy content normalizes to standard.");
 
 ["buildLearningRecord", "copyLearningRecord", "downloadLearningRecord"].forEach((name) => {
   if (!new RegExp(`function\\s+${name}\\s*\\(`).test(source)) contractProblem(`Missing required function: ${name}`);
@@ -89,6 +116,30 @@ if (checkItems.length === 0) {
   });
 }
 
+const interactionSelectors = {
+  toc: /class=["'][^"']*\btoc\b/i,
+  expander: /class=["'][^"']*\baccordion\b/i,
+  annotation: /class=["'][^"']*\bannotate\b/i,
+  tooltip: /class=["'][^"']*\btooltip\b/i
+};
+Object.entries(interactionSelectors).forEach(([name, pattern]) => {
+  if (!pattern.test(source)) contractProblem(`Missing required ${name} interaction.`);
+});
+
+const evidenceValues = [...source.matchAll(/data-quality-evidence=["']([^"']+)["']/gi)].map((match) => match[1]);
+const domainInteractiveCount = (source.match(/class=["'][^"']*\bdomain-interactive\b[^"']*["']/gi) || []).length;
+if (!legacyMode && coursewareTier === "compact" && checkItems.length < 2) errors.push("Compact tier requires at least 2 checklist items.");
+if (!legacyMode && coursewareTier === "standard" && checkItems.length < 3) errors.push("Standard tier requires at least 3 checklist items.");
+if (!legacyMode && coursewareTier === "high-quality") {
+  if (quizCount < 3) errors.push("High-quality tier requires 3-4 diagnostic quizzes.");
+  if (checkItems.length < 4) errors.push("High-quality tier requires at least 4 checklist items.");
+  if (!evidenceValues.includes("evidence-map")) errors.push("High-quality tier requires an evidence map.");
+  if (evidenceValues.filter((value) => value === "execution-chain").length < 2) errors.push("High-quality tier requires at least 2 execution chains.");
+  if (!evidenceValues.includes("tradeoffs")) errors.push("High-quality tier requires tradeoffs and failure boundaries.");
+  if (!evidenceValues.includes("extension-path")) errors.push("High-quality tier requires an extension or transfer path.");
+  if (domainInteractiveCount < 1) errors.push("High-quality tier requires a domain-specific interactive.");
+}
+
 const scaffoldPlaceholders = [
   "[Domain]", "[Lesson Title]", "[Question text]", "[Concept]", "[Correct answer]",
   "[Explanation text]", "[Check item 1]", "[Progress summary]", "[Command to type in Claude Code]",
@@ -115,12 +166,16 @@ const result = {
   pass: errors.length === 0,
   file: filePath,
   mode: legacyMode ? "legacy-structure" : "current-contract",
+  coursewareTier,
   byteSize,
-  maxBytes,
+  maxBytes: resolvedMaxBytes,
+  targetBytes: [tierBudgets[coursewareTier].targetMin, tierBudgets[coursewareTier].targetMax],
   sha256: crypto.createHash("sha256").update(sourceBuffer).digest("hex"),
   quizCount,
   reviewTargetCount: reviewTargets.length,
   checklistCount: checkItems.length,
+  qualityEvidence: evidenceValues,
+  domainInteractiveCount,
   warnings,
   errors
 };

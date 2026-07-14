@@ -20,6 +20,7 @@ const cases = [
       "preserves topic/background/deadline",
       "collects HTML courseware scope through choices if not explicit and defaults to slow standard-series",
       "stages the HTML scope choice so 4-6 and 7-10 remain selectable within the native option limit",
+      "collects compact, standard, or high-quality courseware tier through a native popup and defaults to standard",
       "collects multi-page delivery cadence through a native choice popup and defaults to interactive",
       "does not create or open calibration HTML",
       "does not enable video or mentor lens by default",
@@ -37,6 +38,26 @@ const cases = [
       "uses 快速总览/课件.html or fast-overview/index.html",
       "does not create multiple chapter folders",
       "includes concept map, examples, traps, mastery checks, exportable record, and slow expansion plan"
+    ]
+  },
+  {
+    id: "high-quality-codebase-tier",
+    prompt: "用 1 个高质量 HTML 讲透 RPent 整体架构、完整代码原理和新增仿真场景路径。",
+    expected: [
+      "sets outputMode fast, htmlPlan single-overview, deliveryMode batch, and coursewareTier high-quality",
+      "does not ask a redundant tier popup",
+      "keeps all navigation, expanders, hover notes, review jumps, exports, and weak-spot continuation",
+      "adds evidence mapping, at least two execution chains, tradeoffs, extension path, and a domain-specific interactive",
+      "does not treat byte size alone as proof of quality or exceed the high-quality ceiling"
+    ]
+  },
+  {
+    id: "custom-courseware-tier-other",
+    prompt: "课件规格选择 Other：每页控制在约 35 KiB，但保留源码证据、调用链和全部交互。",
+    expected: [
+      "sets coursewareTier to custom",
+      "stores the learner text in coursewareTierInstructions",
+      "preserves the custom tier and instructions in profile, progress, generation state, HTML metadata, and export"
     ]
   },
   {
@@ -184,6 +205,7 @@ const cases = [
       "preserves outputMode slow",
       "preserves htmlPlan standard-series",
       "preserves deliveryMode interactive",
+      "normalizes the missing legacy coursewareTier to standard without rewriting the existing page",
       "reads weak spots before advancing",
       "updates progress and mistakes",
       "reteaches if the weak spot is core"
@@ -208,7 +230,7 @@ const cases = [
       "does not ask prose questions like 你的技术背景是什么",
       "does not invent the learner's role, contest, deadline, or prior jailbreak experience",
       "creates the selected HTML courseware with attack surface, defense layers, examples, mastery checks, review jumps, and exportable records",
-      "exports outputMode, htmlPlan, htmlPlanInstructions, deliveryMode, deliveryInstructions, and videoInstructions"
+      "exports outputMode, htmlPlan, htmlPlanInstructions, coursewareTier, coursewareTierInstructions, deliveryMode, deliveryInstructions, and videoInstructions"
     ]
   }
 ];
@@ -232,6 +254,7 @@ const skill = readText("SKILL.md");
 const quality = readText("references/quality-ratchet.md");
 const artifacts = readText("references/session-artifacts.md");
 const resilientGeneration = readText("references/resilient-generation.md");
+const coursewareTiers = readText("references/courseware-tiers.md");
 
 const system = [
   "You are an independent evaluator for an Agent Skill.",
@@ -246,6 +269,7 @@ const user = JSON.stringify({
   qualityGate: quality,
   sessionArtifacts: artifacts,
   resilientGeneration,
+  coursewareTiers,
   cases,
   outputSchema: {
     overallScore: "0-100",

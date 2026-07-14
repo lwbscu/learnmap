@@ -16,9 +16,10 @@ Run this checklist in order:
    - Steps are ordered and executable.
    - Every generated file has a clear purpose.
    - The lesson still follows: map, explain, practice, diagnose, record, next step.
-   - `outputMode`, `htmlPlan`, and `deliveryMode` are explicit or collected once through native choice popups, then preserved.
+   - `outputMode`, `htmlPlan`, `coursewareTier`, and `deliveryMode` are explicit or collected once through native choice popups, then preserved.
    - Native popup questions use at most three explicit options; rely on the client-provided free-text `Other` rather than duplicating it.
    - The courseware-scope popup stages `1`, `2-3`, or `4-10`, then splits `4-10` into `4-6` or `7-10`.
+   - The tier popup offers compact, standard, and high-quality; it uses the client-provided `Other` and never conflates tier with HTML count.
 
 3. Failure modes
    - Weak answers trigger reteaching or simpler follow-up questions.
@@ -29,11 +30,13 @@ Run this checklist in order:
 
 4. Checkpoints
    - Fast mode creates one condensed HTML courseware page, not multiple chapter folders.
+   - Single-overview uses the same partial, validation, atomic commit, and checkpoint transaction; progress cannot claim generated before commit.
    - Slow mode preserves the global-map-first, chapter-by-chapter flow and respects the stored HTML count plan.
    - `deliveryMode: batch` queues the whole plan without mastery waits, but each provider/tool turn writes at most one lesson HTML.
    - Every lesson is written to `.partial`, validated, atomically renamed, and checkpointed before the next begins; later lesson directories are not pre-created.
    - `deliveryMode: interactive` generates at most one new lesson after the learner explicitly continues with a learning record or useful feedback, subject to the mastery gate.
    - `generatedThrough` follows continuous validated final files; `masteredThrough` follows imported learning records. They are never conflated.
+   - Batch/interactive recovery preserves `coursewareTier`; a tier change affects future pages unless regeneration is explicit.
    - On resume, empty directories, staging files, and truncated HTML are ignored; stale progress metadata is corrected from disk.
    - Normalize `fast` or `single-overview` to `fast + single-overview + batch`; multi-HTML plans normalize to `slow` plus the stored delivery mode.
    - Optional video explainers stay opt-in.
@@ -44,12 +47,13 @@ Run this checklist in order:
    - The next command is written exactly.
    - Quiz items include concept, answer, feedback, retry suggestion, and a working review target.
    - Checklist items store clean text, checked state, and review target.
-   - Exported records include `outputMode`, `htmlPlan`, `htmlPlanInstructions`, `deliveryMode`, `deliveryInstructions`, and `videoInstructions`.
+   - Exported records include `outputMode`, `htmlPlan`, `htmlPlanInstructions`, `coursewareTier`, `coursewareTierInstructions`, `deliveryMode`, `deliveryInstructions`, and `videoInstructions`.
    - Learner-entered custom instruction fields survive normalization and remain `null` only when no injected `Other` text was provided.
 
 6. Resource links
    - Use `session-artifacts.md` for lesson scaffolds.
    - Use `resilient-generation.md` for multi-HTML transactions, size budgets, checkpoints, and recovery.
+   - Use `courseware-tiers.md` for per-page production specifications and the high-quality evidence contract.
    - Use `assessment-rubric.md` for mastery diagnosis.
    - Use `video-visualization.md` only after the learner accepts a visual explainer.
    - Use `cognitive-distillation.md` only after the learner requests a mentor lens.
@@ -76,6 +80,8 @@ Run this checklist in order:
    - Do not generate multiple lesson pages in one model response or claim completion before validation and checkpointing.
    - Do not pre-create future lesson directories or use the highest numbered directory as the resume point.
    - Do not use HTML line count as a completion or quality signal.
+   - Do not equate fast with compact, deep-series with high-quality, or a large byte count with high quality.
+   - Do not remove navigation, expanders, hover notes, review jumps, record export, or weak-spot continuation in compact mode.
    - Do not add unrelated frameworks just to look comprehensive.
    - Do not create commits, result cards, scoring logs, or optimizer branches during normal teaching.
 
@@ -94,6 +100,18 @@ Expected: collect language through the native popup first, collect the HTML plan
 ```
 
 Expected: set `outputMode: fast`, `htmlPlan: single-overview`, and `deliveryMode: batch`; generate only `快速总览/课件.html` after language is known, include a concept map, essential examples, traps, mastery checks, exportable record, and a plan to expand into slow mode.
+
+```text
+用 1 个高质量 HTML 讲透 RPent 整体架构、完整代码原理和新增仿真场景路径。
+```
+
+Expected: set `fast + single-overview + high-quality + batch`; do not ask a redundant tier popup; keep all interactions; include inspectable evidence mapping, two execution chains, tradeoffs/failure boundaries, an extension path, and a domain-specific interactive. Do not inflate size merely to reach the target range.
+
+```text
+继续旧课程；记录没有 coursewareTier 字段。
+```
+
+Expected: normalize the missing tier to `standard`, preserve existing pages, add the tier to future state/exports, and continue without silently rewriting committed lessons.
 
 ```text
 慢速模式教我强化学习，我要逐章理解全貌和细节。

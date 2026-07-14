@@ -11,9 +11,10 @@ Language-specific naming is mandatory:
 - Optional mentor lens artifacts are created only when requested: Chinese mode uses `思维镜片.md`; English mode uses `mentor-lens.md`.
 - Courseware output mode is stored as `outputMode: fast | slow`.
 - Courseware HTML scope is stored as `htmlPlan: single-overview | compact-series | standard-series | deep-series | custom`.
+- Per-page courseware specification is stored as `coursewareTier: compact | standard | high-quality | custom`.
 - Courseware delivery cadence is stored as `deliveryMode: batch | interactive | custom`.
 - `single-overview` creates one overview courseware page. `compact-series` plans 2-3 HTML files, `standard-series` plans 4-6 HTML files, and `deep-series` plans 7-10 HTML files.
-- Missing language/background/goal/output-scope/delivery choices are collected only with the agent surface's native clickable choice popup, not prose questions or local HTML.
+- Missing language/background/goal/output-scope/courseware-tier/delivery choices are collected only with the agent surface's native clickable choice popup, not prose questions or local HTML.
 
 ---
 
@@ -99,6 +100,8 @@ English mode path: `_meta/profile.md`
 - **Output Mode / 课件输出模式**: [fast / slow]
 - **HTML Plan / HTML 数量方案**: [single-overview / compact-series / standard-series / deep-series / custom]
 - **HTML Plan Instructions / 自定义 HTML 范围**: [learner text / null]
+- **Courseware Tier / 课件规格**: [compact / standard / high-quality / custom]
+- **Courseware Tier Instructions / 自定义课件规格**: [learner text / null]
 - **Delivery Mode / 生成节奏**: [batch / interactive / custom]
 - **Delivery Instructions / 自定义生成节奏**: [learner text / null]
 - **Success Criteria / 成功标准**: [what "done" looks like]
@@ -121,6 +124,8 @@ English mode path: `_meta/progress.md`
 - Output mode / 课件输出模式: [fast / slow]
 - HTML plan / HTML 数量方案: [single-overview / compact-series / standard-series / deep-series / custom]
 - HTML plan instructions / 自定义 HTML 范围: [learner text / null]
+- Courseware tier / 课件规格: [compact / standard / high-quality / custom]
+- Courseware tier instructions / 自定义课件规格: [learner text / null]
 - Delivery mode / 生成节奏: [batch / interactive / custom]
 - Delivery instructions / 自定义生成节奏: [learner text / null]
 - Generation state / 生成状态: [planned / rendering / paused / complete / failed]
@@ -145,7 +150,7 @@ English mode path: `_meta/progress.md`
 Chinese mode path: `元数据/生成状态.json`
 English mode path: `_meta/generation-state.json`
 
-For every multi-HTML plan, maintain the machine-readable checkpoint defined in [resilient-generation.md](resilient-generation.md). `batch` means the whole plan may proceed without learner mastery waits; it does not mean one giant model response or an all-or-nothing write. Generate one lesson into a `.partial` file, run the validator from the loaded LearnMap Skill root (not the learner project's current directory), rename it to the final basename inside staging, atomically rename the staging lesson directory, then checkpoint before starting the next lesson. Empty future directories, `.partial` files, staging files, and stale progress claims never count as generated lessons.
+For every plan, including `single-overview`, maintain the machine-readable checkpoint defined in [resilient-generation.md](resilient-generation.md). Generate one page into a `.partial` file, run the validator from the loaded LearnMap Skill root, rename it inside staging, atomically commit the staging directory, then checkpoint before updating progress or starting another page. Empty directories, partial/staging files, and stale progress claims never count as generated lessons.
 
 Keep `generatedThrough` and `masteredThrough` separate. Reconcile the progress file and generation state against validated final HTML files from Lesson 1 forward whenever generation starts or resumes.
 
@@ -160,8 +165,9 @@ Use short staged popups with at most three groups per popup and 2-3 explicit opt
 1. Language.
 2. Missing learner context: topic scope, background, and goal (at most three groups total).
 3. Courseware scope: first ask `1`, `2-3`, or `4-10`; only when `4-10` is selected, ask `4-6` or `7-10`.
-4. Delivery mode only after a multi-HTML scope is known.
-5. Optional video.
+4. Per-page courseware tier: `compact`, `standard`, or `high-quality`.
+5. Delivery mode only after a multi-HTML scope is known.
+6. Optional video.
 
 The native client must expose free-text `Other` for every group. Keep the normalized result in profile/progress rather than creating a calibration artifact. Minimal internal state:
 
@@ -174,6 +180,8 @@ The native client must expose free-text `Other` for every group. Keep the normal
   "outputMode": "slow",
   "htmlPlan": "standard-series",
   "htmlPlanInstructions": null,
+  "coursewareTier": "standard",
+  "coursewareTierInstructions": null,
   "deliveryMode": "interactive",
   "deliveryInstructions": null,
   "videoExplainer": "declined",
@@ -194,7 +202,7 @@ Normalize invalid or legacy combinations before generating or resuming:
 | `htmlPlan: custom` describing one HTML | `fast` + `single-overview` + `batch` |
 | `htmlPlan: custom` describing multiple HTML files | `slow` + `custom` + stored/selected delivery mode |
 
-Preserve learner-entered `htmlPlanInstructions` and `deliveryInstructions` through normalization so injected `Other` text is never lost. Leave them `null` only when the learner provided no custom text.
+Normalize missing legacy `coursewareTier` to `standard`. Preserve learner-entered `htmlPlanInstructions`, `coursewareTierInstructions`, and `deliveryInstructions` through normalization so injected `Other` text is never lost. A tier change affects future pages only unless the learner explicitly requests regeneration.
 
 ---
 
@@ -216,7 +224,7 @@ It MUST include:
 - embedded mini mastery checks
 - an end-card checklist with same-page review links
 - a next-step plan for expanding into slow mode
-- a learning record export with `"outputMode": "fast"`, `"htmlPlan": "single-overview"`, and `"deliveryMode": "batch"`
+- a learning record export with `"outputMode": "fast"`, `"htmlPlan": "single-overview"`, `"deliveryMode": "batch"`, and the selected `"coursewareTier"`
 
 It MUST NOT create `第01课-*` / `lesson-01-*` and later lesson folders unless the learner explicitly asks to switch to slow mode or expand a module.
 
@@ -406,6 +414,8 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
     outputMode: "slow", // "fast" for 快速总览 / fast-overview
     htmlPlan: "standard-series", // single-overview / compact-series / standard-series / deep-series / custom
     htmlPlanInstructions: null, // learner-entered courseware-scope Other text
+    coursewareTier: "standard", // compact / standard / high-quality / custom
+    coursewareTierInstructions: null, // learner-entered tier Other text
     deliveryMode: "interactive", // batch / interactive / custom
     deliveryInstructions: null, // learner-entered delivery Other text
     videoInstructions: null, // learner text for a custom accepted video request
@@ -485,10 +495,13 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
     var outputMode = LESSON_META.outputMode || "slow";
     var htmlPlan = LESSON_META.htmlPlan || "standard-series";
     var htmlPlanInstructions = LESSON_META.htmlPlanInstructions || null;
+    var coursewareTier = LESSON_META.coursewareTier || "standard";
+    var coursewareTierInstructions = LESSON_META.coursewareTierInstructions || null;
     var deliveryMode = LESSON_META.deliveryMode || "interactive";
     var deliveryInstructions = LESSON_META.deliveryInstructions || null;
     var validHtmlPlans = ["single-overview", "compact-series", "standard-series", "deep-series", "custom"];
     if (validHtmlPlans.indexOf(htmlPlan) === -1) htmlPlan = "standard-series";
+    if (["compact", "standard", "high-quality", "custom"].indexOf(coursewareTier) === -1) coursewareTier = "standard";
     if (outputMode === "fast" || htmlPlan === "single-overview") {
       outputMode = "fast";
       htmlPlan = "single-overview";
@@ -543,6 +556,8 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
       outputMode: outputMode,
       htmlPlan: htmlPlan,
       htmlPlanInstructions: htmlPlanInstructions,
+      coursewareTier: coursewareTier,
+      coursewareTierInstructions: coursewareTierInstructions,
       deliveryMode: deliveryMode,
       deliveryInstructions: deliveryInstructions,
       videoInstructions: LESSON_META.videoInstructions || null,
@@ -622,6 +637,8 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
     lines.push((isZh ? "- 输出模式: " : "- Output mode: ") + (record.outputMode || "slow"));
     lines.push((isZh ? "- HTML 数量方案: " : "- HTML plan: ") + (record.htmlPlan || "standard-series"));
     if (record.htmlPlanInstructions) lines.push((isZh ? "- 自定义 HTML 范围: " : "- HTML plan instructions: ") + record.htmlPlanInstructions);
+    lines.push((isZh ? "- 课件规格: " : "- Courseware tier: ") + (record.coursewareTier || "standard"));
+    if (record.coursewareTierInstructions) lines.push((isZh ? "- 自定义课件规格: " : "- Courseware tier instructions: ") + record.coursewareTierInstructions);
     lines.push((isZh ? "- 生成节奏: " : "- Delivery mode: ") + (record.deliveryMode || "interactive"));
     if (record.deliveryInstructions) lines.push((isZh ? "- 自定义生成节奏: " : "- Delivery instructions: ") + record.deliveryInstructions);
     if (record.videoInstructions) lines.push((isZh ? "- 自定义视频说明: " : "- Video instructions: ") + record.videoInstructions);
@@ -778,7 +795,7 @@ Every lesson must support both local persistence and AI handoff:
 - Provide a copy button that copies a detailed Markdown report to clipboard. The report must include every quiz question, selected answer, correct/wrong status, correct answer when available, feedback, retry suggestion, all checked/unchecked self-check items, each item's review target, weak spots, and next command.
 - Provide a download button for a portable JSON file.
 - Checklist export MUST read `.check-text`, not the entire `.check-item`, so labels like `复习 →` / `Review →` do not pollute the learning record.
-- JSON export MUST include `outputMode`, `htmlPlan`, `htmlPlanInstructions`, `deliveryMode`, `deliveryInstructions`, and `videoInstructions` so a later AI session knows the teaching depth, page count, generation cadence, and any custom learner instruction.
+- JSON export MUST include `outputMode`, `htmlPlan`, `htmlPlanInstructions`, `coursewareTier`, `coursewareTierInstructions`, `deliveryMode`, `deliveryInstructions`, and `videoInstructions` so a later AI session knows page count, per-page specification, cadence, and custom instructions.
 - Chinese mode download name: `学习记录.json`.
 - English mode download name: `learning-record.json`.
 
@@ -794,6 +811,8 @@ Required JSON shape:
   "outputMode": "slow",
   "htmlPlan": "standard-series",
   "htmlPlanInstructions": null,
+  "coursewareTier": "standard",
+  "coursewareTierInstructions": null,
   "deliveryMode": "interactive",
   "deliveryInstructions": null,
   "videoInstructions": null,
@@ -833,7 +852,7 @@ Required JSON shape:
 }
 ```
 
-When resuming a learning session, first reconcile `生成状态.json` / `generation-state.json` with validated final lesson files, then read any downloaded `学习记录.json` / `learning-record.json` files before updating progress and mistake logs. Resume generation at the first missing or invalid lesson; do not infer completion from empty directories or the highest numbered path.
+When resuming a learning session, first reconcile `生成状态.json` / `generation-state.json` with validated final lesson files, then read any downloaded records before updating progress and mistakes. Preserve `coursewareTier`; missing legacy values normalize to `standard`. Resume at the first missing/invalid lesson and never infer completion from empty or high-numbered directories.
 
 ---
 

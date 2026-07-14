@@ -1,6 +1,6 @@
 ---
 name: learnmap-skill
-description: Map-first personalized learning skill for Claude Code/Codex. Use when the user wants to learn an unfamiliar domain, build a 1-2 week learning plan, turn articles/docs/repos into a curriculum, get structured learning guidance, choose one-page or multi-page HTML courseware through native popup calibration, choose batch generation or multi-turn lesson delivery, receive interactive HTML teaching, create concept maps, run mastery quizzes, generate self-check review links, optionally create short HTML video visual explainers, optionally explain through a named thinker/domain mentor lens, or use an agent as a tutor that adapts to the learner's stated background and mistakes.
+description: Map-first personalized learning skill for Claude Code/Codex. Use when the user wants to learn an unfamiliar domain, turn articles/docs/repos into a curriculum, choose HTML count plus compact/standard/high-quality courseware through native popup calibration, choose batch or multi-turn delivery, receive interactive HTML teaching, create concept maps, run mastery quizzes and review links, optionally create visual explainers or use a named mentor lens, or use an agent tutor that adapts to stated background and mistakes.
 ---
 
 # LearnMap
@@ -42,9 +42,8 @@ Also initialize `mentorLens: none | <lens-name>` in the profile/progress files. 
 Also initialize `outputMode: fast | slow` in the profile/progress files. Use `slow` by default unless the learner explicitly asks for fast mode, quick overview, one-chapter overview, or similar wording.
 
 Also initialize `htmlPlan: single-overview | compact-series | standard-series | deep-series | custom` and `htmlPlanInstructions: null | <learner text>` in the profile/progress files. Use `standard-series` by default; preserve courseware-scope `Other` text even if normalization later maps the plan to `single-overview`, otherwise store `null`.
-
 Also initialize `deliveryMode: batch | interactive | custom` and `deliveryInstructions: null | <learner text>` in the profile/progress files. `batch` queues the whole multi-HTML plan without mastery waits, but commits it as resumable one-lesson transactions; `interactive` generates one lesson at a time across learner-agent turns; `custom` stores the learner's `Other` text in `deliveryInstructions`. Use `interactive` by default for multi-HTML plans. A `single-overview` is inherently `batch` because it contains only one HTML file.
-
+Also initialize `coursewareTier: compact | standard | high-quality | custom` and `coursewareTierInstructions: null | <learner text>`. It controls per-page density and production quality, not page count or cadence. Use `standard` by default and preserve injected `Other` text.
 ---
 
 ## Purpose
@@ -58,7 +57,7 @@ This skill is distilled from the workflow in the article "如何用 Claude Code 
 ## Core Rules
 
 - **Step 0 is mandatory for new sessions.** Always establish language first, before teaching. Reuse stored language when resuming from profile/progress files or exported learning records.
-- **Calibration is native-choice-driven.** Do not ask learner-background, goal, output-mode, page-count, generation-cadence, or video-explainer calibration as prose chat questions. Use only the current agent surface's native clickable choice popup. Every choice group must include `Other` with free text. Never create calibration HTML.
+- **Calibration is native-choice-driven.** Do not ask learner-background, goal, output-mode, page-count, courseware-tier, generation-cadence, or video-explainer calibration as prose chat questions. Use only the current agent surface's native clickable choice popup. Every choice group must include `Other` with free text. Never create calibration HTML.
 - **Do not invent personalization.** Only write background, role, contest, deadline, prior experience, and constraints that the learner stated or selected. If unknown, store `unknown` and calibrate via choices.
 - Start with a global map before details.
 - Structure slow-mode learning one module at a time. `deliveryMode: batch` may generate the whole plan without learner waits, but it MUST validate and checkpoint one page before starting the next; mastery still advances separately. In fast mode, compress the map, essentials, examples, traps, and checks into one complete overview page.
@@ -74,7 +73,7 @@ This skill is distilled from the workflow in the article "如何用 Claude Code 
 - Keep interactive HTML lessons as the default teaching artifact. Offer a short video-style visual explainer only once per topic or lesson, and do not generate it unless the learner accepts.
 - Keep neutral teaching as the default. Use a mentor lens only when the learner explicitly asks for one, such as "用费曼方式解释 PPO", "explain this like Karpathy", or "use a Munger-style lens".
 - When a mentor lens is active, use it to shape explanation structure, examples, questions, and boundaries. Do not role-play as the person, invent quotes, or claim the answer is the person's real view.
-- Support courseware shape as three separate but constrained fields: `outputMode` controls fast/slow, `htmlPlan` controls HTML count, and `deliveryMode` controls resumable whole-plan batch generation versus multi-turn interactive generation. Default to `slow` + `standard-series` + `interactive`.
+- Keep four fields orthogonal: `outputMode` controls fast/slow, `htmlPlan` controls HTML count, `coursewareTier` controls per-page density/quality, and `deliveryMode` controls resumable batch versus multi-turn generation. Default to `slow + standard-series + standard + interactive`.
 - Run a lightweight quality gate before finalizing lesson artifacts: verify workflow clarity, failure modes, review links, export data, browser interactions, and 2-3 dry-run prompts.
 - **v2.2 review loop:** every self-check checklist item MUST include a review link back to the exact explanation section in the same HTML page. Every mini-quiz MUST include a tested concept and a `复习 / Review` jump target. Wrong-answer feedback MUST render a visible `复习 →` / `Review →` control that jumps back to the exact section that taught the tested concept.
 
@@ -101,6 +100,7 @@ When Step 0 preserved context from the first user message, merge it into calibra
 - topic/background/deadline become profile fields
 - explicit fast-mode requests set `outputMode: fast`, `htmlPlan: single-overview`, and `deliveryMode: batch`
 - explicit slow-mode or deep-learning requests set `outputMode: slow`
+- explicit high-quality/detail requests such as “详细吃透底层”, “完整代码原理”, or “方便二次开发” set `coursewareTier: high-quality`
 - explicit video requests set `videoExplainer: accepted`
 - explicit mentor-lens requests set `mentorLens: <lens-name>` and route to [cognitive-distillation.md](references/cognitive-distillation.md) after language selection
 - do not ask duplicate questions for information already supplied
@@ -116,6 +116,8 @@ Choose the courseware scope before creating lesson files:
   3. Normalize `1` -> `outputMode: fast`, `htmlPlan: single-overview`; `2-3` -> `slow` + `compact-series`; `4-6` -> `slow` + `standard-series`; `7-10` -> `slow` + `deep-series`; `Other` -> `htmlPlan: custom` and store the text in `htmlPlanInstructions`.
 - If the learner does not answer the choice group, continue with `outputMode: slow` and `htmlPlan: standard-series`.
 - When resuming, use stored `outputMode` and `htmlPlan`; do not ask again unless the learner wants to switch.
+
+Collect `coursewareTier` once for every new session with the native `精简档 / Compact`, `标准档（推荐） / Standard`, and `高质量档 / High-quality` choices; map injected `Other` to `custom` and store its text. Skip this popup when the request explicitly selects a tier. Read [courseware-tiers.md](references/courseware-tiers.md) before generating; a legacy record with no tier defaults to `standard` without rewriting existing pages.
 
 For a multi-HTML plan, collect delivery cadence once with a native clickable choice popup:
 
@@ -208,7 +210,7 @@ Fast mode is a complete compressed overview, not a thin summary. It MUST include
 - common traps and false friends
 - embedded mini mastery checks and self-check review links
 - a next-step slow-learning plan that can expand any module into chapter-by-chapter lessons
-- a learning record export with `outputMode: fast`, `htmlPlan: single-overview`, and `deliveryMode: batch`
+- a learning record export with `outputMode: fast`, `htmlPlan: single-overview`, `deliveryMode: batch`, and the selected `coursewareTier`
 
 Do not create multiple lesson folders in fast mode. Set `deliveryMode: batch` for the single overview. If the learner later asks to go deeper, switch to `outputMode: slow`, ask or default `htmlPlan` to a multi-HTML series (`standard-series` if unanswered), collect `deliveryMode`, and use the fast overview as Lesson 1 context.
 
@@ -225,9 +227,9 @@ Apply `deliveryMode` after the lesson plan is defined:
 - `interactive`: generate only the global-map lesson on the first run. After each imported learning record or learner feedback, diagnose weak spots and generate at most one next lesson. Do not pre-create later lesson HTML files.
 - `custom`: follow the stored cadence instructions without changing `htmlPlan`.
 
-### 2A. Generate Multi-HTML Plans Resumably
+### 2A. Generate Every HTML Resumably
 
-Before creating lesson directories for any multi-HTML plan, read and follow [resilient-generation.md](references/resilient-generation.md). Never pre-create future lesson directories. One provider/tool turn may write at most one lesson to a `.partial` file; run the validator resolved from this Skill's own root (not the learner project's current directory), rename it to the final basename inside staging, atomically rename the staging directory, and checkpoint generation state before continuing. Target 24-60 KiB per page with a 96 KiB hard ceiling unless the learner explicitly requests a larger artifact; line count is not a quality metric. On resume, reconcile current-contract or structurally complete legacy final files from Lesson 1 forward, ignore empty/partial artifacts, and keep `generatedThrough` separate from `masteredThrough`.
+Before writing any lesson HTML, including a single overview, read and follow [resilient-generation.md](references/resilient-generation.md). Never mark progress generated or pre-create future lesson directories. One provider/tool turn writes at most one `.partial` lesson; validate it, rename it inside staging, atomically commit the staging directory, then checkpoint. Use the tier contract; 96 KiB is absolute and size alone never proves quality. On resume, reconcile final files, ignore partial artifacts, and keep generation separate from mastery.
 
 ### 2B. Build The Global Map First In Slow Mode
 
@@ -297,7 +299,7 @@ Each HTML lesson MUST include:
 - **Save-on-interaction** — every quiz answer and checklist toggle calls `saveRecord()` and `updateRecordUI()`.
 - **Restore-on-load** — when the page loads, call `loadRecord()` to restore previous quiz/checklist state from `localStorage`.
 - **Copy format** — clipboard text MUST be a detailed Markdown report, not a terse dashboard. It must list every quiz question, whether it was correct, the learner's selected answer, the correct answer when available, feedback/retry notes, every checked/unchecked checklist item, weak spots, and next command.
-- **Export format** — exported JSON MUST include `topic`, `lessonId`, `lessonTitle`, `language`, `outputMode`, `htmlPlan`, `htmlPlanInstructions`, `deliveryMode`, `deliveryInstructions`, `mentorLens`, `videoInstructions`, `updatedAt`, `completion`, `quiz`, `checklist`, `weakSpots`, and `nextCommand`. Each `quiz` item MUST include `id`, `question`, `concept`, `answered`, `correct`, `choiceIndex`, `choiceText`, `correctAnswer`, `feedback`, `retrySuggestion`, and `reviewTarget` when available. Each checklist item MUST include clean `text`, `checked`, and `reviewTarget`.
+- **Export format** — exported JSON MUST include `topic`, `lessonId`, `lessonTitle`, `language`, `outputMode`, `htmlPlan`, `htmlPlanInstructions`, `coursewareTier`, `coursewareTierInstructions`, `deliveryMode`, `deliveryInstructions`, `mentorLens`, `videoInstructions`, `updatedAt`, `completion`, `quiz`, `checklist`, `weakSpots`, and `nextCommand`. Each `quiz` item MUST include `id`, `question`, `concept`, `answered`, `correct`, `choiceIndex`, `choiceText`, `correctAnswer`, `feedback`, `retrySuggestion`, and `reviewTarget` when available. Each checklist item MUST include clean `text`, `checked`, and `reviewTarget`.
 - **Tab switching** — MUST query panels from the parent section (`section.querySelectorAll(".tab-panel")`), NOT from the tabs container (`.tabs` only contains buttons, not panels — this is a verified bug pattern to avoid)
 - **All JS uses `function` keyword and `var`** (not arrow functions or `const`/`let`) for maximum browser compatibility
 
@@ -373,20 +375,21 @@ After each module:
 - Preserve `outputMode` in the profile/progress files. Values: `fast` or `slow`. Use stored mode on resume unless the learner asks to switch.
 - Preserve `htmlPlan` in the profile/progress files. Values: `single-overview`, `compact-series`, `standard-series`, `deep-series`, or `custom`. Use stored plan on resume unless the learner asks to switch.
 - Preserve learner-entered `htmlPlanInstructions` even if normalization maps a one-page custom request to `single-overview`; otherwise store `null`.
+- Preserve `coursewareTier` and `coursewareTierInstructions`; missing legacy values normalize to `standard` and `null` without rewriting committed pages.
 - Preserve `deliveryMode` in the profile/progress files. Values: `batch`, `interactive`, or `custom`. Use the stored cadence on resume unless the learner asks to switch.
 - Preserve learner-entered `deliveryInstructions` even if combination normalization changes `deliveryMode`; otherwise store `null`.
 - Preserve `videoInstructions` for custom accepted video requests; otherwise store `null`.
 - update the map if the learner discovered a better structure
 - add a short retrieval prompt for later review
 
-When resuming a session, read the language-specific progress/profile files, stored `outputMode`, stored `htmlPlan`, stored `deliveryMode`, generation-state file, and latest lesson before teaching. Reconcile metadata against validated final files using [resilient-generation.md](references/resilient-generation.md); do not restart from scratch unless requested.
+When resuming, read profile/progress, all four courseware fields, generation state, and latest lesson. Reconcile metadata against validated final files using [resilient-generation.md](references/resilient-generation.md); do not restart from scratch unless requested.
 
 ### 6. Produce Useful Outputs
 
 Choose outputs based on the user's goal:
 
 - fast output mode / quick overview: one condensed interactive HTML courseware page with a concept map, core examples, mastery checks, and a slow-learning expansion plan
-- slow output mode / deep onboarding: global-map HTML lesson + chapter plan constrained by `htmlPlan` + delivery cadence constrained by `deliveryMode` + one interactive HTML lesson per module + mastery quizzes
+- slow output mode / deep onboarding: global map + chapter plan constrained by `htmlPlan` + page specification constrained by `coursewareTier` + cadence constrained by `deliveryMode` + mastery quizzes
 - project delivery: map + implementation decision checklist + risk list
 - exam/interview: map + flashcards + graded mock questions
 - blog/writing: map + analogies + examples + outline
@@ -449,6 +452,7 @@ Required choice groups:
 - Language explicit options: `中文版`, `English`
 - Context when missing: topic scope, learner background, and learning goal; at most three groups
 - Courseware scope explicit options: stage `1 个 HTML`, `2-3 个 HTML`, `4-10 个 HTML`; when `4-10` is selected, follow with `4-6 个 HTML`, `7-10 个 HTML`
+- Courseware tier explicit options: `精简档`, `标准档（推荐）`, `高质量档`
 - Delivery mode explicit options for multi-HTML plans: `一次性生成全部`, `分多次互动逐课生成`. Describe the first as a resumable queued batch, not one giant model response.
 - Optional video explainer explicit options: `暂不需要`, `需要 HTML 视频式讲解`
 
@@ -477,8 +481,10 @@ Record the chosen values in profile/progress files before generating lesson file
 - Generating video explainers by default or blocking the normal lesson loop while waiting for a video decision.
 - Asking the output-mode question repeatedly after `outputMode` is stored.
 - Asking the HTML-plan question repeatedly after `htmlPlan` is stored.
+- Asking the courseware-tier question repeatedly after `coursewareTier` is stored.
 - Asking the delivery-mode question repeatedly after `deliveryMode` is stored.
 - Treating fast mode as a shallow summary; it must still be an interactive HTML lesson with checks and export.
+- Treating high quality as file size, or removing core interactions from compact/standard tiers.
 - Creating multiple chapter folders in fast mode before the learner asks to expand.
 - Rendering MP4 by default when the learner only asked for learning help; start with HTML preview unless MP4 is explicitly requested.
 - Turning a mentor lens into impersonation, role-play, or fake quotations.
