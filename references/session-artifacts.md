@@ -26,7 +26,8 @@ Language-specific naming is mandatory:
 ├── 元数据/
 │   ├── 学习档案.md          # 学习背景、目标、语言选择
 │   ├── 学习进度.md          # 当前课程、测验结果、薄弱点
-│   └── 错题记录.md          # 误区与纠正
+│   ├── 错题记录.md          # 误区与纠正
+│   └── 生成状态.json        # 可恢复的逐课生成检查点
 ├── 第01课-全局地图/
 │   └── 课件.html            # 全局地图 + 嵌入式掌握检查
 ├── 第02课-MDP详解/
@@ -47,7 +48,8 @@ learning/<topic-slug>/
 ├── _meta/
 │   ├── profile.md          # Learner background, goal, language choice
 │   ├── progress.md         # Current module, quiz results, weak spots
-│   └── mistakes.md         # Misconceptions and corrections
+│   ├── mistakes.md         # Misconceptions and corrections
+│   └── generation-state.json # Resumable per-lesson generation checkpoint
 ├── lesson-01-<slug>/
 │   └── index.html          # Global map + embedded mastery check
 ├── lesson-02-<slug>/
@@ -60,6 +62,8 @@ learning/<topic-slug>/
 ├── mentor-lens.md             # optional, only when requested
 └── ...
 ```
+
+The trees above illustrate final naming only. Create each lesson directory just in time when that lesson enters `rendering`; never pre-create future lesson directories.
 
 **Naming examples by language:**
 
@@ -119,7 +123,12 @@ English mode path: `_meta/progress.md`
 - HTML plan instructions / 自定义 HTML 范围: [learner text / null]
 - Delivery mode / 生成节奏: [batch / interactive / custom]
 - Delivery instructions / 自定义生成节奏: [learner text / null]
-- Completed / 已完成:
+- Generation state / 生成状态: [planned / rendering / paused / complete / failed]
+- Generated through / 已生成至: [highest continuous validated lesson / 0]
+- Mastered through / 已掌握至: [highest lesson supported by learning records / 0]
+- Last verified artifact / 最近验证课件: [relative path / null]
+- Resume command / 续生成命令: [exact command or request / null]
+- Completed learning / 已完成学习（由学习记录证明，不等于已生成）:
   - Lesson 1 done
   - ...
 - Weak spots / 薄弱点: [concepts to revisit]
@@ -128,6 +137,17 @@ English mode path: `_meta/progress.md`
 - Video instructions / 自定义视频说明: [learner text / null]
 - Mentor lens / 思维镜片: [none / lens name, output path if requested]
 ```
+
+---
+
+## Generation State
+
+Chinese mode path: `元数据/生成状态.json`
+English mode path: `_meta/generation-state.json`
+
+For every multi-HTML plan, maintain the machine-readable checkpoint defined in [resilient-generation.md](resilient-generation.md). `batch` means the whole plan may proceed without learner mastery waits; it does not mean one giant model response or an all-or-nothing write. Generate one lesson into a `.partial` file, run the validator from the loaded LearnMap Skill root (not the learner project's current directory), rename it to the final basename inside staging, atomically rename the staging lesson directory, then checkpoint before starting the next lesson. Empty future directories, `.partial` files, staging files, and stale progress claims never count as generated lessons.
+
+Keep `generatedThrough` and `masteredThrough` separate. Reconcile the progress file and generation state against validated final HTML files from Lesson 1 forward whenever generation starts or resumes.
 
 ---
 
@@ -813,7 +833,7 @@ Required JSON shape:
 }
 ```
 
-When resuming a learning session, read any downloaded `学习记录.json` / `learning-record.json` files found in lesson folders before updating progress and mistake logs.
+When resuming a learning session, first reconcile `生成状态.json` / `generation-state.json` with validated final lesson files, then read any downloaded `学习记录.json` / `learning-record.json` files before updating progress and mistake logs. Resume generation at the first missing or invalid lesson; do not infer completion from empty directories or the highest numbered path.
 
 ---
 

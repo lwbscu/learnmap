@@ -30,7 +30,11 @@ Run this checklist in order:
 4. Checkpoints
    - Fast mode creates one condensed HTML courseware page, not multiple chapter folders.
    - Slow mode preserves the global-map-first, chapter-by-chapter flow and respects the stored HTML count plan.
-   - `deliveryMode: batch` generates every planned HTML file in one run; `deliveryMode: interactive` generates only one new lesson per learner-agent turn.
+   - `deliveryMode: batch` queues the whole plan without mastery waits, but each provider/tool turn writes at most one lesson HTML.
+   - Every lesson is written to `.partial`, validated, atomically renamed, and checkpointed before the next begins; later lesson directories are not pre-created.
+   - `deliveryMode: interactive` generates at most one new lesson after the learner explicitly continues with a learning record or useful feedback, subject to the mastery gate.
+   - `generatedThrough` follows continuous validated final files; `masteredThrough` follows imported learning records. They are never conflated.
+   - On resume, empty directories, staging files, and truncated HTML are ignored; stale progress metadata is corrected from disk.
    - Normalize `fast` or `single-overview` to `fast + single-overview + batch`; multi-HTML plans normalize to `slow` plus the stored delivery mode.
    - Optional video explainers stay opt-in.
    - Mentor lenses stay opt-in.
@@ -45,6 +49,7 @@ Run this checklist in order:
 
 6. Resource links
    - Use `session-artifacts.md` for lesson scaffolds.
+   - Use `resilient-generation.md` for multi-HTML transactions, size budgets, checkpoints, and recovery.
    - Use `assessment-rubric.md` for mastery diagnosis.
    - Use `video-visualization.md` only after the learner accepts a visual explainer.
    - Use `cognitive-distillation.md` only after the learner requests a mentor lens.
@@ -68,6 +73,9 @@ Run this checklist in order:
    - Do not collapse HTML count and delivery cadence into one ambiguous question.
    - Do not emit an invalid combination such as `single-overview + interactive` or `fast + standard-series`.
    - Do not infer a learner's job, contest, timeline, or goal unless stated or selected.
+   - Do not generate multiple lesson pages in one model response or claim completion before validation and checkpointing.
+   - Do not pre-create future lesson directories or use the highest numbered directory as the resume point.
+   - Do not use HTML line count as a completion or quality signal.
    - Do not add unrelated frameworks just to look comprehensive.
    - Do not create commits, result cards, scoring logs, or optimizer branches during normal teaching.
 
@@ -97,13 +105,25 @@ Expected: set `outputMode: slow`, collect an HTML plan and delivery mode if not 
 慢速模式教我强化学习，选择 4-6 个 HTML，并一次性生成全部课件。
 ```
 
-Expected: set `outputMode: slow`, `htmlPlan: standard-series`, and `deliveryMode: batch`; generate all 4-6 planned lesson HTML files in the current run without marking later lessons mastered.
+Expected: set `outputMode: slow`, `htmlPlan: standard-series`, and `deliveryMode: batch`; queue all 4-6 pages without mastery waits, but generate, validate, atomically commit, and checkpoint one lesson per provider/tool turn. A disconnect resumes at the first uncommitted lesson, and generated later pages are not marked mastered.
 
 ```text
 慢速模式教我强化学习，选择 4-6 个 HTML，但每次互动只生成下一课。
 ```
 
 Expected: set `outputMode: slow`, `htmlPlan: standard-series`, and `deliveryMode: interactive`; generate only the global-map lesson initially and at most one new lesson after each learning-record handoff.
+
+```text
+RPent 深度系列共 8 个 HTML，选择一次性生成。第 1 课已通过校验并落盘，随后连接中断；第 2-8 课只有空目录，学习进度仍写着第 1 课制作中。继续生成。
+```
+
+Expected: preserve `slow + deep-series + batch`; validate and preserve Lesson 1 as current-contract or `legacy-valid`, ignore empty future directories, reconcile progress and generation state, and resume at Lesson 2 without rewriting Lesson 1. Record legacy capability gaps for optional later upgrade. Do not mark Lesson 1 mastered unless a learning record proves mastery.
+
+```text
+生成第 2 课时连接中断，只留下 `课件.html.partial`，但进度文件错误地写成“第 3 课已完成”。恢复本课程。
+```
+
+Expected: reject the partial artifact as committed output, correct metadata to the highest continuous validated final lesson, preserve valid earlier pages, and retry the first invalid lesson only.
 
 ```text
 我看完快速总览了，把 MDP 展开成慢速第 2 课。

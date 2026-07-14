@@ -1,7 +1,7 @@
 interface:
   display_name: "LearnMap"
-  short_description: "Native-choice map-first learning skill that creates one-page or multi-page interactive HTML courseware in batch or across learner-agent turns, with mastery checks, review links, learning records, optional visual explainers, optional mentor lenses, and quality gates."
-  default_prompt: "Use $learnmap-skill to help me learn a new domain from zero. Collect language, background, goal, HTML courseware scope, and multi-page delivery cadence through native clickable popups only, then create interactive lessons with quizzes, self-check review links, mistake-based review, and optional visual or mentor-lens explainers only when selected."
+  short_description: "Native-choice map-first learning skill that creates one-page or resumable multi-page interactive HTML courseware, with per-lesson checkpoints, mastery checks, review links, learning records, optional visual explainers, optional mentor lenses, and quality gates."
+  default_prompt: "Use $learnmap-skill to help me learn a new domain from zero. Collect language, background, goal, HTML courseware scope, and multi-page delivery cadence through native clickable popups only. Generate multi-page plans as validated, resumable one-lesson transactions, then teach with quizzes, self-check review links, mistake-based review, and optional visual or mentor-lens explainers only when selected."
 
 policy:
   allow_implicit_invocation: true

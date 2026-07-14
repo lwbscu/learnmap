@@ -7,6 +7,8 @@ const root = process.cwd();
 const apiKey = process.env.DEEPSEEK_API_KEY;
 const baseUrl = (process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com").replace(/\/+$/, "");
 const model = process.env.DEEPSEEK_MODEL || "deepseek-v4-pro";
+const configuredTimeout = Number(process.env.DEEPSEEK_TIMEOUT_MS || 180000);
+const requestTimeoutMs = Number.isFinite(configuredTimeout) && configuredTimeout > 0 ? configuredTimeout : 180000;
 
 const cases = [
   {
@@ -56,8 +58,32 @@ const cases = [
       "sets outputMode to slow",
       "sets htmlPlan to standard-series",
       "sets deliveryMode to batch",
-      "generates all 4-6 planned lesson HTML files in the current run",
-      "does not mark pre-generated later lessons as mastered"
+      "queues all 4-6 pages without learner mastery waits",
+      "writes at most one lesson HTML per provider or tool turn",
+      "validates, atomically commits, and checkpoints each page before starting the next",
+      "does not mark generated later lessons as mastered"
+    ]
+  },
+  {
+    id: "batch-resume-after-disconnect",
+    prompt: "RPent 深度系列共 8 个 HTML，选择一次性生成。第 1 课课件已完整落盘，随后连接中断；第 2-8 课只有空目录，学习进度仍写着第 1 课制作中。继续生成。",
+    expected: [
+      "preserves outputMode slow, htmlPlan deep-series, and deliveryMode batch",
+      "preserves the existing structurally complete Lesson 1 as current-contract or legacy-valid",
+      "ignores empty future directories as completion signals",
+      "reconciles progress and generation state from validated files",
+      "resumes at Lesson 2 without rewriting Lesson 1",
+      "keeps generatedThrough separate from masteredThrough"
+    ]
+  },
+  {
+    id: "partial-and-stale-progress-recovery",
+    prompt: "生成第 2 课时连接中断，只留下课件.html.partial，但进度文件错误地写成第 3 课已完成。恢复本课程。",
+    expected: [
+      "does not treat the partial file as committed output",
+      "scans from Lesson 1 and finds the first missing or invalid lesson",
+      "corrects metadata to the highest continuous validated final lesson",
+      "preserves valid earlier pages and retries only the first invalid lesson"
     ]
   },
   {
@@ -194,7 +220,7 @@ function readText(relPath) {
 function usage() {
   console.error("Missing DEEPSEEK_API_KEY.");
   console.error("Set it, then run: node scripts/deepseek-skill-eval.mjs");
-  console.error("Optional: DEEPSEEK_MODEL=deepseek-v4-pro DEEPSEEK_BASE_URL=https://api.deepseek.com");
+  console.error("Optional: DEEPSEEK_MODEL=deepseek-v4-pro DEEPSEEK_BASE_URL=https://api.deepseek.com DEEPSEEK_TIMEOUT_MS=180000");
 }
 
 if (!apiKey) {
@@ -205,6 +231,7 @@ if (!apiKey) {
 const skill = readText("SKILL.md");
 const quality = readText("references/quality-ratchet.md");
 const artifacts = readText("references/session-artifacts.md");
+const resilientGeneration = readText("references/resilient-generation.md");
 
 const system = [
   "You are an independent evaluator for an Agent Skill.",
@@ -218,6 +245,7 @@ const user = JSON.stringify({
   skill,
   qualityGate: quality,
   sessionArtifacts: artifacts,
+  resilientGeneration,
   cases,
   outputSchema: {
     overallScore: "0-100",
@@ -242,8 +270,26 @@ async function postChat(payload) {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${apiKey}`
     },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(requestTimeoutMs)
   });
+}
+
+async function postChatWithRetry(payload, attempts = 3) {
+  let lastError;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      const response = await postChat(payload);
+      const retryable = response.status === 408 || response.status === 429 || response.status >= 500;
+      if (!retryable || attempt === attempts) return response;
+      lastError = new Error(`DeepSeek API ${response.status}`);
+    } catch (error) {
+      lastError = error;
+      if (attempt === attempts) throw error;
+    }
+    await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+  }
+  throw lastError;
 }
 
 const fullPayload = {
@@ -264,13 +310,14 @@ const minimalPayload = {
   stream: false
 };
 
-let response = await postChat(fullPayload);
+let response = await postChatWithRetry(fullPayload);
 let bodyText = "";
 
 if (!response.ok) {
   bodyText = await response.text();
   if (/thinking|reasoning_effort|response_format|unsupported/i.test(bodyText)) {
-    response = await postChat(minimalPayload);
+    response = await postChatWithRetry(minimalPayload);
+    bodyText = "";
   }
 }
 
@@ -279,9 +326,20 @@ if (!response.ok) {
   throw new Error(`DeepSeek API ${response.status}: ${body}`);
 }
 
-const data = await response.json();
-const content = data.choices?.[0]?.message?.content || "{}";
-const report = JSON.parse(content);
+let content = "";
+let report;
+for (let parseAttempt = 1; parseAttempt <= 2; parseAttempt += 1) {
+  try {
+    const data = await response.json();
+    content = data.choices?.[0]?.message?.content || "{}";
+    report = JSON.parse(content);
+    break;
+  } catch (error) {
+    if (parseAttempt === 2) throw new Error(`DeepSeek returned truncated or invalid JSON after retry: ${error.message}`);
+    response = await postChatWithRetry(minimalPayload);
+    if (!response.ok) throw new Error(`DeepSeek retry failed with HTTP ${response.status}: ${await response.text()}`);
+  }
+}
 
 function validateReport(value) {
   if (!value || typeof value !== "object") throw new Error("Evaluation report must be an object.");
