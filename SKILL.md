@@ -274,7 +274,7 @@ Each HTML lesson MUST include:
 - **Multi-perspective tabs** — user / business / engineer视角 switching for the same concept
 - **Inline mini-quizzes (即学即练 / Learn & Practice)** — embedded multiple-choice questions that highlight green (correct) or red (wrong) with explanatory feedback. Must guard against double-click content duplication (use a `_mqAnswered` dictionary).
 - **Term hints** — key terms use neutral `.term-hint` styling and reveal a tooltip; keep them visually distinct from learner-created marks
-- **Learner annotations and notes** — read and follow [annotation-notes.md](references/annotation-notes.md); inject the canonical self-contained runtime for three underline styles, six named colors, anchored structured text/images, honest local save status, orphan recovery, and `.learnmap` import/export. Do not add another calibration question.
+- **Learner annotations and notes** — read and follow [annotation-notes.md](references/annotation-notes.md); inject the canonical self-contained runtime for three underline styles, six named colors, anchored structured text/images, honest local save status, orphan recovery, and `.learnmap` import/export. Resolve injector and validator scripts from the loaded LearnMap Skill root, not from the learner's project directory. Do not add another calibration question.
 - **MDP card click-to-scroll** — when using concept tuple cards, clicking scrolls to the detail section. Use manual position calculation (`getBoundingClientRect().top + pageYOffset - offset`) instead of `scroll-margin-top` for cross-browser reliability.
 - **Learning record persistence** — save quiz results, checklist state, viewed lesson, completion percentage, weak spots, and last updated time to `localStorage` under a stable key such as `ai10x:<topic>:lesson-01`.
 - **Detailed diagnostic records** — each mini-quiz MUST expose enough metadata for later AI diagnosis: question text, tested concept, chosen answer, correct answer (when available), correctness, feedback, retry recommendation, and review target.
@@ -301,6 +301,8 @@ Each HTML lesson MUST include:
 - **Lesson-authored scaffold JS uses `function` and `var`** for broad compatibility; the versioned canonical runtime is deterministic and may use tested modern syntax
 
 See [session-artifacts.md](references/session-artifacts.md) for the design tokens and complete HTML lesson scaffold.
+
+**Runtime script resolution is mandatory:** the script paths are `<loaded-learnmap-skill-root>/scripts/inject-courseware-runtime.mjs` and `<loaded-learnmap-skill-root>/scripts/validate-courseware.mjs`, where `<loaded-learnmap-skill-root>` is the directory containing this `SKILL.md`. If `scripts/*` or `assets/courseware-runtime/*` are missing in the learner's project, that is normal; never treat it as permission to skip injection. If the Skill root cannot be located or validation cannot be run, stop and report the blocker instead of committing a manually checked lesson.
 
 ### 3A. Optional Video Visual Explainer
 

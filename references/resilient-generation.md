@@ -78,11 +78,13 @@ Process lessons strictly in plan order. Do not create all future lesson director
 3. Create a staging directory beside the final lesson directory, such as `.learnmap-staging/lesson-02/`.
 4. Generate exactly one complete HTML file as `课件.html.partial` or `index.html.partial` in the staging directory. One provider/tool turn writes at most one lesson HTML.
 5. Do not echo the HTML source in chat. Tool output and chat summaries should contain paths and compact validation results only.
-6. Inject the deterministic self-contained annotation runtime with `node "<loaded-learnmap-skill-root>/scripts/inject-courseware-runtime.mjs" <partial-path>`. Do not ask the model to write, summarize, or modify the runtime. Injection must be idempotent.
+6. Inject the deterministic self-contained annotation runtime with `node "<loaded-learnmap-skill-root>/scripts/inject-courseware-runtime.mjs" <partial-path>`. `<loaded-learnmap-skill-root>` is the directory containing the `SKILL.md` being followed; do not look for these scripts in the learner's project directory. Do not ask the model to write, summarize, or modify the runtime. Injection must be idempotent.
 7. Validate with `node "<loaded-learnmap-skill-root>/scripts/validate-courseware.mjs" <partial-path> --tier <current-lesson.coursewareTier>`. Resolve scripts from the loaded Skill, require the state tier to match the HTML tier, and require the canonical runtime version/hash.
 8. If validation fails, keep the final path untouched, record `failed`, and retry only the current lesson.
 9. If validation passes, rename the `.partial` file inside staging to its final basename (`课件.html` or `index.html`). Remove an existing final lesson directory only when it is empty; preserve any non-empty legacy or user-authored directory. Then atomically rename the staging lesson directory itself to the final lesson directory on the same filesystem.
 10. Immediately checkpoint `status: committed`, content/runtime/total byte sizes, SHA-256, runtime version, and the next lesson index. Only then may batch mode start the next lesson; interactive mode stops after the committed lesson.
+
+If the injector, validator, or runtime assets cannot be located under the loaded Skill root, stop and report the blocker. Never replace this gate with manual inspection, and never commit a final `课件.html` that did not pass the validator.
 
 Never claim “课件已生成 / lesson generated” in progress metadata before step 9 succeeds.
 

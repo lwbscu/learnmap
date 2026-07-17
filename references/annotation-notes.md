@@ -24,14 +24,16 @@ Use this reference for every newly generated LearnMap lesson. The annotation run
 
 ## 2. Runtime Integration
 
-Generate the lesson content shell first, then inject the canonical runtime before validation:
+Generate the lesson content shell first, then inject the canonical runtime before validation. Resolve all runtime scripts from the loaded LearnMap Skill root, not from the learner's current project directory:
 
 ```text
 lesson.html.partial
-  -> scripts/inject-courseware-runtime.mjs
-  -> scripts/validate-courseware.mjs --tier <tier>
+  -> node "<loaded-learnmap-skill-root>/scripts/inject-courseware-runtime.mjs" "<partial-path>"
+  -> node "<loaded-learnmap-skill-root>/scripts/validate-courseware.mjs" "<partial-path>" --tier <tier>
   -> atomic commit
 ```
+
+`<loaded-learnmap-skill-root>` is the directory that contains the `SKILL.md` currently being followed. A target course/project directory usually does not contain `scripts/` or `assets/courseware-runtime/`; do not glob there. If the Skill root, injector, runtime assets, or validator cannot be located, stop with a blocker and do not publish the lesson.
 
 The runtime source is:
 
