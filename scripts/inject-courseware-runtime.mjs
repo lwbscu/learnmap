@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const VERSION = "1";
+const VERSION = "2";
 const RUNTIME_LIMIT = 64 * 1024;
 const START = "LEARNMAP_COURSEWARE_RUNTIME_START";
 const END = "LEARNMAP_COURSEWARE_RUNTIME_END";

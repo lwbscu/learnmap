@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { annotationSummary, ensureDrawerOpen, openFixture, selectFixtureText } from "../helpers/browser.mjs";
+import { annotationSummary, ensureNotesManagerOpen, openFixture, selectFixtureText } from "../helpers/browser.mjs";
 
 const onePixelPng = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
@@ -15,7 +15,7 @@ test("a text note is searchable and jumps back to its source", async ({ page }) 
   await page.getByTestId("lm-add-note").click();
   await page.getByTestId("lm-note-editor").fill("锚点恢复是这节课的关键结论。");
   await page.getByTestId("lm-note-save").click();
-  await ensureDrawerOpen(page);
+  await ensureNotesManagerOpen(page);
   await expect(page.getByTestId("lm-note-list")).toContainText("锚点恢复是这节课的关键结论");
   await page.getByTestId("lm-note-list").getByText("锚点恢复是这节课的关键结论").click();
   await expect(page.locator("#selection-text")).toBeInViewport();
@@ -30,7 +30,7 @@ test("jumping to a note reveals its containing accordion", async ({ page }) => {
   await page.getByTestId("lm-note-save").click();
   await accordion.locator(".accordion-header").click();
   await expect(accordion).not.toHaveClass(/open/);
-  await ensureDrawerOpen(page);
+  await ensureNotesManagerOpen(page);
   await page.getByTestId("lm-note-jump").click();
   await expect(accordion).toHaveClass(/open/);
   await expect(page.locator("#expanded-text")).toBeInViewport();
@@ -87,14 +87,14 @@ test("structured note blocks render safely with explicit metadata and actions", 
     await page.getByTestId("lm-add-block").click();
   }
   await page.getByTestId("lm-note-save").click();
-  await ensureDrawerOpen(page);
+  await ensureNotesManagerOpen(page);
   const card = page.locator(".lm-note-card");
   for (const [type] of blocks) await expect(card.locator(`[data-block-type="${type}"]`)).toHaveCount(1);
   await expect(card.locator("strong")).toHaveText("加粗");
   await expect(card.locator("em")).toHaveText("斜体");
   await expect(card.locator('a[href="https://example.com"]')).toHaveAttribute("rel", /noopener/);
   await expect(card.locator("script, img:not([data-block-type=image])")).toHaveCount(0);
-  await expect(card.locator(".lm-note-meta")).toContainText(/琥珀色.*直线/);
+  await expect(card.locator(".lm-note-meta")).toContainText(/amber.*solid/i);
   await expect(page.getByTestId("lm-note-jump")).toBeVisible();
   await expect(page.getByTestId("lm-note-edit")).toBeVisible();
   await expect(page.getByTestId("lm-note-delete")).toBeVisible();
@@ -117,7 +117,7 @@ test("JPEG and WebP signatures are accepted and image alt text is controlled", a
   ]);
   await page.getByTestId("lm-note-save").click();
   await expect.poll(() => annotationSummary(page)).toMatchObject({ imageCount: 2 });
-  await ensureDrawerOpen(page);
+  await ensureNotesManagerOpen(page);
   await expect(page.getByTestId("lm-note-list").locator("img")).toHaveCount(2);
   await expect(page.getByTestId("lm-note-list").locator("img").first()).toHaveAttribute("alt", "结构示意图");
 });
@@ -129,7 +129,7 @@ test("decorative images retain an empty alt attribute", async ({ page }) => {
   await page.getByTestId("lm-image-decorative").check();
   await page.getByTestId("lm-image-input").setInputFiles({ name: "decorative.png", mimeType: "image/png", buffer: onePixelPng });
   await page.getByTestId("lm-note-save").click();
-  await ensureDrawerOpen(page);
+  await ensureNotesManagerOpen(page);
   await expect(page.getByTestId("lm-note-list").locator("img")).toHaveAttribute("alt", "");
 });
 
@@ -158,7 +158,7 @@ test("images longer than 1920px are re-encoded to the edge limit", async ({ page
   await page.getByTestId("lm-note-editor").fill("需要缩放的图片");
   await page.getByTestId("lm-image-input").setInputFiles({ name: "wide.png", mimeType: "image/png", buffer: Buffer.from(large) });
   await page.getByTestId("lm-note-save").click();
-  await ensureDrawerOpen(page);
+  await ensureNotesManagerOpen(page);
   await expect.poll(() => page.getByTestId("lm-note-list").locator("img").evaluate((img) => img.naturalWidth)).toBe(1920);
 });
 
@@ -167,7 +167,7 @@ test("LearnMap package and Markdown exports are downloadable", async ({ page }) 
   await page.getByTestId("lm-add-note").click();
   await page.getByTestId("lm-note-editor").fill("可携带导出的学习笔记");
   await page.getByTestId("lm-note-save").click();
-  await ensureDrawerOpen(page);
+  await ensureNotesManagerOpen(page);
 
   const packageDownload = page.waitForEvent("download");
   await page.getByTestId("lm-export-package").click();

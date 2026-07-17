@@ -45,8 +45,8 @@ test("a cross-scope note rebinds every orphaned segment as one group", async ({ 
     dispatchEvent(new Event("resize"));
   });
   await page.getByTestId("lm-notes-toggle").click();
-  await expect(page.getByRole("button", { name: "重新定位" })).toBeVisible();
-  await page.getByRole("button", { name: "重新定位" }).click();
+  await expect(page.getByTestId("lm-note-rebind")).toBeVisible();
+  await page.getByTestId("lm-note-rebind").click();
   await page.evaluate(() => {
     const start = document.querySelector("#selection-text").firstChild;
     const end = document.querySelector("#expanded-text").firstChild;

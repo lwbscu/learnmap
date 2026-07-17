@@ -34,3 +34,26 @@ test("validator rejects a truncated lesson without writing repository artifacts"
     fs.rmSync(directory, { recursive: true, force: true });
   }
 });
+
+test("validator allows large lessons by default and enforces only an explicit content limit", () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "learnmap-validator-large-"));
+  const largeLesson = path.join(directory, "large.html");
+  try {
+    const source = fs.readFileSync(fixturePath, "utf8");
+    const padding = `<!-- ${"useful-depth ".repeat(18_000)} -->`;
+    fs.writeFileSync(largeLesson, source.replace("</body>", `${padding}</body>`), "utf8");
+
+    const unrestricted = run([largeLesson, "--legacy"]);
+    assert.equal(unrestricted.status, 0, unrestricted.stdout || unrestricted.stderr);
+    const unrestrictedReport = JSON.parse(unrestricted.stdout);
+    assert.equal(unrestrictedReport.contentMaxBytes, null);
+    assert.equal(unrestrictedReport.totalMaxBytes, null);
+
+    const limited = run([largeLesson, "--legacy", "--max-bytes", "102400"]);
+    assert.equal(limited.status, 1, limited.stdout || limited.stderr);
+    const limitedReport = JSON.parse(limited.stdout);
+    assert.ok(limitedReport.errors.some((message) => /explicit --max-bytes limit/i.test(message)));
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});

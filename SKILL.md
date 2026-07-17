@@ -61,7 +61,7 @@ This skill is distilled from the workflow in the article "如何用 Claude Code 
 - Explain concepts from at least three perspectives when useful: end user, business/operator, implementer/builder.
 - Use concrete examples immediately after abstract concepts.
 - Embed "learn-and-practice" mini-quizzes inside lessons, not just at the end.
-- Persist quizzes/checklists with `localStorage`; inject the canonical annotation runtime for IndexedDB-backed underlines, highlights, source-hover notes, portable `.learnmap` backup, and learning-record summaries.
+- Persist quizzes/checklists with `localStorage`; inject the canonical annotation runtime v2 for IndexedDB-backed underlines, highlights, anchored floating notes, portable `.learnmap` backup, v1 compatibility, and learning-record summaries.
 - Require active recall: make the learner answer, summarize, compare, or apply.
 - Do not advance after "I explained it"; advance only after the learner demonstrates understanding.
 - Keep a mistake log and use it to adapt future explanations and questions.
@@ -225,11 +225,11 @@ Apply `deliveryMode` after the lesson plan is defined:
 
 ### 2A. Generate Every HTML Resumably
 
-Before writing any lesson HTML, including a single overview, read and follow [resilient-generation.md](references/resilient-generation.md). Never mark progress generated or pre-create future lesson directories. One provider/tool turn writes at most one `.partial` lesson; inject the canonical annotation runtime, validate it, rename it inside staging, atomically commit the staging directory, then checkpoint. Enforce separate teaching-content/runtime budgets; size alone never proves quality. On resume, reconcile final files, ignore partial artifacts, and keep generation separate from mastery.
+Before writing any lesson HTML, including a single overview, read and follow [resilient-generation.md](references/resilient-generation.md). Never mark progress generated or pre-create future lesson directories. One provider/tool turn writes at most one `.partial` lesson; inject the canonical annotation runtime, validate it, rename it inside staging, atomically commit the staging directory, then checkpoint. Report teaching/runtime sizes separately, enforce only explicit learner limits plus the canonical runtime budget, and never treat size alone as quality. On resume, reconcile final files, ignore partial artifacts, and keep generation separate from mastery.
 
 ### 2B. Default To Five Subagents When Available
 
-For non-trivial LearnMap generation or regeneration, default to a Leader + five-subagent workflow when the host surface supports subagents. This improves courseware quality without adding learner-facing calibration questions.
+For non-trivial LearnMap generation or regeneration, use a Leader + five-subagent workflow when the host surface supports subagents. Dispatch all five roles before writing lesson HTML and await their conclusions before the HTML commit gate. This improves courseware quality without adding learner-facing calibration questions.
 
 Default five roles:
 
@@ -237,9 +237,9 @@ Default five roles:
 2. Content architecture subagent: lesson structure, learning map, examples, diagrams, quizzes, review jumps, and weak-spot continuation.
 3. HTML/runtime subagent: courseware shell, interaction scaffolding, annotation runtime injection path, metadata, and export records.
 4. Test/browser subagent: validator output, file and localhost browser smoke, screenshot evidence, annotation UX, reset/export behavior, and regression logs.
-5. Review subagent: accuracy, omissions, hallucination risk, accessibility, size budgets, and whether the output matches the selected `htmlPlan`, `coursewareTier`, and `deliveryMode`.
+5. Review subagent: accuracy, omissions, hallucination risk, accessibility, explicit size constraints, and whether the output matches the selected `htmlPlan`, `coursewareTier`, and `deliveryMode`.
 
-Only use fewer than five subagents when the host lacks subagent support, the learner explicitly forbids delegation, or the task is a truly simple one-file/local wording change. Do not require or hard-code a model name. If the surface lets the user choose, recommend a strong reasoning model such as DeepSeek v4 pro or GPT-5.5 for the Leader/reviewer roles; otherwise use the best available model. If subagents are unavailable, continue in a single-agent workflow but explicitly run the same five passes before finalizing.
+Only use fewer than five subagents when the host lacks subagent support, the learner explicitly forbids delegation, or the task is a truly simple one-file/local wording change. Do not require or hard-code a model name. If the surface lets the user choose, recommend a strong reasoning model such as DeepSeek v4 pro or GPT-5.5; otherwise use the best available model. If subagents are unavailable, continue in a single-agent workflow but explicitly run the same five passes before finalizing.
 
 ### 2C. Build The Global Map First In Slow Mode
 
@@ -288,7 +288,7 @@ Each HTML lesson MUST include:
 - **Multi-perspective tabs** — user / business / engineer视角 switching for the same concept
 - **Inline mini-quizzes (即学即练 / Learn & Practice)** — embedded multiple-choice questions that highlight green (correct) or red (wrong) with explanatory feedback. Must guard against double-click content duplication (use a `_mqAnswered` dictionary).
 - **Term hints** — key terms use neutral `.term-hint` styling and reveal a tooltip; keep them visually distinct from learner-created marks
-- **Learner annotations and notes** — read and follow [annotation-notes.md](references/annotation-notes.md); inject the canonical self-contained runtime for underline/highlight marks, three underline styles, six named colors via a dropdown, anchored structured text/images, source-hover note popovers with click-to-pin, honest local save status, orphan recovery, and `.learnmap` import/export. Resolve injector and validator scripts from the loaded LearnMap Skill root, not from the learner's project directory. Do not add another calibration question and do not generate long always-expanded annotation toolbars.
+- **Learner annotations and notes** — read and follow [annotation-notes.md](references/annotation-notes.md); inject the canonical self-contained runtime v2 for underline/highlight marks, three underline styles, default plus custom `#RRGGBB` mark colors, anchored floating editor, floating notes manager, note-icon expand/collapse, default white/pastel note surfaces, custom `#RRGGBB` note surfaces, text/image write-paste-copy flows, honest local save status, orphan recovery, v1 data/package compatibility, and `.learnmap` import/export. Resolve injector and validator scripts from the loaded LearnMap Skill root, not from the learner's project directory. Do not add another calibration question, do not generate long always-expanded annotation toolbars, and never create a note side drawer. Preserve the lesson TOC.
 - **MDP card click-to-scroll** — when using concept tuple cards, clicking scrolls to the detail section. Use manual position calculation (`getBoundingClientRect().top + pageYOffset - offset`) instead of `scroll-margin-top` for cross-browser reliability.
 - **Learning record persistence** — save quiz results, checklist state, viewed lesson, completion percentage, weak spots, and last updated time to `localStorage` under a stable key such as `ai10x:<topic>:lesson-01`.
 - **Detailed diagnostic records** — each mini-quiz MUST expose enough metadata for later AI diagnosis: question text, tested concept, chosen answer, correct answer (when available), correctness, feedback, retry recommendation, and review target.
@@ -499,7 +499,7 @@ Record the chosen values in profile/progress files before generating lesson file
 - Asking the delivery-mode question repeatedly after `deliveryMode` is stored.
 - Treating fast mode as a shallow summary; it must still be an interactive HTML lesson with checks and export.
 - Treating high quality as file size, or removing core interactions from compact/standard tiers.
-- Rewriting annotation code per lesson, wrapping teaching DOM to draw marks, using a long always-expanded annotation toolbar, making the right drawer the primary note reading surface, treating `file://` storage as guaranteed, placing images in `localStorage`, or letting learning reset delete notes.
+- Rewriting annotation code per lesson, wrapping teaching DOM to draw marks, using a long always-expanded annotation toolbar, creating any note side drawer, removing the lesson TOC, treating `file://` storage as guaranteed, placing images in `localStorage`, or letting learning reset delete notes.
 - Creating multiple chapter folders in fast mode before the learner asks to expand.
 - Rendering MP4 by default when the learner only asked for learning help; start with HTML preview unless MP4 is explicitly requested.
 - Turning a mentor lens into impersonation, role-play, or fake quotations.

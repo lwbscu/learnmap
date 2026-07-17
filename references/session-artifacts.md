@@ -422,7 +422,7 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
     videoInstructions: null, // learner text for a custom accepted video request
     mentorLens: "none", // or requested lens name
     annotationEnabled: true,
-    annotationRuntimeVersion: "1",
+    annotationRuntimeVersion: "2",
     contentFingerprint: "[normalized-annotatable-text-sha256]",
     nextCommand: "[Command to type in Claude Code]",
     recordFileName: "学习记录.json" // English mode: "learning-record.json"
@@ -776,7 +776,7 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
 |-------|---------|
 | `.topbar` | Sticky header with breadcrumb, title, reset button |
 | `.record-pill` | Small progress indicator in the top bar |
-| `.toc` | Fixed sidebar TOC (hidden < 1300px) |
+| `.toc` | Fixed sidebar TOC (hidden < 1300px); this is lesson navigation, not a note drawer |
 | `.section` | Content card with rounded corners, margin-bottom |
 | `.def-box` | Left-bordered definition block (blue accent) |
 | `.example-box` | Left-bordered example block (green accent) |
@@ -794,6 +794,10 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
 | `.next-cmd` | Monospace code block for next command |
 | `.bottom-bar` | Floating slide-up bar on scroll-to-end |
 | `.term-hint`, `.term-hint .tooltip` | Neutral system-authored term hints; legacy `.annotate` remains validator-compatible only |
+| `.lm-toolbar` | Runtime v2 compact mark toolbar with underline/highlight, line style, default color, and custom `#RRGGBB` color controls |
+| `.lm-note-icon`, `.lm-note-popover` | Anchored note affordance and click expand/collapse popover |
+| `.lm-floating-editor` | Anchored note editor for writing, pasting, copying text/images, note surfaces, and save/delete flows |
+| `.lm-notes-manager` | Floating notes manager for search, import/export, orphan rebind, bulk review, and source jumps; never a side drawer |
 | `[data-lm-annotatable]`, `[data-lm-scope]`, `[data-lm-ignore]` | Canonical learner-annotation boundaries; runtime UI uses `.lm-*` classes |
 
 ---

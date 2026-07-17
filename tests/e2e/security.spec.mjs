@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { ensureDrawerOpen, openFixture, selectFixtureText } from "../helpers/browser.mjs";
+import { ensureNotesManagerOpen, openFixture, selectFixtureText } from "../helpers/browser.mjs";
 
 function crc32(data) {
   let crc = 0xffffffff;
@@ -53,7 +53,7 @@ test("note text is rendered inert and never executed as HTML", async ({ page }) 
   await page.getByTestId("lm-add-note").click();
   await page.getByTestId("lm-note-editor").fill(payload);
   await page.getByTestId("lm-note-save").click();
-  await ensureDrawerOpen(page);
+  await ensureNotesManagerOpen(page);
   await expect(page.getByTestId("lm-note-list")).toContainText(payload);
   expect(await page.evaluate(() => window.__learnmapXss)).toBe(0);
   await expect(page.getByTestId("lm-note-list").locator("img, script")).toHaveCount(0);
@@ -128,6 +128,6 @@ test("malicious ZIP structures are rejected atomically", async ({ page }) => {
     expect(result).toBe(false);
     expect(await page.evaluate(() => LearnMapAnnotations.getSummary().noteCount)).toBe(1);
   }
-  await ensureDrawerOpen(page);
+  await ensureNotesManagerOpen(page);
   await expect(page.getByTestId("lm-note-list")).toContainText("导入失败后必须保留");
 });

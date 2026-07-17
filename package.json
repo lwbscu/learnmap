@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build:runtime": "node scripts/build-courseware-runtime.mjs",
+    "check:runtime": "node scripts/build-courseware-runtime.mjs --check",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "node --test tests/unit/*.test.mjs",
     "test:e2e": "playwright test",
@@ -10,10 +12,12 @@
     "test:e2e:http": "playwright test --project=chromium-http --project=firefox-http",
     "test:a11y": "playwright test tests/e2e/accessibility.spec.mjs",
     "test:security": "playwright test tests/e2e/security.spec.mjs",
-    "test:perf": "playwright test tests/e2e/performance.spec.mjs"
+    "test:perf": "playwright test tests/e2e/performance.spec.mjs",
+    "eval:claude-forward": "node scripts/claude-code-forward-eval.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.12.1",
-    "@playwright/test": "1.61.1"
+    "@playwright/test": "1.61.1",
+    "esbuild": "^0.28.1"
   }
 }

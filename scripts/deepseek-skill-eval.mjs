@@ -46,18 +46,19 @@ const cases = [
     expected: [
       "sets outputMode fast, htmlPlan single-overview, deliveryMode batch, and coursewareTier high-quality",
       "does not ask a redundant tier popup",
-      "keeps all navigation, expanders, hover notes, review jumps, exports, and weak-spot continuation",
+      "keeps all navigation, the lesson TOC, expanders, anchored floating notes, review jumps, exports, and weak-spot continuation",
       "adds evidence mapping, at least two execution chains, tradeoffs, extension path, and a domain-specific interactive",
-      "does not treat byte size alone as proof of quality or exceed the high-quality ceiling"
+      "does not treat byte size alone as proof of quality and does not impose a default high-quality lesson-size ceiling"
     ]
   },
   {
     id: "compact-keeps-annotations",
     prompt: "用 1 个 compact HTML 教我 MDP，保留全部课件交互和笔记能力。",
     expected: [
-      "keeps underline and highlight marks, all three underline styles, and all six colors through a compact color dropdown",
-      "keeps structured text and safe image notes, source-hover note popovers with click-to-pin, source jumps, autosave status, portable package import/export, and Markdown export",
+      "keeps underline and highlight marks, all three underline styles, default colors, and custom #RRGGBB mark colors through a compact dropdown",
+      "keeps structured text and safe image notes, anchored popovers with note-icon click expand/collapse, floating editor, floating notes manager, source jumps, autosave status, portable package import/export, and Markdown export",
       "uses the canonical injected runtime instead of asking the model to rewrite it",
+      "uses annotation runtime v2 while preserving v1 data/package compatibility",
       "reports content, runtime, and total bytes separately against the compact ceilings",
       "does not treat compact as permission to remove annotation features"
     ]
@@ -67,11 +68,61 @@ const cases = [
     prompt: "Use LearnMap to teach me MCP in one HTML. The lesson must support highlights, underlines, dropdown color selection, and notes that appear on source-text hover and stay pinned after click.",
     expected: [
       "keeps the canonical injected runtime and does not handwrite lesson-specific annotation code",
+      "requires annotationRuntimeVersion 2",
       "supports both highlight and underline marks with mutually exclusive overlap replacement",
       "uses a compact Feishu-style toolbar instead of a long always-expanded toolbar",
-      "selects colors through a dropdown or popover instead of a permanent six-color row",
-      "shows note content near the marked source on hover and pins it on click",
-      "keeps the drawer as a compact management surface for search, import/export, and editing"
+      "selects default or custom #RRGGBB colors through a dropdown or popover instead of a permanent color row",
+      "shows note content near the marked source and expands/collapses it through the note icon",
+      "uses a complete anchored floating editor for writing, pasting, and copying text and images",
+      "uses a floating notes manager for search, import/export, orphan rebind, and bulk review",
+      "does not create a right, left, or overlay note side drawer",
+      "preserves the lesson TOC"
+    ]
+  },
+  {
+    id: "runtime-v2-v1-compat",
+    prompt: "Continue an older LearnMap lesson that already has v1 notes and a v1 .learnmap export. Upgrade future generated lessons to the current annotation contract without losing old notes.",
+    expected: [
+      "sets new lesson metadata annotationRuntimeVersion to 2",
+      "keeps existing committed lessons readable unless regeneration is explicitly requested",
+      "migrates or reads IndexedDB v1 annotation data losslessly",
+      "imports legacy learnmap-annotations/v1 packages through validation before migration",
+      "keeps learnmap-annotations/v1 as the portable package schema and adds runtime-v2 fields only as optional extensions",
+      "does not discard notes, images, anchors, or orphan recovery data"
+    ]
+  },
+  {
+    id: "no-note-side-drawer",
+    prompt: "Generate one compact LearnMap lesson with a left table of contents and a note manager. Do not use side drawers for notes.",
+    expected: [
+      "preserves the lesson table-of-contents navigation",
+      "does not confuse the TOC with a note drawer",
+      "does not create any right drawer, left drawer, slide-out note rail, or persistent side panel for notes",
+      "uses anchored note icons/popovers, a floating editor, and a floating notes manager instead",
+      "keeps the note manager available for search, import/export, orphan rebind, bulk review, and jump to source"
+    ]
+  },
+  {
+    id: "custom-note-colors-and-surfaces",
+    prompt: "Use LearnMap to make one HTML lesson. I want a #33AA99 wavy underline and notes with a pale custom #FFF4CC surface by default.",
+    expected: [
+      "accepts valid custom #RRGGBB mark colors",
+      "accepts valid custom #RRGGBB note surface colors",
+      "keeps default white and pastel note surfaces available",
+      "rejects invalid hex colors instead of silently normalizing them",
+      "stores the custom mark/note colors in the annotation data and portable package"
+    ]
+  },
+  {
+    id: "five-subagents-awaited-before-commit",
+    prompt: "Use LearnMap to generate a non-trivial high-quality 4-6 HTML course on prompt injection defenses in batch mode.",
+    expected: [
+      "treats the request as non-trivial",
+      "dispatches five subagents when the host supports them: exploration, content architecture, HTML/runtime, test/browser verification, and review",
+      "awaits all five subagent conclusions before committing each lesson HTML",
+      "does not hard-code or require a named model for any role",
+      "if subagents are unavailable, explicitly runs the same five passes before finalizing",
+      "still commits one validated lesson per transaction"
     ]
   },
   {

@@ -15,26 +15,31 @@ export async function annotationSummary(page) {
 }
 
 export async function chooseAnnotationStyle(page, style) {
-  const active = page.locator('[data-testid^="lm-style-"][aria-pressed="true"]').first();
-  await active.focus();
-  await active.hover();
+  await openToolbarMenu(page, "style");
   const option = page.getByTestId(`lm-style-${style}`);
   await expect(option).toBeVisible();
   await option.click();
 }
 
 export async function chooseAnnotationColor(page, color) {
-  const active = page.locator('[data-testid^="lm-color-"][aria-pressed="true"]').first();
-  await active.focus();
-  await active.hover();
+  await openToolbarMenu(page, "color");
   const option = page.getByTestId(`lm-color-${color}`);
   await expect(option).toBeVisible();
   await option.click();
 }
 
-export async function ensureDrawerOpen(page) {
-  const drawer = page.getByTestId("lm-drawer");
-  if (!(await drawer.isVisible())) await page.getByTestId("lm-notes-toggle").click();
-  await expect(drawer).toBeVisible();
-  return drawer;
+export async function openToolbarMenu(page, kind) {
+  const trigger = page.getByTestId(`lm-${kind}-menu-trigger`);
+  await expect(trigger).toBeVisible();
+  await trigger.click();
+  const menu = page.getByTestId(`lm-${kind}-menu`);
+  await expect(menu).toBeVisible();
+  return menu;
+}
+
+export async function ensureNotesManagerOpen(page) {
+  const manager = page.getByTestId("lm-notes-manager");
+  if (!(await manager.isVisible())) await page.getByTestId("lm-notes-toggle").click();
+  await expect(manager).toBeVisible();
+  return manager;
 }

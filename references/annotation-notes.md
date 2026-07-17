@@ -2,6 +2,8 @@
 
 Use this reference for every newly generated LearnMap lesson. The annotation runtime is a deterministic Skill asset, not model-written lesson code. Existing committed lessons remain untouched unless the learner explicitly requests regeneration.
 
+Current contract: annotation runtime v2. Runtime v2 must read and migrate v1 annotation data and v1 `.learnmap` packages without requiring existing lessons to be regenerated.
+
 ## Contents
 
 1. Product boundary
@@ -47,7 +49,7 @@ var LESSON_META = {
   courseId: "stable-course-id",
   lessonId: "lesson-01",
   annotationEnabled: true,
-  annotationRuntimeVersion: "1",
+  annotationRuntimeVersion: "2",
   contentFingerprint: "sha256-of-normalized-annotatable-text"
 };
 ```
@@ -60,7 +62,7 @@ Public browser API:
 
 ```js
 window.LearnMapAnnotations = {
-  version: "1",
+  version: "2",
   init: function(meta) {},
   getSummary: function() {},
   clearLessonAnnotations: function() {},
@@ -78,7 +80,9 @@ Each annotation stores:
 
 - `markType`: `underline` or `highlight`; missing legacy values mean `underline`
 - `lineStyle`: `solid`, `dashed`, or `wavy`; only used for underline
-- `color`: `amber`, `red`, `blue`, `cyan`, `green`, or `violet`
+- `color`: `amber`, `red`, `blue`, `cyan`, `green`, `violet`, or `custom`
+- `customColor`: optional exact `#RRGGBB`, used only when `color` is `custom`
+- note `surfaceColor`: optional exact `#RRGGBB`; missing values fall back to `#FFFFFF`
 
 Allowed underline styles:
 
@@ -86,25 +90,29 @@ Allowed underline styles:
 - `dashed`
 - `wavy`
 
-Allowed colors: `amber`, `red`, `blue`, `cyan`, `green`, `violet`. Use both text labels and visual swatches; color alone never conveys meaning.
+Default mark colors: `amber`, `red`, `blue`, `cyan`, `green`, `violet`. Also accept custom hex colors in exact `#RRGGBB` form for marks and note surfaces. Use both text labels and visual swatches; color alone never conveys meaning. Reject invalid hex strings instead of normalizing ambiguous input.
 
-After a valid selection, show a compact Feishu-style `.lm-toolbar` near the selection. Keep it icon-led: underline, highlight, line-style dropdown, color dropdown, add note, remove mark, and a low-priority more menu. Do not show all six colors as a long always-visible row; open a small dropdown/popover for color selection. Remember the previous mark type, line style, and color. Escape closes transient UI without changing the selection.
+After a valid selection, show a compact Feishu-style `.lm-toolbar` near the selection. Keep it icon-led: underline, highlight, line-style dropdown, color dropdown with custom `#RRGGBB` entry, add note, remove mark, and a low-priority more menu. Do not show all default colors as a long always-visible row; open a small dropdown/popover for color selection. Remember the previous mark type, line style, mark color, and note surface. Escape closes transient UI without changing the selection.
 
-V1 permits one learner mark per character. Underline and highlight are mutually exclusive: a new mark replaces the overlapping part. Adjacent marks with identical `markType`, `lineStyle`, and `color` merge. Never silently discard an attached note during conflict resolution.
+V2 permits one learner mark per character. Underline and highlight are mutually exclusive: a new mark replaces the overlapping part. Adjacent marks with identical `markType`, `lineStyle`, and `color` merge. Never silently discard an attached note during conflict resolution. Missing legacy v1 values migrate to `underline`, `solid`, and a valid default color.
 
 ## 4. Notes And Images
 
 Use a Feishu-inspired, LearnMap-branded layout, but keep the reading surface centered on the original text:
 
-- desktop: source-hover note popovers are primary; the right drawer is a compact management panel
-- medium viewport: overlay drawer without shrinking teaching text below its readable width
+- desktop: anchored source popovers, the floating editor, and the floating notes manager are the only note surfaces
+- medium viewport: floating manager may become a lightweight overlay, but it must not behave as a side drawer or shrink teaching text below its readable width
 - mobile: bottom sheet with 44 px minimum controls
 
-When a mark has a note, the marked source text receives a subtle note affordance. Hovering the marked text shows a compact note popover near the source. Moving away hides it. Clicking the marked text pins the popover until the learner closes it or clicks blank page space. The popover shows the source quote, concise note preview, image count or thumbnails, and edit/jump/delete controls.
+Completely forbid note side drawers. Do not create a right drawer, left drawer, slide-out note rail, or any persistent side panel for notes. This prohibition does not affect the lesson table-of-contents: the existing `.toc` lesson navigation remains allowed and required by the lesson scaffold.
 
-The right drawer remains available for search, import/export, orphan rebind, and bulk review. Keep it terse by default; show the editor only when creating or editing a note.
+When a mark has a note, the marked source text receives a subtle note icon. Hovering the marked text or icon shows a compact anchored popover near the source. Clicking the note icon toggles expand/collapse for the anchored popover; clicking blank page space collapses it. The expanded popover shows the source quote, note preview, image count or thumbnails, note surface color, and edit/jump/delete controls.
 
-Each note card includes section, source quote, mark label, blocks, images, updated time, jump to source, edit, and delete actions. Clicking a card opens any required accordion/tab, scrolls to the anchor, and briefly flashes the source.
+The anchored floating editor is required and complete. It opens from selected text or an existing note icon, stays positioned near the anchor when possible, and supports writing text, pasting text, copying text, pasting images, copying images, adding captions/alt text, choosing default white/pastel note surfaces, choosing custom `#RRGGBB` note surfaces, saving, canceling, deleting, and export-first clear flows.
+
+The floating notes manager is required. It is a movable or popover-style manager, never a side drawer. It supports search, import/export, orphan rebind, bulk review, jump to source, edit, delete, and copy text/images from notes. Keep it terse by default; show the editor only when creating or editing a note.
+
+Each note card includes section, source quote, mark label, surface swatch, blocks, images, updated time, jump to source, edit, copy, and delete actions. Clicking a card opens any required accordion/tab, scrolls to the anchor, and briefly flashes the source.
 
 Store controlled blocks only:
 
@@ -117,7 +125,7 @@ Store controlled blocks only:
 
 Allow bold, italic, inline code, and `http`/`https` links. Normalize pasted rich text to the allowlist. Never persist or render arbitrary HTML.
 
-Accept images from paste, drag/drop, or file input. Allow PNG, JPEG, and WebP only. Reject SVG, GIF, HTML, remote URLs, files above 5 MiB, and decoded images above 12 MP. Re-encode through canvas, strip metadata, and scale the longest edge to at most 1920 px. Require alt text or an explicit decorative flag.
+Accept images from paste, drag/drop, or file input. Allow PNG, JPEG, and WebP only. Reject SVG, GIF, HTML, remote URLs, files above 5 MiB, and decoded images above 12 MP. Re-encode through canvas, strip metadata, and scale the longest edge to at most 1920 px. Require alt text or an explicit decorative flag. Copying an image back to the clipboard should use the sanitized stored blob when the browser permits it; otherwise provide a clear save/export fallback.
 
 ## 5. Anchors And Recovery
 
@@ -146,7 +154,7 @@ Never bind to a merely similar passage. Preserve orphaned notes and offer resele
 
 ## 6. Persistence And Learning Records
 
-Use IndexedDB database `learnmap-annotations-v1` with stores `annotations`, `notes`, `assets`, and `settings`. Use 350 ms debounced transactions and keep the last valid state after failure. If IndexedDB is unavailable, retain an in-memory session and keep export available.
+Runtime API v2 intentionally keeps IndexedDB database `learnmap-annotations-v1` with stores `annotations`, `notes`, `assets`, and `settings`. Add v2 fields as optional record extensions so existing lessons load without a destructive database migration. Use 350 ms debounced transactions and keep the last valid state after failure. If IndexedDB is unavailable, retain an in-memory session and keep export available.
 
 For `file://`, report actual capability: `persisted`, `session-only`, or `save-failed`. Never promise cross-file persistence. Same-origin localhost/HTTPS pages may share a course database through `courseId`.
 
@@ -180,15 +188,15 @@ notes.json
 assets/<uuid>.<ext>
 ```
 
-Validate CRC, schema `learnmap-annotations/v1`, entry paths, counts, lengths, IDs, references, image signatures, decoded dimensions, and aggregate bytes before one atomic import transaction. Reject encryption, unsupported compression methods, traversal paths, duplicate entries, unsupported files, or malformed references. A failed import must not change existing notes.
+Keep package schema `learnmap-annotations/v1`. Validate CRC, schema, entry paths, counts, lengths, IDs, references, optional runtime-v2 fields, image signatures, decoded dimensions, and aggregate bytes before one atomic import transaction. Missing v2 fields fall back to named mark colors and a white note surface. Reject encryption, unsupported compression methods, traversal paths, duplicate entries, unsupported files, or malformed references. A failed import must not change existing notes.
 
 Also offer an AI-readable Markdown export without binary image content. Warn that exported files may contain personal notes and screenshots.
 
 ## 8. Accessibility And Security
 
 - Implement the toolbar as one Tab stop with arrow-key navigation, Enter/Space activation, and Escape dismissal.
-- Keep the desktop drawer non-modal. Trap and restore focus only for the mobile modal sheet.
-- Provide visible focus, named colors/styles, `aria-live` save/error status, reduced motion, forced-colors support, and at least 44 px touch targets.
+- The floating editor and floating manager must have visible focus order and Escape dismissal. Trap and restore focus only for the mobile modal sheet.
+- Provide visible focus, named colors/styles, `aria-live` save/error status, reduced motion, and forced-colors support. Compact desktop toolbar controls may be 32 px to stay within 260 px; mobile and touch-oriented sheet controls must be at least 44 px.
 - Render user strings with `textContent` and safe attributes. Never pass them to `innerHTML`, `outerHTML`, `document.write`, `eval`, or string event handlers.
 - Allow no network upload, telemetry, remote font, script, editor, or image dependency.
 - Revoke object URLs after image views are destroyed, not before images finish loading.
@@ -199,9 +207,9 @@ A current-contract page must have:
 
 - canonical runtime markers, version, and matching hash
 - `courseId`, annotation metadata, annotatable root, and stable scopes
-- three styles, six named colors, toolbar, drawer, status, import/export, and orphan UI
+- runtime v2 metadata/API, v1 data/package migration, three underline styles, default plus custom `#RRGGBB` mark colors, toolbar, anchored floating editor, floating notes manager, status, import/export, and orphan UI
 - separate learning reset and annotation clear behavior
 - `annotationSummary` without full notes/images in the learning record
-- no remote dependency, arbitrary editable course root, or unsafe user-data HTML rendering
+- no note side drawer, remote dependency, arbitrary editable course root, or unsafe user-data HTML rendering
 
 Run browser tests for Selection/Range, refresh, import/export, images, failure states, keyboard/touch, and all existing LearnMap interactions. Static token checks alone are insufficient.

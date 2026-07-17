@@ -9,6 +9,8 @@ test("selection opens the compact toolbar and applies style and color", async ({
   await selectFixtureText(page);
   const toolbar = page.getByTestId("lm-toolbar");
   await expect(toolbar).toBeVisible();
+  await expect(page.getByTestId("lm-style-menu-trigger")).toBeVisible();
+  await expect(page.getByTestId("lm-color-menu-trigger")).toBeVisible();
   await chooseAnnotationStyle(page, "wavy");
   await chooseAnnotationColor(page, "violet");
   await expect.poll(() => annotationSummary(page)).toMatchObject({ underlineCount: 1 });
@@ -62,7 +64,7 @@ test("notes and progress have independent reset boundaries", async ({ page }) =>
   await page.getByTestId("lm-note-save").click();
   await expect.poll(() => annotationSummary(page)).toMatchObject({ noteCount: 1 });
 
-  const hit = page.locator(".lm-note-hit").first();
+  const hit = page.getByTestId("lm-note-hit").first();
   await expect(hit).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("lm-note-popover")).toBeHidden();
@@ -73,7 +75,8 @@ test("notes and progress have independent reset boundaries", async ({ page }) =>
   await hit.click();
   await page.mouse.move(8, 8);
   await expect(page.getByTestId("lm-note-popover")).toBeVisible();
-  await page.getByTestId("lm-popover-close").click();
+  await expect(page.getByTestId("lm-note-popover")).toHaveAttribute("data-pinned", "true");
+  await hit.click();
   await expect(page.getByTestId("lm-note-popover")).toBeHidden();
 
   await page.getByRole("button", { name: "保存原文、上下文和位置" }).click();

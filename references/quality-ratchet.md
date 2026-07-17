@@ -42,8 +42,9 @@ Run this checklist in order:
    - Optional video explainers stay opt-in.
    - Mentor lenses stay opt-in.
    - The learner is not advanced until they demonstrate understanding.
-   - Every newly generated lesson injects the canonical annotation runtime before validation; its version and SHA-256 match the committed runtime assets.
-   - Runtime injection is idempotent, and content, runtime, and total byte budgets are reported separately.
+   - Every newly generated lesson injects the canonical annotation runtime v2 before validation; its version and SHA-256 match the committed runtime assets.
+   - Runtime injection is idempotent, and content, runtime, and total byte sizes are reported separately without imposing a default lesson-size ceiling.
+   - Runtime v2 keeps v1 IndexedDB/package compatibility, anchored floating note UX, and custom `#RRGGBB` mark/note colors.
    - Legacy lessons without the runtime remain readable and receive a capability warning rather than an automatic rewrite.
 
 5. Specificity
@@ -52,13 +53,13 @@ Run this checklist in order:
    - Checklist items store clean text, checked state, and review target.
    - Exported records include `outputMode`, `htmlPlan`, `htmlPlanInstructions`, `coursewareTier`, `coursewareTierInstructions`, `deliveryMode`, `deliveryInstructions`, and `videoInstructions`.
    - Learner-entered custom instruction fields survive normalization and remain `null` only when no injected `Other` text was provided.
-   - New lesson metadata includes `courseId`, `annotationEnabled`, `annotationRuntimeVersion`, and `contentFingerprint`.
+   - New lesson metadata includes `courseId`, `annotationEnabled`, `annotationRuntimeVersion: "2"`, and `contentFingerprint`.
    - Exported learning records may include `annotationSummary`, but full note text and images only leave through an explicit `.learnmap` or Markdown export.
    - `resetLearningProgress()` and its compatibility alias `resetAll()` preserve annotations; only `clearLessonAnnotations()` can delete them after confirmation and an export-first prompt.
 
 6. Resource links
    - Use `session-artifacts.md` for lesson scaffolds.
-   - Use `resilient-generation.md` for multi-HTML transactions, size budgets, checkpoints, and recovery.
+   - Use `resilient-generation.md` for multi-HTML transactions, size signals, explicit limits, checkpoints, and recovery.
    - Use `courseware-tiers.md` for per-page production specifications and the high-quality evidence contract.
    - Use `annotation-notes.md` for selection boundaries, anchors, notes, images, storage, import/export, accessibility, and security.
    - Use `assessment-rubric.md` for mastery diagnosis.
@@ -72,8 +73,8 @@ Run this checklist in order:
 
 8. Dry-run behavior
    - Test 2-3 representative prompts mentally or with subagents when available.
-   - For non-trivial lessons, default to five subagents when the host supports them: exploration, content architecture, HTML/runtime, test/browser verification, and review. Use fewer only when subagents are unavailable, the learner forbids delegation, or the task is truly simple.
-   - Do not hard-code model names; if model choice is available, recommend a strong reasoning model such as DeepSeek v4 pro or GPT-5.5 for Leader/reviewer roles.
+   - For non-trivial lessons, dispatch five subagents when the host supports them: exploration, content architecture, HTML/runtime, test/browser verification, and review. Await all five conclusions before the HTML commit gate. Use fewer only when subagents are unavailable, the learner forbids delegation, or the task is truly simple.
+   - Do not hard-code model names; if model choice is available, choose by role capability and risk.
    - Confirm the skill stays on the intended path and does not introduce a negative behavior.
    - When `DEEPSEEK_API_KEY` is available, run `node scripts/deepseek-skill-eval.mjs` and read the generated `.skill-evals/*.json` feedback before editing.
    - Generate one Chinese high-quality fixture and one English compact fixture; inject and validate both, then exercise annotations in `file://` and localhost modes.
@@ -91,9 +92,10 @@ Run this checklist in order:
    - Do not pre-create future lesson directories or use the highest numbered directory as the resume point.
    - Do not use HTML line count as a completion or quality signal.
    - Do not equate fast with compact, deep-series with high-quality, or a large byte count with high quality.
-   - Do not remove navigation, expanders, hover notes, review jumps, record export, or weak-spot continuation in compact mode.
-   - Do not remove underlines, highlights, hover/pin text/image notes, anchored source jumps, honest storage status, color dropdowns, or portable exports in compact mode.
+   - Do not remove navigation, lesson TOC, expanders, anchored note icons/popovers, review jumps, record export, or weak-spot continuation in compact mode.
+   - Do not remove underlines, highlights, anchored floating text/image notes, note-icon expand/collapse, anchored source jumps, honest storage status, custom `#RRGGBB` color controls, or portable exports in compact mode.
    - Do not handwrite a different annotation engine per lesson, wrap selected source text in mutation-prone spans, or treat `.annotate` term hints as learner annotations.
+   - Do not create a note side drawer. The lesson table-of-contents is still allowed and required.
    - Do not claim persistent storage under `file://` unless the runtime capability check succeeds.
    - Do not let learning-progress reset delete notes, or let normal underlines affect mastery and weak spots; only explicit question-tagged notes may enter continuation signals.
    - Do not import partial or invalid `.learnmap` data: validate the complete package before one atomic database transaction.
@@ -126,7 +128,7 @@ Expected: set `fast + single-overview + high-quality + batch`; do not ask a redu
 用 1 个 compact HTML 教我 MDP，保留全部课件交互和笔记能力。
 ```
 
-Expected: keep the complete canonical annotation runtime, including highlights, all three underline styles, six colors through a compact dropdown, hover/pin text/image notes, source jumps, autosave status, `.learnmap` import/export, and Markdown export. Compact changes teaching density, not the interaction floor; report content, runtime, and total bytes against the 40/64/104 KiB ceilings.
+Expected: keep the complete canonical annotation runtime v2, including highlights, all three underline styles, default and custom `#RRGGBB` colors through a compact dropdown, anchored floating text/image notes, note-icon expand/collapse, source jumps, autosave status, `.learnmap` import/export with v1 compatibility, and Markdown export. Compact changes teaching density, not the interaction floor; report content, runtime, and total bytes, but do not fail solely because lesson content exceeds a default target.
 
 ```text
 我写了三条带图片的笔记。现在重置本课学习进度，然后继续从薄弱点学习。

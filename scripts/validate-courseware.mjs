@@ -6,11 +6,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { computeContentFingerprint, extractLessonMetaObject } from "./inject-courseware-runtime.mjs";
 
-const RUNTIME_VERSION = "1";
+const RUNTIME_VERSION = "2";
 const RUNTIME_START = "LEARNMAP_COURSEWARE_RUNTIME_START";
 const RUNTIME_END = "LEARNMAP_COURSEWARE_RUNTIME_END";
 const RUNTIME_LIMIT = 64 * 1024;
-const ABSOLUTE_TOTAL_LIMIT = 160 * 1024;
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const runtimeAssetDir = path.resolve(scriptDir, "../assets/courseware-runtime");
 const runtimeCssPath = path.join(runtimeAssetDir, "annotation-notes.css");
@@ -19,7 +18,7 @@ const runtimeBlockPattern = new RegExp(`<!--\\s*${RUNTIME_START}\\b[\\s\\S]*?<!-
 
 const args = process.argv.slice(2);
 let fileArg = null;
-let maxBytes = 96 * 1024;
+let maxBytes = null;
 let maxBytesProvided = false;
 let legacyMode = false;
 let tierOverride = null;
@@ -39,7 +38,7 @@ for (let index = 0; index < args.length; index += 1) {
   }
 }
 
-if (!fileArg || !Number.isFinite(maxBytes) || maxBytes <= 0) {
+if (!fileArg || (maxBytesProvided && (!Number.isFinite(maxBytes) || maxBytes <= 0))) {
   console.log(JSON.stringify({
     pass: false,
     usage: "node scripts/validate-courseware.mjs <html-path> [--tier compact|standard|high-quality|custom] [--max-bytes N] [--legacy]",
@@ -126,20 +125,18 @@ if (tierOverride && embeddedTier && tierOverride !== embeddedTier) contractProbl
 if (!embeddedTier) contractProblem("Missing or invalid embedded coursewareTier; legacy content normalizes to standard.");
 
 const tierBudgets = {
-  compact: { targetMin: 16 * 1024, targetMax: 32 * 1024, contentMax: 40 * 1024, totalMax: 104 * 1024 },
-  standard: { targetMin: 24 * 1024, targetMax: 60 * 1024, contentMax: 72 * 1024, totalMax: 136 * 1024 },
-  "high-quality": { targetMin: 48 * 1024, targetMax: 88 * 1024, contentMax: 96 * 1024, totalMax: 160 * 1024 },
-  custom: { targetMin: 24 * 1024, targetMax: 60 * 1024, contentMax: 72 * 1024, totalMax: 160 * 1024 }
+  compact: { targetMin: 16 * 1024, targetMax: 32 * 1024 },
+  standard: { targetMin: 24 * 1024, targetMax: 60 * 1024 },
+  "high-quality": { targetMin: 48 * 1024, targetMax: null },
+  custom: { targetMin: 24 * 1024, targetMax: null }
 };
 const budget = tierBudgets[coursewareTier];
-const resolvedContentMax = Math.min(maxBytesProvided ? maxBytes : budget.contentMax, budget.contentMax);
+const resolvedContentMax = maxBytesProvided ? maxBytes : null;
 
 if (totalBytes === 0) errors.push("HTML file is empty.");
-if (contentBytes > resolvedContentMax) errors.push(`Courseware content exceeds the ${coursewareTier} ceiling of ${resolvedContentMax} bytes.`);
-if (totalBytes > budget.totalMax) errors.push(`Total HTML exceeds the ${coursewareTier} ceiling of ${budget.totalMax} bytes.`);
-if (totalBytes > ABSOLUTE_TOTAL_LIMIT) errors.push(`Total HTML exceeds the absolute ${ABSOLUTE_TOTAL_LIMIT}-byte ceiling.`);
+if (resolvedContentMax !== null && contentBytes > resolvedContentMax) errors.push(`Courseware content exceeds the explicit --max-bytes limit of ${resolvedContentMax} bytes.`);
 if (contentBytes < 8 * 1024) warnings.push("Courseware content is smaller than 8 KiB; check for truncation or overly thin content.");
-if (contentBytes < budget.targetMin || contentBytes > budget.targetMax) warnings.push(`Courseware content is outside the ${coursewareTier} target range; verify density without adding filler.`);
+if (contentBytes < budget.targetMin || (budget.targetMax !== null && contentBytes > budget.targetMax)) warnings.push(`Courseware content is outside the ${coursewareTier} planning range; verify density without adding filler or deleting useful depth.`);
 
 if (!/<!doctype\s+html/i.test(source)) errors.push("Missing <!DOCTYPE html>.");
 if (!/<\/html>\s*$/i.test(source.trim())) errors.push("Missing closing </html>.");
@@ -242,6 +239,11 @@ const runtimeApis = ["window.LearnMapAnnotations", "getSummary", "clearLessonAnn
 if (canonicalRuntime) runtimeApis.forEach((token) => {
   if (!canonicalRuntime.js.includes(token)) contractProblem(`Canonical runtime is missing API token: ${token}`);
 });
+const runtimeV2Tokens = ["lm-note-editor-popover", "lm-notes-manager", "lm-note-hit", "lm-note-copy", "customColor", "surfaceColor"];
+if (canonicalRuntime) runtimeV2Tokens.forEach((token) => {
+  if (!canonicalRuntime.js.includes(token) && !canonicalRuntime.block.includes(token)) contractProblem(`Canonical runtime v2 is missing contract token: ${token}`);
+});
+if (/class=["'][^"']*\blm-drawer\b/i.test(contentSource)) contractProblem("Lesson content must not add a note side drawer.");
 
 const quizTags = [...contentSource.matchAll(/<[^>]*class=["'][^"']*\bmini-quiz\b[^"']*["'][^>]*>/gi)].map((match) => match[0]);
 const quizCount = quizTags.length;
@@ -312,11 +314,11 @@ const result = {
   contentBytes,
   runtimeBytes,
   totalBytes,
-  maxBytes: resolvedContentMax,
-  contentMaxBytes: resolvedContentMax,
-  runtimeMaxBytes: RUNTIME_LIMIT,
-  totalMaxBytes: budget.totalMax,
-  absoluteTotalMaxBytes: ABSOLUTE_TOTAL_LIMIT,
+    maxBytes: resolvedContentMax,
+    contentMaxBytes: resolvedContentMax,
+    runtimeMaxBytes: RUNTIME_LIMIT,
+    totalMaxBytes: null,
+    absoluteTotalMaxBytes: null,
   targetBytes: [budget.targetMin, budget.targetMax],
   sha256: crypto.createHash("sha256").update(sourceBuffer).digest("hex"),
   runtimeVersion: runtimeMatches[0]?.[0].match(/version="([^"]+)"/i)?.[1] || null,

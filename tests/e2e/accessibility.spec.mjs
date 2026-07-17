@@ -1,12 +1,12 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { chooseAnnotationColor, chooseAnnotationStyle, openFixture, selectFixtureText } from "../helpers/browser.mjs";
+import { chooseAnnotationColor, chooseAnnotationStyle, ensureNotesManagerOpen, openFixture, openToolbarMenu, selectFixtureText } from "../helpers/browser.mjs";
 
 test.beforeEach(async ({ page }, testInfo) => {
   await openFixture(page, testInfo.project.name);
 });
 
-test("lesson and notes drawer have no serious or critical axe violations", async ({ page }) => {
+test("lesson and notes manager have no serious or critical axe violations", async ({ page }) => {
   await selectFixtureText(page);
   await page.getByTestId("lm-add-note").click();
   const results = await new AxeBuilder({ page }).analyze();
@@ -18,6 +18,10 @@ test("toolbar supports roving keyboard focus and Escape closes transient UI", as
   await selectFixtureText(page);
   const toolbar = page.getByTestId("lm-toolbar");
   await expect(toolbar).toBeVisible();
+  await expect(page.getByTestId("lm-style-menu-trigger")).toBeVisible();
+  await expect(page.getByTestId("lm-color-menu-trigger")).toBeVisible();
+  await openToolbarMenu(page, "style");
+  await expect(page.getByTestId("lm-style-menu")).toBeVisible();
   await toolbar.press("Tab");
   const first = page.locator(":focus");
   await expect(first).toHaveAttribute("aria-label", /.+/);
@@ -28,7 +32,7 @@ test("toolbar supports roving keyboard focus and Escape closes transient UI", as
   await expect(toolbar).toBeHidden();
 });
 
-test("controls expose names and meet the 44px touch target", async ({ page }) => {
+test("controls expose names and use compact desktop plus 44px mobile targets", async ({ page }) => {
   await selectFixtureText(page);
   for (const style of ["solid", "dashed", "wavy"]) {
     await chooseAnnotationStyle(page, style);
@@ -36,13 +40,18 @@ test("controls expose names and meet the 44px touch target", async ({ page }) =>
   for (const color of ["amber", "red", "blue", "cyan", "green", "violet"]) {
     await chooseAnnotationColor(page, color);
   }
-  for (const id of ["lm-style-solid", "lm-color-amber", "lm-add-note"]) {
+  for (const id of ["lm-style-menu-trigger", "lm-color-menu-trigger", "lm-add-note"]) {
     const control = page.getByTestId(id);
     await expect(control).toHaveAttribute("aria-label", /.+/);
     const box = await control.boundingBox();
-    expect(box?.width).toBeGreaterThanOrEqual(44);
-    expect(box?.height).toBeGreaterThanOrEqual(44);
+    expect(box?.width).toBeGreaterThanOrEqual(32);
+    expect(box?.height).toBeGreaterThanOrEqual(32);
   }
+  await page.setViewportSize({ width: 390, height: 844 });
+  await selectFixtureText(page);
+  const mobileTarget = await page.getByTestId("lm-add-note").boundingBox();
+  expect(mobileTarget?.width).toBeGreaterThanOrEqual(44);
+  expect(mobileTarget?.height).toBeGreaterThanOrEqual(44);
 });
 
 test("reduced motion and forced colors preserve usable controls", async ({ page }) => {
@@ -51,25 +60,38 @@ test("reduced motion and forced colors preserve usable controls", async ({ page 
   await expect(page.getByTestId("lm-toolbar")).toBeVisible();
   await chooseAnnotationStyle(page, "wavy");
   await page.getByTestId("lm-notes-toggle").click();
-  await expect(page.getByTestId("lm-drawer")).toBeVisible();
+  await expect(page.getByTestId("lm-notes-manager")).toBeVisible();
 });
 
 test("mobile layout uses a bottom sheet without overflowing the viewport", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   const toggle = page.getByTestId("lm-notes-toggle");
   await toggle.focus();
-  await toggle.click();
-  const drawer = page.getByTestId("lm-drawer");
-  await expect(drawer).toBeVisible();
-  await expect(drawer).toHaveAttribute("aria-modal", "true");
-  await expect(drawer.locator(":focus")).toHaveCount(1);
+  const manager = await ensureNotesManagerOpen(page);
+  await expect(manager).toHaveAttribute("aria-modal", "true");
+  await expect(manager).toHaveAttribute("data-layout", "bottom-sheet");
+  await expect(manager.locator(":focus")).toHaveCount(1);
   await page.keyboard.press("Shift+Tab");
-  await expect(drawer.locator(":focus")).toHaveCount(1);
-  const box = await drawer.boundingBox();
+  await expect(manager.locator(":focus")).toHaveCount(1);
+  const box = await manager.boundingBox();
   expect(box).not.toBeNull();
   expect(box.x).toBeGreaterThanOrEqual(0);
   expect(box.width).toBeLessThanOrEqual(390);
   expect(box.y + box.height).toBeLessThanOrEqual(845);
-  await page.getByTestId("lm-drawer-close").click();
+  await page.getByTestId("lm-notes-manager-close").click();
   await expect(toggle).toBeFocused();
+});
+
+test("desktop layout has no horizontal or vertical UI overflow", async ({ page }) => {
+  await selectFixtureText(page);
+  await expect(page.getByTestId("lm-toolbar")).toBeVisible();
+  const manager = await ensureNotesManagerOpen(page);
+  for (const locator of [page.getByTestId("lm-toolbar"), manager]) {
+    const box = await locator.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.y).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(1280);
+    expect(box.y + box.height).toBeLessThanOrEqual(720);
+  }
 });

@@ -34,25 +34,27 @@ Every tier keeps the complete LearnMap interaction contract:
 
 - table-of-contents navigation
 - expandable explanations
-- hover annotations
+- anchored note icons/popovers
 - wrong-answer analysis with exact `Review / 复习` jumps
 - self-check items with exact review targets
 - local persistence and learning-record copy/download
 - weak-spot continuation
-- canonical learner underlines, structured text/image notes, orphan recovery, and portable `.learnmap` backup
+- canonical runtime v2 learner underlines/highlights, custom `#RRGGBB` mark/note colors, anchored floating editor, floating notes manager, structured text/image notes, note-icon expand/collapse, orphan recovery, portable `.learnmap` backup, and v1 data/package compatibility
+
+Do not trade away the lesson table-of-contents. Do not add note side drawers in any tier.
 
 Compact means less scope per page, not missing functionality. Fast mode also does not imply compact quality: `fast + single-overview + high-quality` is valid.
 
 ## Tier Contracts
 
-| Tier | Teaching target | Teaching ceiling | Total ceiling after runtime | Content contract |
-|---|---:|---:|---:|---|
-| `compact` | 16–32 KiB | 40 KiB | 104 KiB | Shortest complete concept path, at least 2 concrete examples or worked steps, 2 diagnostic quizzes, and 2 reviewable checklist items. |
-| `standard` | 24–60 KiB | 72 KiB | 136 KiB | Balanced architecture/concept flow, at least 3 examples or worked steps, 2–4 quizzes, at least 3 checklist items, practical task, and common failure modes. |
-| `high-quality` | 48–88 KiB | 96 KiB | 160 KiB | Standard contract plus evidence mapping, at least 2 end-to-end execution/reasoning chains, tradeoffs and failure boundaries, extension/transfer path, one domain-specific interactive, 3–4 diagnostic quizzes, and at least 4 checklist items. |
-| `custom` | Parse learner text | 72 KiB by default | 160 KiB absolute | Follow the stored instructions while preserving the shared quality floor; use standard teaching budget when size is unspecified. |
+| Tier | Teaching planning signal | Content contract |
+|---|---:|---|
+| `compact` | 16–32 KiB | Shortest complete concept path, at least 2 concrete examples or worked steps, 2 diagnostic quizzes, and 2 reviewable checklist items. |
+| `standard` | 24–60 KiB | Balanced architecture/concept flow, at least 3 examples or worked steps, 2–4 quizzes, at least 3 checklist items, practical task, and common failure modes. |
+| `high-quality` | 48 KiB+ when the topic needs it | Standard contract plus evidence mapping, at least 2 end-to-end execution/reasoning chains, tradeoffs and failure boundaries, extension/transfer path, one domain-specific interactive, 3–4 diagnostic quizzes, and at least 4 checklist items. |
+| `custom` | Parse learner text | Follow the stored instructions while preserving the shared quality floor; use standard density as a starting point when size is unspecified. |
 
-Teaching content and deterministic tooling are measured separately. The canonical annotation runtime has a 64 KiB ceiling and cannot consume or inflate the teaching budget; 160 KiB is the absolute total HTML maximum. A target range is a planning signal and validator warning, not a quality score. A concise but complete high-quality page may be below 48 KiB; never add filler to hit a byte target. Split scope across the selected `htmlPlan` instead of exceeding the teaching ceiling.
+Teaching content and deterministic tooling are measured separately. The canonical annotation runtime has a 64 KiB ceiling, but lesson content and total HTML have no default hard size ceiling. Planning ranges guide density and truncation checks; they are not quality scores. A concise but complete page may be below its signal, while a demanding high-quality lesson may be substantially larger. Never add filler to hit a byte target or delete useful depth merely to shrink the file. An explicit learner size request or validator `--max-bytes` remains binding.
 
 ## High-Quality Evidence Contract
 

@@ -37,7 +37,7 @@ LearnMap is an Agent Skill that turns a vague learning request into mapped, inte
 
 ## What's NEW!
 
-- [2026/07] 🔥 LearnMap adds highlights, multi-style underlines, source-hover notes, portable note packages, and default five-agent generation for higher-quality courseware.
+- [2026/07] 🔥 LearnMap updates to runtime v2 with anchored floating notes, custom mark/note colors, v1-compatible note packages, awaited five-agent generation, and no default content/total HTML ceiling for quality-first courseware.
 - [2026/06] 🔥 LearnMap adds fast overview mode, slow deep-course mode, and a recorded usage walkthrough.
 - [2026/06] 🔥 Optional HTML video explainers and mentor lenses are now opt-in learning paths.
 - [2026/05] 🔥 Interactive HTML lessons export learning records for AI follow-up.

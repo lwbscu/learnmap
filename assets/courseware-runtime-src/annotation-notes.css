@@ -1,0 +1,651 @@
+:root {
+  --lm-bg: #ffffff;
+  --lm-soft: #f5f6f7;
+  --lm-hover: #eef0f2;
+  --lm-text: #1f2329;
+  --lm-muted: #646a73;
+  --lm-border: #dfe3e8;
+  --lm-primary: #3370ff;
+  --lm-danger: #d83931;
+  --lm-shadow: 0 8px 24px #0003;
+  --lm-amber: #c78b00;
+  --lm-red: #dc3a36;
+  --lm-blue: #246bfd;
+  --lm-cyan: #0089a7;
+  --lm-green: #16855b;
+  --lm-violet: #7f4bd8;
+}
+
+.lm-ui,
+.lm-ui * {
+  box-sizing: border-box;
+}
+
+.lm-ui {
+  color: var(--lm-text);
+  font: 14px/1.45 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.lm-ui button,
+.lm-ui input,
+.lm-ui select,
+.lm-ui textarea {
+  font: inherit;
+}
+
+.lm-ui button {
+  min-width: 36px;
+  min-height: 36px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: var(--lm-text);
+  background: transparent;
+  cursor: pointer;
+}
+
+.lm-ui button:hover {
+  background: var(--lm-hover);
+}
+
+.lm-ui :where(button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--lm-primary);
+  outline-offset: 2px;
+}
+
+.lm-toolbar {
+  position: fixed;
+  z-index: 1250;
+  left: 0;
+  top: 0;
+  width: min(260px, calc(100vw - 16px));
+  min-height: 44px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border: 1px solid var(--lm-border);
+  border-radius: 8px;
+  background: var(--lm-bg);
+  box-shadow: var(--lm-shadow);
+  transform: translate3d(var(--lm-toolbar-x, -1000px), var(--lm-toolbar-y, -1000px), 0);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.lm-toolbar .lm-icon-button {
+  flex: 0 0 32px;
+  width: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  border-radius: 6px;
+  font-weight: 650;
+}
+
+.lm-toolbar [data-testid="lm-remove-mark"] {
+  font-size: 10px;
+}
+
+.lm-toolbar.open,
+.lm-toolbar[data-open="true"] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.lm-toolbar-group,
+.lm-menu-wrap {
+  display: flex;
+  position: relative;
+}
+
+.lm-mark-button[aria-pressed="true"],
+.lm-style-option[aria-pressed="true"],
+.lm-color-option[aria-pressed="true"] {
+  color: var(--lm-primary);
+  background: #eaf0ff;
+}
+
+.lm-style-menu,
+.lm-color-menu {
+  position: absolute;
+  z-index: 1260;
+  left: 0;
+  top: calc(100% + 6px);
+  min-width: 150px;
+  padding: 6px;
+  display: grid;
+  gap: 2px;
+  border: 1px solid var(--lm-border);
+  border-radius: 8px;
+  background: var(--lm-bg);
+  box-shadow: var(--lm-shadow);
+}
+
+.lm-style-menu[hidden],
+.lm-color-menu[hidden] {
+  display: none;
+}
+
+.lm-style-menu.lm-menu-up,
+.lm-color-menu.lm-menu-up {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
+
+.lm-style-option,
+.lm-color-option {
+  justify-content: flex-start;
+  gap: 8px;
+  width: 100%;
+}
+
+.lm-line-preview {
+  width: 26px;
+  height: 13px;
+  display: inline-block;
+  border-bottom: 3px solid currentColor;
+}
+
+.lm-line-preview[data-style="dashed"] {
+  border-bottom-style: dashed;
+}
+
+.lm-line-preview[data-style="wavy"] {
+  border: 0;
+  background:
+    linear-gradient(135deg, transparent 40%, currentColor 41% 59%, transparent 60%) 0 8px / 8px 5px repeat-x,
+    linear-gradient(45deg, transparent 40%, currentColor 41% 59%, transparent 60%) 4px 8px / 8px 5px repeat-x;
+}
+
+.lm-color-swatch {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  border-radius: 50%;
+  background: var(--lm-swatch, var(--lm-amber));
+  box-shadow: 0 0 0 1px var(--lm-border);
+}
+
+.lm-current-color {
+  width: 16px;
+  height: 16px;
+}
+
+.lm-custom-color {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--lm-border);
+  border-radius: 8px;
+  background: var(--lm-bg);
+}
+
+.lm-notes-toggle {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 1170;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  color: var(--lm-text);
+  font-size: 20px;
+  line-height: 1;
+  background: var(--lm-bg) !important;
+  border: 1px solid var(--lm-border) !important;
+  box-shadow: var(--lm-shadow);
+  cursor: pointer;
+}
+
+.lm-notes-toggle:hover {
+  background: var(--lm-hover) !important;
+}
+
+.lm-overlay-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1180;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.lm-overlay-segment {
+  position: absolute;
+  height: 3px;
+  border-bottom: 2px solid var(--lm-mark, var(--lm-amber));
+  pointer-events: none;
+}
+
+.lm-overlay-segment[data-style="dashed"] {
+  border-bottom-style: dashed;
+}
+
+.lm-overlay-segment[data-style="wavy"] {
+  height: 4px;
+  border: 0;
+  background:
+    linear-gradient(135deg, transparent 40%, var(--lm-mark) 41% 59%, transparent 60%) 0 0 / 6px 4px repeat-x,
+    linear-gradient(45deg, transparent 40%, var(--lm-mark) 41% 59%, transparent 60%) 3px 0 / 6px 4px repeat-x;
+}
+
+.lm-overlay-segment[data-mark-type="highlight"] {
+  height: auto;
+  border: 0;
+  border-radius: 3px;
+  background: var(--lm-mark);
+  opacity: 0.22;
+}
+
+.lm-note-hit {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  border: 1px solid var(--lm-border);
+  border-radius: 50%;
+  padding: 0;
+  color: #fff;
+  background: var(--lm-mark, var(--lm-amber));
+  box-shadow: 0 1px 4px #0003;
+  pointer-events: auto;
+  cursor: comment;
+  font-size: 0;
+  line-height: 1;
+}
+
+.lm-note-hit::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #fff;
+  transform: translate(-50%, -50%);
+}
+
+.lm-note-popover,
+.lm-note-editor-popover,
+.lm-notes-manager {
+  border: 1px solid var(--lm-border);
+  background: var(--lm-bg);
+  box-shadow: var(--lm-shadow);
+}
+
+.lm-note-popover {
+  position: absolute;
+  z-index: 1270;
+  width: min(320px, calc(100vw - 24px));
+  padding: 10px;
+  border-left: 4px solid var(--lm-primary);
+  border-radius: 8px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  color: var(--lm-note-fg, var(--lm-text));
+  background: var(--lm-note-surface, var(--lm-bg));
+}
+
+.lm-note-popover.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.lm-note-popover[data-pinned="true"] {
+  pointer-events: auto;
+}
+
+.lm-popover-title {
+  max-height: 44px;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.lm-popover-body {
+  max-height: 220px;
+  overflow: auto;
+  white-space: pre-wrap;
+  color: inherit;
+  opacity: 0.82;
+  font-size: 13px;
+}
+
+.lm-popover-actions,
+.lm-note-actions,
+.lm-editor-actions,
+.lm-manager-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.lm-note-editor-popover {
+  position: absolute;
+  z-index: 1280;
+  width: min(380px, calc(100vw - 16px));
+  max-height: min(70dvh, 520px);
+  overflow: auto;
+  padding: 10px;
+  display: none;
+  gap: 8px;
+  border-radius: 8px;
+}
+
+.lm-note-editor-popover.open {
+  display: grid;
+}
+
+.lm-editor-header {
+  position: sticky;
+  top: -10px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 42px;
+  margin: -10px -10px 0;
+  padding: 6px 8px 6px 12px;
+  border-bottom: 1px solid var(--lm-border);
+  background: var(--lm-bg);
+}
+
+.lm-editor-header h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.lm-note-editor-popover textarea,
+.lm-note-editor-popover input[type="text"],
+.lm-note-editor-popover select,
+.lm-notes-manager input[type="search"] {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--lm-border);
+  border-radius: 8px;
+  padding: 8px;
+  background: var(--lm-bg);
+  color: var(--lm-text);
+}
+
+.lm-note-editor-popover textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.lm-surface-picker {
+  display: grid;
+  gap: 8px;
+}
+
+.lm-surface-presets,
+.lm-surface-custom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lm-surface-preset {
+  width: 28px;
+  height: 28px;
+  min-width: 28px !important;
+  min-height: 28px !important;
+  padding: 0 !important;
+  border: 1px solid var(--lm-border) !important;
+  border-radius: 50% !important;
+  background: var(--lm-swatch, #fff) !important;
+  box-shadow: inset 0 0 0 2px #fff;
+}
+
+.lm-surface-custom input[type="color"] {
+  width: 48px;
+  min-height: 36px;
+  padding: 3px;
+  border: 1px solid var(--lm-border);
+  border-radius: 6px;
+  background: var(--lm-bg);
+}
+
+.lm-surface-apply {
+  flex: 1;
+  border-color: var(--lm-border) !important;
+  background: var(--lm-soft) !important;
+}
+
+.lm-note-block,
+.lm-image-card,
+.lm-note-card {
+  border: 1px solid var(--lm-border);
+  border-radius: 8px;
+  padding: 8px;
+  background: var(--lm-note-surface, var(--lm-bg));
+}
+
+.lm-note-block,
+.lm-image-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.lm-image-dropzone {
+  min-height: 48px;
+  border: 1px dashed var(--lm-border);
+  border-radius: 8px;
+  padding: 12px;
+  color: var(--lm-muted);
+  background: var(--lm-soft);
+}
+
+.lm-note-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.lm-note-images img {
+  max-width: 132px;
+  max-height: 96px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.lm-check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lm-notes-manager {
+  position: fixed;
+  z-index: 1200;
+  right: 16px;
+  top: 76px;
+  width: min(420px, calc(100vw - 32px));
+  max-height: min(70dvh, 680px);
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.lm-notes-manager.open {
+  display: flex;
+}
+
+.lm-manager-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid var(--lm-border);
+}
+
+.lm-manager-header h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.lm-note-list {
+  display: grid;
+  gap: 8px;
+  overflow: auto;
+}
+
+.lm-note-card {
+  cursor: pointer;
+  color: var(--lm-note-fg, var(--lm-text));
+}
+
+.lm-note-source {
+  font-weight: 700;
+}
+
+.lm-note-meta,
+.lm-status,
+.lm-empty {
+  color: var(--lm-muted);
+  font-size: 12px;
+}
+
+.lm-note-card .lm-note-meta {
+  color: inherit;
+  opacity: 0.68;
+}
+
+.lm-rendered-block {
+  margin: 4px 0;
+  white-space: pre-wrap;
+}
+
+.lm-block-code {
+  padding: 8px;
+  border-radius: 6px;
+  overflow: auto;
+  background: #111827;
+  color: #f9fafb;
+}
+
+.lm-flash {
+  position: absolute;
+  z-index: 1190;
+  border-radius: 4px;
+  background: #3370ff33;
+  pointer-events: none;
+  animation: lm-flash 1.2s ease-out forwards;
+}
+
+.lm-toast-region {
+  position: fixed;
+  right: 20px;
+  bottom: 76px;
+  z-index: 1300;
+  display: grid;
+  gap: 8px;
+}
+
+.lm-toast {
+  max-width: 320px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: #fff;
+  background: #1f2329;
+  box-shadow: var(--lm-shadow);
+}
+
+@keyframes lm-flash {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@media (max-width: 767px) {
+  .lm-ui button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .lm-toolbar {
+    left: 8px;
+    right: 8px;
+    top: auto;
+    bottom: 8px;
+    width: auto;
+    overflow-x: auto;
+    transform: translateY(120%);
+  }
+
+  .lm-toolbar.open {
+    transform: none;
+  }
+
+  .lm-toolbar.open + .lm-notes-toggle {
+    bottom: 68px;
+  }
+
+  .lm-note-editor-popover,
+  .lm-notes-manager {
+    position: fixed;
+    left: 0 !important;
+    right: 0;
+    top: auto !important;
+    bottom: 0;
+    width: 100%;
+    max-height: 82dvh;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .lm-toolbar .lm-icon-button {
+    flex-basis: 44px;
+    width: 44px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .lm-note-hit {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    transform: translate(-13px, -13px);
+  }
+
+  .lm-note-hit::before {
+    content: "";
+    position: absolute;
+    left: 13px;
+    top: 13px;
+    width: 18px;
+    height: 18px;
+    border: 1px solid var(--lm-border);
+    border-radius: 50%;
+    background: var(--lm-mark, var(--lm-amber));
+    box-shadow: 0 1px 4px #0003;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lm-flash {
+    animation: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .lm-ui button,
+  .lm-note-popover,
+  .lm-note-editor-popover,
+  .lm-notes-manager,
+  .lm-note-card {
+    border-color: CanvasText;
+  }
+}
