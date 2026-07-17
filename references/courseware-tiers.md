@@ -54,7 +54,7 @@ Compact means less scope per page, not missing functionality. Fast mode also doe
 | `high-quality` | 48 KiB+ when the topic needs it | Standard contract plus evidence mapping, at least 2 end-to-end execution/reasoning chains, tradeoffs and failure boundaries, extension/transfer path, one domain-specific interactive, 3–4 diagnostic quizzes, and at least 4 checklist items. |
 | `custom` | Parse learner text | Follow the stored instructions while preserving the shared quality floor; use standard density as a starting point when size is unspecified. |
 
-Teaching content and deterministic tooling are measured separately. The canonical annotation runtime has a 64 KiB ceiling, but lesson content and total HTML have no default hard size ceiling. Planning ranges guide density and truncation checks; they are not quality scores. A concise but complete page may be below its signal, while a demanding high-quality lesson may be substantially larger. Never add filler to hit a byte target or delete useful depth merely to shrink the file. An explicit learner size request or validator `--max-bytes` remains binding.
+Teaching content and deterministic tooling are measured separately. The canonical annotation runtime, lesson content, and total HTML have no default hard size ceiling. Planning ranges guide density and truncation checks; they are not quality scores. A concise but complete page may be below its signal, while a demanding high-quality lesson may be substantially larger. Never add filler to hit a byte target or delete useful depth merely to shrink the file. An explicit learner size request or validator `--max-bytes` remains binding.
 
 ## High-Quality Evidence Contract
 

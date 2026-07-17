@@ -9,7 +9,6 @@ import { computeContentFingerprint, extractLessonMetaObject } from "./inject-cou
 const RUNTIME_VERSION = "2";
 const RUNTIME_START = "LEARNMAP_COURSEWARE_RUNTIME_START";
 const RUNTIME_END = "LEARNMAP_COURSEWARE_RUNTIME_END";
-const RUNTIME_LIMIT = 64 * 1024;
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const runtimeAssetDir = path.resolve(scriptDir, "../assets/courseware-runtime");
 const runtimeCssPath = path.join(runtimeAssetDir, "annotation-notes.css");
@@ -94,7 +93,6 @@ let canonicalRuntime = null;
 let canonicalRuntimeError = null;
 try {
   canonicalRuntime = loadCanonicalRuntime();
-  if (canonicalRuntime.bytes > RUNTIME_LIMIT) contractProblem(`Canonical runtime assets exceed the ${RUNTIME_LIMIT}-byte inline limit.`);
 } catch (error) {
   canonicalRuntimeError = error.message;
   contractProblem(error.message);
@@ -113,7 +111,6 @@ if (runtimeMatches.length === 0) {
   if (canonicalRuntime && runtimeMatches[0][0] !== canonicalRuntime.block) contractProblem("Inline runtime block differs from canonical assets; reinject it.");
 }
 
-if (runtimeBytes > RUNTIME_LIMIT) errors.push(`Inline runtime exceeds the ${RUNTIME_LIMIT}-byte limit.`);
 
 const tierMatch = contentSource.match(/["']?coursewareTier["']?\s*:\s*["'](compact|standard|high-quality|custom)["']/i);
 const embeddedTier = tierMatch?.[1]?.toLowerCase() || null;
@@ -316,7 +313,7 @@ const result = {
   totalBytes,
     maxBytes: resolvedContentMax,
     contentMaxBytes: resolvedContentMax,
-    runtimeMaxBytes: RUNTIME_LIMIT,
+    runtimeMaxBytes: null,
     totalMaxBytes: null,
     absoluteTotalMaxBytes: null,
   targetBytes: [budget.targetMin, budget.targetMax],

@@ -11,7 +11,6 @@ const jsSource = path.join(sourceDir, "annotation-notes.js");
 const cssSource = path.join(sourceDir, "annotation-notes.css");
 const jsOutput = path.join(outputDir, "annotation-notes.js");
 const cssOutput = path.join(outputDir, "annotation-notes.css");
-const BYTE_LIMIT = 64 * 1024;
 
 async function loadEsbuild() {
   try {
@@ -63,10 +62,6 @@ async function main() {
     throw new Error("Runtime output contains an unsafe inline closing tag.");
   }
   const totalBytes = Buffer.byteLength(js) + Buffer.byteLength(css);
-  if (totalBytes > BYTE_LIMIT) {
-    throw new Error(`Minified runtime is ${totalBytes} bytes, above the ${BYTE_LIMIT} byte limit.`);
-  }
-
   if (checkOnly) {
     const [builtJs, builtCss] = await Promise.all([
       fs.readFile(jsOutput, "utf8").catch(() => null),

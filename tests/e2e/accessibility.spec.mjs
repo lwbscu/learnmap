@@ -52,6 +52,14 @@ test("controls expose names and use compact desktop plus 44px mobile targets", a
   const mobileTarget = await page.getByTestId("lm-add-note").boundingBox();
   expect(mobileTarget?.width).toBeGreaterThanOrEqual(44);
   expect(mobileTarget?.height).toBeGreaterThanOrEqual(44);
+  await page.getByTestId("lm-add-note").click();
+  await page.getByTestId("lm-note-editor").fill("Mobile target note");
+  await page.getByTestId("lm-note-save").click();
+  const noteHit = page.getByTestId("lm-note-hit").first();
+  await expect(noteHit).toHaveAttribute("aria-label", /.+/);
+  const noteHitTarget = await noteHit.boundingBox();
+  expect(Math.round(noteHitTarget?.width || 0)).toBeGreaterThanOrEqual(44);
+  expect(Math.round(noteHitTarget?.height || 0)).toBeGreaterThanOrEqual(44);
 });
 
 test("reduced motion and forced colors preserve usable controls", async ({ page }) => {

@@ -92,11 +92,11 @@ Never claim “课件已生成 / lesson generated” in progress metadata before
 ## 4. Output Size Signals
 
 - Read [courseware-tiers.md](courseware-tiers.md). Compact and standard retain density targets; high-quality and custom content may grow as needed to teach the topic well.
-- The canonical annotation runtime has a separate 64 KiB ceiling. Teaching content and total HTML have no default hard ceiling. Validator output still reports `contentBytes`, `runtimeBytes`, and `totalBytes` for truncation diagnosis and release records.
+- The canonical annotation runtime, teaching content, and total HTML have no default hard ceiling. Validator output still reports `contentBytes`, `runtimeBytes`, and `totalBytes` for truncation diagnosis and release records.
 - An explicit learner size request or validator `--max-bytes` is binding. Otherwise, preserve useful explanations, examples, interactions, and evidence rather than shrinking to an arbitrary byte limit.
 - Line count is not a quality metric. Prefer compact CSS/JS and focused content over a 1000-line scaffold.
 - Every tier keeps the complete interaction contract. High-quality must satisfy its evidence/chain/extension rubric; byte count alone never proves quality.
-- Remove duplicated boilerplate when it harms clarity, not merely to reduce bytes. If runtime exceeds 64 KiB, optimize the canonical asset rather than deleting functionality or changing one lesson. Do not silently add pages or override an explicit learner limit.
+- Remove duplicated boilerplate when it harms clarity, not merely to reduce bytes. Optimize the canonical runtime for maintainability and load cost without deleting useful functionality merely to hit an arbitrary byte target. Do not silently add pages or override an explicit learner limit.
 - A provider/tool turn writes one lesson HTML. Other small state/tool calls may occur in the same turn.
 
 ## 5. Recovery

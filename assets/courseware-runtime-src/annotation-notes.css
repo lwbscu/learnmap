@@ -235,39 +235,73 @@
 .lm-overlay-segment[data-mark-type="highlight"] {
   height: auto;
   border: 0;
-  border-radius: 3px;
-  background: var(--lm-mark);
-  opacity: 0.22;
+  border-radius: 4px;
+  background:
+    linear-gradient(to bottom, #ffffff26, #ffffff00 42%),
+    var(--lm-mark);
+  box-shadow:
+    inset 0 -2px 0 var(--lm-mark),
+    inset 0 0 0 1px #ffffff40;
+  opacity: 0.42;
 }
 
 .lm-note-hit {
   position: absolute;
-  width: 18px;
-  height: 18px;
-  min-width: 18px;
-  min-height: 18px;
-  border: 1px solid var(--lm-border);
-  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  border: 0;
+  border-radius: 8px;
   padding: 0;
-  color: #fff;
-  background: var(--lm-mark, var(--lm-amber));
-  box-shadow: 0 1px 4px #0003;
+  color: var(--lm-note-ink, #fff);
+  background: transparent;
+  box-shadow: none;
   pointer-events: auto;
-  cursor: comment;
+  cursor: pointer;
   font-size: 0;
   line-height: 1;
+}
+
+.lm-note-hit::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  background: var(--lm-mark, var(--lm-amber));
+  box-shadow:
+    0 3px 10px #0004,
+    inset 0 0 0 1px #ffffff66;
 }
 
 .lm-note-hit::after {
   content: "";
   position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: #fff;
-  transform: translate(-50%, -50%);
+  left: 7px;
+  top: 6px;
+  box-sizing: border-box;
+  width: 10px;
+  height: 12px;
+  border: 2px solid currentColor;
+  border-radius: 3px;
+  background:
+    linear-gradient(currentColor, currentColor) 2px 3px / 4px 1px no-repeat,
+    linear-gradient(currentColor, currentColor) 2px 6px / 4px 1px no-repeat;
+}
+
+.lm-note-hit:hover::before,
+.lm-note-hit[aria-expanded="true"]::before {
+  box-shadow:
+    0 4px 14px #0005,
+    inset 0 0 0 1px #ffffff99;
+}
+
+.lm-note-hit:focus-visible {
+  outline: 3px solid var(--lm-primary);
+  outline-offset: 2px;
 }
 
 .lm-note-popover,
@@ -617,20 +651,30 @@
     border: 0;
     background: transparent;
     box-shadow: none;
-    transform: translate(-13px, -13px);
   }
 
   .lm-note-hit::before {
-    content: "";
-    position: absolute;
     left: 13px;
     top: 13px;
     width: 18px;
     height: 18px;
-    border: 1px solid var(--lm-border);
-    border-radius: 50%;
-    background: var(--lm-mark, var(--lm-amber));
-    box-shadow: 0 1px 4px #0003;
+    border-radius: 6px;
+  }
+
+  .lm-note-hit::after {
+    left: 18px;
+    top: 17px;
+    width: 8px;
+    height: 10px;
+    border-width: 1.5px;
+  }
+
+  .lm-note-hit[data-side="right-rail"]::before {
+    left: 26px;
+  }
+
+  .lm-note-hit[data-side="right-rail"]::after {
+    left: 31px;
   }
 }
 
@@ -647,5 +691,26 @@
   .lm-notes-manager,
   .lm-note-card {
     border-color: CanvasText;
+  }
+
+  .lm-note-hit::before {
+    border: 2px solid ButtonText;
+    background: ButtonFace;
+    box-shadow: none;
+  }
+
+  .lm-note-hit::after {
+    color: ButtonText;
+  }
+
+  .lm-overlay-segment {
+    border-color: Highlight;
+  }
+}
+
+@media print {
+  .lm-ui,
+  #lm-geometry-lines {
+    display: none !important;
   }
 }

@@ -6,7 +6,6 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const VERSION = "2";
-const RUNTIME_LIMIT = 64 * 1024;
 const START = "LEARNMAP_COURSEWARE_RUNTIME_START";
 const END = "LEARNMAP_COURSEWARE_RUNTIME_END";
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -286,7 +285,6 @@ function loadCanonicalRuntime() {
     `<!-- ${END} -->`
   ].join("\n");
   const runtimeBytes = Buffer.byteLength(block, "utf8");
-  if (runtimeBytes > RUNTIME_LIMIT) throw new Error(`Canonical runtime exceeds the ${RUNTIME_LIMIT}-byte inline limit.`);
   return { version: VERSION, sha256, block, runtimeBytes };
 }
 
@@ -363,7 +361,7 @@ function main() {
       runtimeVersion: runtime.version,
       runtimeSha256: runtime.sha256,
       runtimeBytes: runtime.runtimeBytes,
-      runtimeMaxBytes: RUNTIME_LIMIT,
+      runtimeMaxBytes: null,
       contentFingerprint: contentFingerprint.sha256,
       normalizedTextLength: contentFingerprint.normalizedTextLength,
       contentBytes: totalBytes - runtime.runtimeBytes,

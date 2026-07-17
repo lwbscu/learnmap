@@ -177,15 +177,25 @@
     return /^zh(?:-|$)/iu.test(document.documentElement.lang || "") ? chinese : english;
   }
 
-  function placeFloating(element, rect, { width = 380, gap = 10 } = {}) {
+  function placeFloating(element, rect, { width = 380, gap = 10, avoid = [] } = {}) {
     const margin = 8;
     const measuredWidth = Math.min(width, innerWidth - margin * 2);
     const measuredHeight = Math.min(element.offsetHeight || 320, innerHeight - margin * 2);
-    const left = Math.max(scrollX + margin, Math.min(rect.left + scrollX, scrollX + innerWidth - measuredWidth - margin));
-    const below = rect.bottom + scrollY + gap;
-    const above = rect.top + scrollY - measuredHeight - gap;
-    const top = below + measuredHeight <= scrollY + innerHeight - margin ? below : Math.max(scrollY + margin, above);
-    Object.assign(element.style, { left: `${left}px`, top: `${top}px` });
+    const clampLeft = (value) => Math.max(margin, Math.min(value, innerWidth - measuredWidth - margin));
+    const clampTop = (value) => Math.max(margin, Math.min(value, innerHeight - measuredHeight - margin));
+    const blockers = Array.from(avoid).map((item) => item?.getBoundingClientRect?.() || item).filter(Boolean);
+    const candidates = [
+      { left: rect.left, top: rect.bottom + gap },
+      { left: rect.left, top: rect.top - measuredHeight - gap },
+      { left: rect.right + gap, top: rect.top },
+      { left: rect.left - measuredWidth - gap, top: rect.top }
+    ].map((candidate) => {
+      const left = clampLeft(candidate.left);
+      const top = clampTop(candidate.top);
+      return { left, top, right: left + measuredWidth, bottom: top + measuredHeight };
+    });
+    const chosen = candidates.find((candidate) => !blockers.some((blocker) => boxesOverlap(candidate, blocker, 2))) || candidates[0];
+    Object.assign(element.style, { left: `${chosen.left + scrollX}px`, top: `${chosen.top + scrollY}px` });
   }
 
   function markColor(annotation) {
@@ -495,7 +505,7 @@
     }
     if (state.ui.popover?.classList.contains("open")) {
       const hit = Array.from(document.querySelectorAll(".lm-note-hit")).find((item) => item.dataset.annId === state.previewId);
-      if (hit) placeFloating(state.ui.popover, hit.getBoundingClientRect(), { width: 320 });
+      if (hit) placeFloating(state.ui.popover, hit.getBoundingClientRect(), { width: 320, avoid: document.querySelectorAll(".lm-note-hit") });
     }
   }
 
@@ -806,6 +816,13 @@
     state.highlightNames = [];
     document.getElementById("lm-highlight-rules")?.remove();
     document.getElementById("lm-geometry-lines")?.remove();
+    document.querySelectorAll("[data-lm-note-lane]").forEach((element) => {
+      element.style.paddingInlineEnd = element.dataset.lmNotePadding || "";
+      element.style.boxSizing = element.dataset.lmNoteBoxSizing || "";
+      delete element.dataset.lmNoteLane;
+      delete element.dataset.lmNotePadding;
+      delete element.dataset.lmNoteBoxSizing;
+    });
   }
 
   function resolvedAnnotations() {
@@ -819,9 +836,142 @@
     }).filter((item) => item.range);
   }
 
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
+
+  function readableBlockForRange(range, fallback) {
+    let el = range.commonAncestorContainer;
+    if (el && el.nodeType !== Node.ELEMENT_NODE) el = el.parentElement;
+    while (el && el !== document.body) {
+      if (el.closest("[data-lm-ignore],.lm-ui")) return fallback || state.root;
+      const display = getComputedStyle(el).display;
+      if (display && display !== "contents" && !display.startsWith("inline") && el.getClientRects().length) return el;
+      if (el === state.root) break;
+      el = el.parentElement;
+    }
+    return fallback || state.root;
+  }
+
+  function boxesOverlap(a, b, pad = 4) {
+    return a.left < b.right + pad && a.right + pad > b.left && a.top < b.bottom + pad && a.bottom + pad > b.top;
+  }
+
+  function noteVisualBox(box, size, side) {
+    if (size !== 44) return box;
+    const left = box.left + (side === "right-rail" ? 26 : 13);
+    const top = box.top + 13;
+    return { left, top, right: left + 18, bottom: top + 18 };
+  }
+
+  function collectTextBoxes(root) {
+    const boxes = [];
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    let node;
+    while ((node = walker.nextNode())) {
+      if (!node.data.trim() || node.parentElement?.closest("[data-lm-ignore],.lm-ui")) continue;
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      Array.from(range.getClientRects()).forEach((rect) => {
+        if (rect.width && rect.height) boxes.push({ left: rect.left + scrollX, top: rect.top + scrollY, right: rect.right + scrollX, bottom: rect.bottom + scrollY });
+      });
+    }
+    return boxes;
+  }
+
+  function reserveNoteLane(item) {
+    const block = readableBlockForRange(item.range, item.scope?.element);
+    if (!block || block.dataset.lmNoteLane) return;
+    const rect = block.getBoundingClientRect();
+    const size = innerWidth < 768 ? 44 : 24;
+    const gap = innerWidth < 768 ? 2 : 8;
+    const margin = 6;
+    const hasOutsideSpace = rect.right + gap + size <= innerWidth - margin || rect.left - gap - size >= margin;
+    if (hasOutsideSpace) return;
+    const computed = getComputedStyle(block);
+    const lane = innerWidth < 768 ? 28 : 34;
+    block.dataset.lmNoteLane = "true";
+    block.dataset.lmNotePadding = block.style.paddingInlineEnd;
+    block.dataset.lmNoteBoxSizing = block.style.boxSizing;
+    block.style.boxSizing = "border-box";
+    block.style.paddingInlineEnd = `${(Number.parseFloat(computed.paddingInlineEnd) || 0) + lane}px`;
+  }
+
+  function resolveNoteHitCollision(candidate, size, bounds, occupied, textBoxes) {
+    const left = clamp(candidate.left, bounds.left, bounds.right - size);
+    const shifts = [0, 1, -1, 2, -2, 3, -3, 4, -4].map((step) => step * (size + 4));
+    for (const shift of shifts) {
+      const top = clamp(candidate.top + shift, bounds.top, bounds.bottom - size);
+      const box = { left, top, right: left + size, bottom: top + size };
+      const visual = noteVisualBox(box, size, candidate.side);
+      if (!occupied.some((item) => boxesOverlap(box, item)) && !textBoxes.some((item) => boxesOverlap(visual, item, 1))) {
+        return { left, top, box, side: candidate.side, clear: true };
+      }
+    }
+    const top = clamp(candidate.top, bounds.top, bounds.bottom - size);
+    return { left, top, box: { left, top, right: left + size, bottom: top + size }, side: candidate.side, clear: false };
+  }
+
+  function noteHitPosition(item, rects, occupied, textBoxes) {
+    const rect = rects[rects.length - 1];
+    const block = readableBlockForRange(item.range, item.scope?.element);
+    const blockRect = block?.getBoundingClientRect?.() || rect;
+    const size = innerWidth < 768 ? 44 : 24;
+    const gap = innerWidth < 768 ? 2 : 8;
+    const margin = 6;
+    const docWidth = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth, innerWidth);
+    const docHeight = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight, innerHeight);
+    const bounds = { left: scrollX + margin, right: scrollX + innerWidth - margin, top: margin, bottom: docHeight - margin };
+    const blockLeft = blockRect.left + scrollX;
+    const blockRight = blockRect.right + scrollX;
+    const lineTop = rect.top + scrollY;
+    const lineBottom = rect.bottom + scrollY;
+    const centeredTop = lineTop + (rect.height - size) / 2;
+    const preferRight = rect.left + rect.width / 2 >= blockRect.left + blockRect.width / 2;
+    const edgeRight = Math.min(blockRight - size, docWidth - margin - size);
+    const edgeLeft = Math.max(blockLeft, margin);
+    const preferredEdge = preferRight ? edgeRight : edgeLeft;
+    const oppositeEdge = preferRight ? edgeLeft : edgeRight;
+    const outsideRight = blockRight + gap;
+    const outsideLeft = blockLeft - size - gap;
+    const viewportRightRail = scrollX + innerWidth - margin - size;
+    const candidates = [];
+    const add = (left, top, side, requireInside = true) => {
+      if (!Number.isFinite(left) || !Number.isFinite(top)) return;
+      if (requireInside && (left < bounds.left || left + size > bounds.right)) return;
+      candidates.push({ left, top, side });
+    };
+
+    if (block?.dataset?.lmNoteLane) {
+      const visualOffset = size === 44 ? 26 : 0;
+      const visualSize = size === 44 ? 18 : 24;
+      add(blockRight - gap - visualSize - visualOffset, centeredTop, size === 44 ? "right-rail" : "right-edge");
+    } else if (preferRight) {
+      add(outsideRight, centeredTop, "right");
+      add(outsideLeft, centeredTop, "left");
+    } else {
+      add(outsideLeft, centeredTop, "left");
+      add(outsideRight, centeredTop, "right");
+    }
+    if (size === 44) add(viewportRightRail, centeredTop, "right-rail");
+    add(preferredEdge, lineTop - size - gap, preferRight ? "right-edge" : "left-edge");
+    add(preferredEdge, lineBottom + gap, preferRight ? "right-edge" : "left-edge");
+    add(oppositeEdge, lineTop - size - gap, preferRight ? "left-edge" : "right-edge");
+    add(oppositeEdge, lineBottom + gap, preferRight ? "left-edge" : "right-edge");
+    add(preferredEdge, centeredTop, preferRight ? "right-edge" : "left-edge", false);
+
+    for (const candidate of candidates) {
+      const placed = resolveNoteHitCollision(candidate, size, bounds, occupied, textBoxes);
+      if (placed.clear) return placed;
+    }
+    return resolveNoteHitCollision(candidates[0] || { left: rect.right + scrollX + gap, top: centeredTop, side: "right" }, size, bounds, occupied, textBoxes);
+  }
+
   function renderMarks() {
     clearRenderedMarks();
     const resolved = resolvedAnnotations();
+    resolved.filter((item) => item.annotation.noteId).forEach(reserveNoteLane);
+    const textBoxes = collectTextBoxes(state.root);
     const canHighlight = window.CSS && CSS.highlights && window.Highlight;
     if (canHighlight) {
       const rules = [];
@@ -830,7 +980,7 @@
         state.highlightNames.push(name);
         CSS.highlights.set(name, new Highlight(item.range));
         const color = markColor(item.annotation);
-        rules.push(`::highlight(${name}){${item.annotation.markType === "highlight" ? `background-color:${color}33;border-radius:3px` : `text-decoration:underline ${item.annotation.lineStyle} ${color} 2px;text-underline-offset:3px`}}`);
+        rules.push(`::highlight(${name}){${item.annotation.markType === "highlight" ? `background-color:${color}66;text-decoration:underline solid ${color} 2px;text-underline-offset:2px` : `text-decoration:underline ${item.annotation.lineStyle} ${color} 2px;text-underline-offset:3px`}}`);
       });
       const style = createElement("style", { id: "lm-highlight-rules" });
       style.textContent = rules.join("\n");
@@ -842,6 +992,7 @@
       width: `${Math.max(document.documentElement.scrollWidth, document.body.scrollWidth)}px`,
       height: `${Math.max(document.documentElement.scrollHeight, document.body.scrollHeight)}px`
     });
+    const occupiedHits = [];
     resolved.forEach((item) => {
       const color = markColor(item.annotation);
       const rects = Array.from(item.range.getClientRects());
@@ -870,11 +1021,15 @@
       const rect = rects.at(-1);
       if (rect && item.annotation.noteId) {
         const hit = createElement("button", { class: "lm-note-hit", testid: "lm-note-hit", "aria-label": "Toggle note preview", title: "Toggle note preview", "aria-expanded": "false", "data-ann-id": item.annotation.id });
+        const position = noteHitPosition(item, rects, occupiedHits, textBoxes);
         Object.assign(hit.style, {
-          left: `${Math.max(0, rect.right + scrollX + 4)}px`,
-          top: `${rect.top + scrollY + Math.max(0, (rect.height - 18) / 2)}px`
+          left: `${position.left}px`,
+          top: `${position.top}px`
         });
+        hit.dataset.side = position.side;
         hit.style.setProperty("--lm-mark", color);
+        hit.style.setProperty("--lm-note-ink", contrastColor(color));
+        occupiedHits.push(position.box);
         hit.addEventListener("mouseenter", () => {
           const samePinned = state.ui.popover?.classList.contains("open") && state.ui.popover?.dataset.pinned === "true" && state.previewId === item.annotation.id;
           if (!samePinned) openPreview(item.annotation, hit.getBoundingClientRect(), false);
@@ -991,7 +1146,7 @@
     );
     popover.appendChild(actions);
     popover.classList.add("open");
-    placeFloating(popover, rect, { width: 320 });
+    placeFloating(popover, rect, { width: 320, avoid: document.querySelectorAll(".lm-note-hit") });
   }
 
   function buildUi() {

@@ -225,7 +225,7 @@ Apply `deliveryMode` after the lesson plan is defined:
 
 ### 2A. Generate Every HTML Resumably
 
-Before writing any lesson HTML, including a single overview, read and follow [resilient-generation.md](references/resilient-generation.md). Never mark progress generated or pre-create future lesson directories. One provider/tool turn writes at most one `.partial` lesson; inject the canonical annotation runtime, validate it, rename it inside staging, atomically commit the staging directory, then checkpoint. Report teaching/runtime sizes separately, enforce only explicit learner limits plus the canonical runtime budget, and never treat size alone as quality. On resume, reconcile final files, ignore partial artifacts, and keep generation separate from mastery.
+Before writing any lesson HTML, including a single overview, read and follow [resilient-generation.md](references/resilient-generation.md). Never mark progress generated or pre-create future lesson directories. One provider/tool turn writes at most one `.partial` lesson; inject the canonical annotation runtime, validate it, rename it inside staging, atomically commit the staging directory, then checkpoint. Report teaching/runtime sizes separately, enforce only explicit learner limits, and never treat size alone as quality. On resume, reconcile final files, ignore partial artifacts, and keep generation separate from mastery.
 
 ### 2B. Default To Five Subagents When Available
 

@@ -79,6 +79,76 @@ async function expectPinnedPreview(page, pinned) {
   }
 }
 
+function rectsOverlap(a, b) {
+  return Math.max(0, Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x))
+    * Math.max(0, Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y));
+}
+
+async function textRangeRects(page, selector, start, end) {
+  return page.evaluate(({ selector: target, start: rangeStart, end: rangeEnd }) => {
+    const element = document.querySelector(target);
+    const node = element?.firstChild;
+    if (!node) return [];
+    const range = document.createRange();
+    range.setStart(node, rangeStart);
+    range.setEnd(node, Math.min(rangeEnd, node.textContent.length));
+    return Array.from(range.getClientRects())
+      .filter((rect) => rect.width > 0 && rect.height > 0)
+      .map((rect) => ({ x: rect.x, y: rect.y, width: rect.width, height: rect.height }));
+  }, { selector, start, end });
+}
+
+async function makeNoGutterTextBlock(page) {
+  await page.locator("#selection-text").evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    element.textContent = "Full-width lesson text with an attached note marker. ".repeat(40);
+    Object.assign(element.style, {
+      display: "block",
+      width: `${innerWidth - rect.left}px`,
+      maxWidth: "none",
+      marginInlineEnd: "0",
+      paddingInlineEnd: "0"
+    });
+  });
+}
+
+async function highlightVisibility(page) {
+  return page.evaluate(() => {
+    const parseAlpha = (value) => {
+      const text = `${value || ""}`.trim();
+      const hex = text.match(/#([0-9a-f]{8}|[0-9a-f]{6})\b/i);
+      if (hex) return hex[1].length === 8 ? Number.parseInt(hex[1].slice(6, 8), 16) / 255 : 1;
+      const rgb = text.match(/rgba?\(([^)]+)\)/i);
+      if (!rgb) return null;
+      const parts = rgb[1].split(/\s*,\s*|\s+\/\s+|\s+/).filter(Boolean);
+      if (parts.length < 4) return 1;
+      const raw = parts[3];
+      return raw.endsWith("%") ? Number.parseFloat(raw) / 100 : Number.parseFloat(raw);
+    };
+    const ruleText = document.getElementById("lm-highlight-rules")?.textContent || "";
+    const ruleAlphas = Array.from(ruleText.matchAll(/background-color\s*:\s*([^;}]*)/gi))
+      .map((match) => parseAlpha(match[1]))
+      .filter((alpha) => Number.isFinite(alpha));
+    const customRuleAlpha = parseAlpha(ruleText.match(/background-color\s*:\s*(#33AA99[0-9a-f]{0,2}|rgba?\(51[^;}]*)/i)?.[1]);
+    const segment = document.querySelector('.lm-overlay-segment[data-mark-type="highlight"]');
+    const segmentStyle = segment ? getComputedStyle(segment) : null;
+    const segmentBackgroundAlpha = parseAlpha(segmentStyle?.backgroundColor);
+    const segmentOpacity = segmentStyle ? Number.parseFloat(segmentStyle.opacity || "1") : null;
+    const customVisible = /#33AA99/i.test(ruleText)
+      || /51,\s*170,\s*153/.test(segmentStyle?.backgroundColor || "")
+      || /#33AA99/i.test(segment?.style.getPropertyValue("--lm-mark") || "");
+    return {
+      ruleText,
+      ruleAlpha: ruleAlphas.length ? Math.min(...ruleAlphas) : null,
+      customRuleAlpha,
+      segmentBackground: segmentStyle?.backgroundColor || "",
+      segmentBackgroundAlpha,
+      segmentOpacity,
+      customVisible
+    };
+  });
+}
+
 test("runtime v2 uses floating manager and editor popover selectors without legacy panel", async ({ page }) => {
   await selectFixtureText(page, "#selection-text", 0, 12);
   await expect(page.getByTestId("lm-toolbar")).toBeVisible();
@@ -92,6 +162,52 @@ test("runtime v2 uses floating manager and editor popover selectors without lega
   await page.getByTestId("lm-note-cancel").click();
   await ensureNotesManagerOpen(page);
   await expect(page.getByTestId("lm-note-editor-popover")).toBeHidden();
+});
+
+test("note badge is a rounded square and does not overlap annotated or following text on desktop", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await makeNoGutterTextBlock(page);
+  await createTextNote(page, "Desktop note badge layout");
+  const hit = page.getByTestId("lm-note-hit").first();
+  await expect(hit).toBeVisible();
+  const hitBox = await hit.boundingBox();
+  expect(hitBox).not.toBeNull();
+  const hitVisual = await hit.evaluate((element) => {
+    const style = getComputedStyle(element, "::before");
+    const radiusToken = style.borderTopLeftRadius || style.borderRadius;
+    const width = Number.parseFloat(style.width);
+    const height = Number.parseFloat(style.height);
+    const radius = radiusToken.endsWith("%")
+      ? Math.min(width, height) * Number.parseFloat(radiusToken) / 100
+      : Number.parseFloat(radiusToken);
+    return {
+      width,
+      height,
+      radius,
+      borderRadius: style.borderRadius,
+      backgroundColor: style.backgroundColor,
+      left: Number.parseFloat(style.left),
+      top: Number.parseFloat(style.top)
+    };
+  });
+  expect(Math.abs(hitVisual.width - hitVisual.height)).toBeLessThanOrEqual(2);
+  expect.soft(hitVisual.radius).toBeGreaterThanOrEqual(3);
+  expect.soft(hitVisual.radius, `expected rounded-square badge, got ${hitVisual.borderRadius}`).toBeLessThan(hitVisual.width * 0.45);
+  expect(hitVisual.backgroundColor).not.toMatch(/rgba\([^)]*,\s*0\)/i);
+
+  const visualBox = {
+    x: hitBox.x + hitVisual.left,
+    y: hitBox.y + hitVisual.top,
+    width: hitVisual.width,
+    height: hitVisual.height
+  };
+  const annotatedRects = await textRangeRects(page, "#selection-text", 0, 12);
+  const followingRects = await textRangeRects(page, "#selection-text", 12, 2000);
+  expect(annotatedRects.length).toBeGreaterThan(0);
+  expect(followingRects.length).toBeGreaterThan(0);
+  for (const rect of annotatedRects.concat(followingRects)) {
+    expect(rectsOverlap(visualBox, rect), `note badge overlaps text rect ${JSON.stringify(rect)}`).toBeLessThanOrEqual(1);
+  }
 });
 
 test("note hit icon exists and click, Enter, and Space toggle the pinned preview", async ({ page }) => {
@@ -110,9 +226,11 @@ test("note hit icon exists and click, Enter, and Space toggle the pinned preview
   await page.mouse.move(8, 8);
   await expect(preview).toBeHidden();
   await hit.click();
+  await expect(hit).toHaveAttribute("aria-expanded", "true");
   await expectPinnedPreview(page, true);
   await expect(preview.getByTestId("lm-note-copy")).toBeVisible();
   await hit.click();
+  await expect(hit).toHaveAttribute("aria-expanded", "false");
   await expectPinnedPreview(page, false);
   await hit.focus();
   await hit.press("Enter");
@@ -189,6 +307,29 @@ test("note surface defaults to #FFFFFF and persists preset and custom #RRGGBB va
   await expect(card).toHaveAttribute("data-surface", "#12AB34");
 });
 
+test("highlights stay visible on dark themes and custom mark colors render", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "dark" });
+  await selectFixtureText(page, "#selection-text", 0, 12);
+  await page.getByTestId("lm-mark-highlight").click();
+  await expect.poll(() => annotationSummary(page)).toMatchObject({ highlightCount: 1 });
+  const defaultVisibility = await highlightVisibility(page);
+  const defaultAlpha = defaultVisibility.ruleAlpha ?? Math.min(defaultVisibility.segmentBackgroundAlpha ?? 1, defaultVisibility.segmentOpacity ?? 1);
+  expect.soft(defaultAlpha, JSON.stringify(defaultVisibility)).toBeGreaterThanOrEqual(0.35);
+
+  await selectFixtureText(page, "#selection-text", 13, 24);
+  await page.getByTestId("lm-mark-highlight").click();
+  await page.getByTestId("lm-color-menu-trigger").click();
+  await page.getByTestId("lm-custom-color").evaluate((input) => {
+    input.value = "#33AA99";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await expect.poll(() => annotationSummary(page)).toMatchObject({ highlightCount: 2 });
+  const customVisibility = await highlightVisibility(page);
+  const customAlpha = customVisibility.customRuleAlpha ?? Math.min(customVisibility.segmentBackgroundAlpha ?? 1, customVisibility.segmentOpacity ?? 1);
+  expect.soft(customAlpha, JSON.stringify(customVisibility)).toBeGreaterThanOrEqual(0.35);
+  expect(customVisibility.customVisible, JSON.stringify(customVisibility)).toBe(true);
+});
+
 test("legacy v1 data and package imports normalize into runtime v2 notes", async ({ page }) => {
   const legacy = {
     schema: "learnmap-annotations/v1",
@@ -255,6 +396,7 @@ test("full .learnmap export can be imported back after storage is cleared", asyn
 
 test("mobile toolbar and manager stay inside the viewport", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
+  await makeNoGutterTextBlock(page);
   await selectFixtureText(page, "#selection-text", 0, 12);
   const toolbarBox = await page.getByTestId("lm-toolbar").boundingBox();
   expect(toolbarBox).not.toBeNull();
@@ -269,6 +411,21 @@ test("mobile toolbar and manager stay inside the viewport", async ({ page }) => 
   expect(hitBox).not.toBeNull();
   expect(Math.round(hitBox.width)).toBeGreaterThanOrEqual(44);
   expect(Math.round(hitBox.height)).toBeGreaterThanOrEqual(44);
+  const mobileVisual = await page.getByTestId("lm-note-hit").first().evaluate((element) => {
+    const hit = element.getBoundingClientRect();
+    const style = getComputedStyle(element, "::before");
+    return {
+      x: hit.x + Number.parseFloat(style.left),
+      y: hit.y + Number.parseFloat(style.top),
+      width: Number.parseFloat(style.width),
+      height: Number.parseFloat(style.height)
+    };
+  });
+  expect(mobileVisual.x).toBeGreaterThanOrEqual(0);
+  expect(mobileVisual.x + mobileVisual.width).toBeLessThanOrEqual(390);
+  for (const rect of await textRangeRects(page, "#selection-text", 0, 36)) {
+    expect(rectsOverlap(mobileVisual, rect), `mobile note badge overlaps text rect ${JSON.stringify(rect)}`).toBeLessThanOrEqual(1);
+  }
   await ensureNotesManagerOpen(page);
   await expect(page.getByTestId("lm-toolbar")).toBeHidden();
   const managerBox = await page.getByTestId("lm-notes-manager").boundingBox();

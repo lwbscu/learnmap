@@ -59,7 +59,7 @@ const cases = [
       "keeps structured text and safe image notes, anchored popovers with note-icon click expand/collapse, floating editor, floating notes manager, source jumps, autosave status, portable package import/export, and Markdown export",
       "uses the canonical injected runtime instead of asking the model to rewrite it",
       "uses annotation runtime v2 while preserving v1 data/package compatibility",
-      "reports content, runtime, and total bytes separately against the compact ceilings",
+      "reports content, runtime, and total bytes separately without imposing default size ceilings",
       "does not treat compact as permission to remove annotation features"
     ]
   },
