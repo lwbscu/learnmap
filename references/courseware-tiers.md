@@ -47,12 +47,12 @@ Compact means less scope per page, not missing functionality. Fast mode also doe
 
 | Tier | Teaching target | Teaching ceiling | Total ceiling after runtime | Content contract |
 |---|---:|---:|---:|---|
-| `compact` | 16–32 KiB | 40 KiB | 88 KiB | Shortest complete concept path, at least 2 concrete examples or worked steps, 2 diagnostic quizzes, and 2 reviewable checklist items. |
-| `standard` | 24–60 KiB | 72 KiB | 120 KiB | Balanced architecture/concept flow, at least 3 examples or worked steps, 2–4 quizzes, at least 3 checklist items, practical task, and common failure modes. |
-| `high-quality` | 48–88 KiB | 96 KiB | 144 KiB | Standard contract plus evidence mapping, at least 2 end-to-end execution/reasoning chains, tradeoffs and failure boundaries, extension/transfer path, one domain-specific interactive, 3–4 diagnostic quizzes, and at least 4 checklist items. |
-| `custom` | Parse learner text | 72 KiB by default | 144 KiB absolute | Follow the stored instructions while preserving the shared quality floor; use standard teaching budget when size is unspecified. |
+| `compact` | 16–32 KiB | 40 KiB | 104 KiB | Shortest complete concept path, at least 2 concrete examples or worked steps, 2 diagnostic quizzes, and 2 reviewable checklist items. |
+| `standard` | 24–60 KiB | 72 KiB | 136 KiB | Balanced architecture/concept flow, at least 3 examples or worked steps, 2–4 quizzes, at least 3 checklist items, practical task, and common failure modes. |
+| `high-quality` | 48–88 KiB | 96 KiB | 160 KiB | Standard contract plus evidence mapping, at least 2 end-to-end execution/reasoning chains, tradeoffs and failure boundaries, extension/transfer path, one domain-specific interactive, 3–4 diagnostic quizzes, and at least 4 checklist items. |
+| `custom` | Parse learner text | 72 KiB by default | 160 KiB absolute | Follow the stored instructions while preserving the shared quality floor; use standard teaching budget when size is unspecified. |
 
-Teaching content and deterministic tooling are measured separately. The canonical annotation runtime has a 48 KiB ceiling and cannot consume or inflate the teaching budget; 144 KiB is the absolute total HTML maximum. A target range is a planning signal and validator warning, not a quality score. A concise but complete high-quality page may be below 48 KiB; never add filler to hit a byte target. Split scope across the selected `htmlPlan` instead of exceeding the teaching ceiling.
+Teaching content and deterministic tooling are measured separately. The canonical annotation runtime has a 64 KiB ceiling and cannot consume or inflate the teaching budget; 160 KiB is the absolute total HTML maximum. A target range is a planning signal and validator warning, not a quality score. A concise but complete high-quality page may be below 48 KiB; never add filler to hit a byte target. Split scope across the selected `htmlPlan` instead of exceeding the teaching ceiling.
 
 ## High-Quality Evidence Contract
 

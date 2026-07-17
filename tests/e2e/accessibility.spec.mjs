@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { openFixture, selectFixtureText } from "../helpers/browser.mjs";
+import { chooseAnnotationColor, chooseAnnotationStyle, openFixture, selectFixtureText } from "../helpers/browser.mjs";
 
 test.beforeEach(async ({ page }, testInfo) => {
   await openFixture(page, testInfo.project.name);
@@ -30,11 +30,13 @@ test("toolbar supports roving keyboard focus and Escape closes transient UI", as
 
 test("controls expose names and meet the 44px touch target", async ({ page }) => {
   await selectFixtureText(page);
-  for (const id of [
-    "lm-style-solid", "lm-style-dashed", "lm-style-wavy",
-    "lm-color-amber", "lm-color-red", "lm-color-blue", "lm-color-cyan", "lm-color-green", "lm-color-violet",
-    "lm-add-note"
-  ]) {
+  for (const style of ["solid", "dashed", "wavy"]) {
+    await chooseAnnotationStyle(page, style);
+  }
+  for (const color of ["amber", "red", "blue", "cyan", "green", "violet"]) {
+    await chooseAnnotationColor(page, color);
+  }
+  for (const id of ["lm-style-solid", "lm-color-amber", "lm-add-note"]) {
     const control = page.getByTestId(id);
     await expect(control).toHaveAttribute("aria-label", /.+/);
     const box = await control.boundingBox();
@@ -47,7 +49,7 @@ test("reduced motion and forced colors preserve usable controls", async ({ page 
   await page.emulateMedia({ reducedMotion: "reduce", forcedColors: "active" });
   await selectFixtureText(page);
   await expect(page.getByTestId("lm-toolbar")).toBeVisible();
-  await expect(page.getByTestId("lm-style-wavy")).toBeEnabled();
+  await chooseAnnotationStyle(page, "wavy");
   await page.getByTestId("lm-notes-toggle").click();
   await expect(page.getByTestId("lm-drawer")).toBeVisible();
 });

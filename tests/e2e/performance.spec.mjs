@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { openFixture, selectFixtureText } from "../helpers/browser.mjs";
+import { chooseAnnotationStyle, openFixture, selectFixtureText } from "../helpers/browser.mjs";
 
 test("500 anchor resolutions stay bounded and do not mutate the source data", async ({ page }, testInfo) => {
   await openFixture(page, testInfo.project.name);
@@ -34,7 +34,7 @@ test("creating a visible annotation completes within the interaction budget", as
   await openFixture(page, testInfo.project.name);
   await selectFixtureText(page);
   const started = Date.now();
-  await page.getByTestId("lm-style-solid").click();
+  await chooseAnnotationStyle(page, "solid");
   await expect.poll(() => page.evaluate(() => window.LearnMapAnnotations.getSummary().underlineCount)).toBe(1);
   const duration = Date.now() - started;
   await testInfo.attach("interaction-performance.json", {

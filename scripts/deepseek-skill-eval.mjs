@@ -55,11 +55,23 @@ const cases = [
     id: "compact-keeps-annotations",
     prompt: "用 1 个 compact HTML 教我 MDP，保留全部课件交互和笔记能力。",
     expected: [
-      "keeps all three underline styles and all six colors",
-      "keeps structured text and safe image notes, source jumps, autosave status, portable package import/export, and Markdown export",
+      "keeps underline and highlight marks, all three underline styles, and all six colors through a compact color dropdown",
+      "keeps structured text and safe image notes, source-hover note popovers with click-to-pin, source jumps, autosave status, portable package import/export, and Markdown export",
       "uses the canonical injected runtime instead of asking the model to rewrite it",
       "reports content, runtime, and total bytes separately against the compact ceilings",
       "does not treat compact as permission to remove annotation features"
+    ]
+  },
+  {
+    id: "annotation-ux-hover-pin",
+    prompt: "Use LearnMap to teach me MCP in one HTML. The lesson must support highlights, underlines, dropdown color selection, and notes that appear on source-text hover and stay pinned after click.",
+    expected: [
+      "keeps the canonical injected runtime and does not handwrite lesson-specific annotation code",
+      "supports both highlight and underline marks with mutually exclusive overlap replacement",
+      "uses a compact Feishu-style toolbar instead of a long always-expanded toolbar",
+      "selects colors through a dropdown or popover instead of a permanent six-color row",
+      "shows note content near the marked source on hover and pins it on click",
+      "keeps the drawer as a compact management surface for search, import/export, and editing"
     ]
   },
   {

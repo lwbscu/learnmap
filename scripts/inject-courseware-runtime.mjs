@@ -6,7 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const VERSION = "1";
-const RUNTIME_LIMIT = 48 * 1024;
+const RUNTIME_LIMIT = 64 * 1024;
 const START = "LEARNMAP_COURSEWARE_RUNTIME_START";
 const END = "LEARNMAP_COURSEWARE_RUNTIME_END";
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));

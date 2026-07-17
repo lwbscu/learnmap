@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { annotationSummary, openFixture, selectFixtureText } from "../helpers/browser.mjs";
+import { annotationSummary, chooseAnnotationColor, chooseAnnotationStyle, openFixture, selectFixtureText } from "../helpers/browser.mjs";
 
 test("geometry fallback preserves style, color, and overlay contract", async ({ page }, testInfo) => {
   await page.addInitScript(() => {
@@ -11,8 +11,8 @@ test("geometry fallback preserves style, color, and overlay contract", async ({ 
   for (let index = 0; index < cases.length; index += 1) {
     const [style, color] = cases[index];
     await selectFixtureText(page, "#selection-text", index * 5, index * 5 + 4);
-    await page.getByTestId(`lm-style-${style}`).click();
-    await page.getByTestId(`lm-color-${color}`).click();
+    await chooseAnnotationColor(page, color);
+    await chooseAnnotationStyle(page, style);
   }
   const segments = page.locator(".lm-overlay-layer .lm-overlay-segment");
   await expect(segments).toHaveCount(3);

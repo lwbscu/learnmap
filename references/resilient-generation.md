@@ -91,11 +91,11 @@ Never claim “课件已生成 / lesson generated” in progress metadata before
 ## 4. Output Budget
 
 - Read [courseware-tiers.md](courseware-tiers.md). Teaching content keeps its selected budget: compact targets 16–32 KiB with a 40 KiB ceiling, standard 24–60 KiB with a 72 KiB ceiling, and high-quality 48–88 KiB with a 96 KiB ceiling.
-- The canonical annotation runtime has a separate 48 KiB ceiling. Total HTML ceilings are 88 KiB compact, 120 KiB standard, and 144 KiB high-quality/custom; 144 KiB is absolute. Validator output reports `contentBytes`, `runtimeBytes`, and `totalBytes`.
+- The canonical annotation runtime has a separate 64 KiB ceiling. Total HTML ceilings are 104 KiB compact, 136 KiB standard, and 160 KiB high-quality/custom; 160 KiB is absolute. Validator output reports `contentBytes`, `runtimeBytes`, and `totalBytes`.
 - Custom teaching content defaults to the standard budget unless the learner specifies a smaller ceiling; runtime cannot consume or inflate the teaching-content budget.
 - Line count is not a quality metric. Prefer compact CSS/JS and focused content over a 1000-line scaffold.
 - Every tier keeps the complete interaction contract. High-quality must satisfy its evidence/chain/extension rubric; byte count alone never proves quality.
-- If teaching content exceeds its ceiling, reduce duplicated lesson boilerplate or move non-core detail to another planned page. If runtime exceeds 48 KiB, optimize the canonical asset rather than deleting functionality or changing one lesson. Do not silently add pages or relax limits.
+- If teaching content exceeds its ceiling, reduce duplicated lesson boilerplate or move non-core detail to another planned page. If runtime exceeds 64 KiB, optimize the canonical asset rather than deleting functionality or changing one lesson. Do not silently add pages or relax limits.
 - A provider/tool turn writes one lesson HTML. Other small state/tool calls may occur in the same turn.
 
 ## 5. Recovery

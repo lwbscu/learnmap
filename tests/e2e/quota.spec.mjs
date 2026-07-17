@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { openFixture, selectFixtureText } from "../helpers/browser.mjs";
+import { chooseAnnotationStyle, openFixture, selectFixtureText } from "../helpers/browser.mjs";
 
 const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64");
 
@@ -12,7 +12,7 @@ async function mockQuota(page, ratio) {
 
 test("70 percent quota warns after persistence", async ({ page }, testInfo) => {
   await mockQuota(page, .75); await openFixture(page, testInfo.project.name);
-  await selectFixtureText(page); await page.getByTestId("lm-style-solid").click();
+  await selectFixtureText(page); await chooseAnnotationStyle(page, "solid");
   await expect(page.getByTestId("lm-status")).toContainText(/70%|空间/);
 });
 

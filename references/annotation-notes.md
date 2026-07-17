@@ -70,11 +70,17 @@ window.LearnMapAnnotations = {
 };
 ```
 
-## 3. Selection And Underline Behavior
+## 3. Selection, Underline, And Highlight Behavior
 
 Use the Selection/Range APIs. Prefer CSS Custom Highlight because it does not mutate teaching DOM. When unavailable or when underline decoration is unreliable, draw pointer-transparent geometry from `Range.getClientRects()` in `.lm-overlay-layer`. Never make `<span>`, `<u>`, or `<mark>` wrapping the primary renderer.
 
-Allowed styles:
+Each annotation stores:
+
+- `markType`: `underline` or `highlight`; missing legacy values mean `underline`
+- `lineStyle`: `solid`, `dashed`, or `wavy`; only used for underline
+- `color`: `amber`, `red`, `blue`, `cyan`, `green`, or `violet`
+
+Allowed underline styles:
 
 - `solid`
 - `dashed`
@@ -82,19 +88,23 @@ Allowed styles:
 
 Allowed colors: `amber`, `red`, `blue`, `cyan`, `green`, `violet`. Use both text labels and visual swatches; color alone never conveys meaning.
 
-After a valid selection, show the compact `.lm-toolbar` near the selection. Provide current line style, current color, add note, remove mark, and a low-priority more menu. Remember the previous style. Escape closes the toolbar without changing the selection.
+After a valid selection, show a compact Feishu-style `.lm-toolbar` near the selection. Keep it icon-led: underline, highlight, line-style dropdown, color dropdown, add note, remove mark, and a low-priority more menu. Do not show all six colors as a long always-visible row; open a small dropdown/popover for color selection. Remember the previous mark type, line style, and color. Escape closes transient UI without changing the selection.
 
-V1 permits one underline per character. A new mark replaces the overlapping part. Adjacent marks with identical style and color merge. Never silently discard an attached note during conflict resolution.
+V1 permits one learner mark per character. Underline and highlight are mutually exclusive: a new mark replaces the overlapping part. Adjacent marks with identical `markType`, `lineStyle`, and `color` merge. Never silently discard an attached note during conflict resolution.
 
 ## 4. Notes And Images
 
-Use a Feishu-inspired, LearnMap-branded layout:
+Use a Feishu-inspired, LearnMap-branded layout, but keep the reading surface centered on the original text:
 
-- desktop: non-modal 360-400 px right drawer
+- desktop: source-hover note popovers are primary; the right drawer is a compact management panel
 - medium viewport: overlay drawer without shrinking teaching text below its readable width
 - mobile: bottom sheet with 44 px minimum controls
 
-Each note card includes section, source quote, style label, blocks, images, updated time, jump to source, edit, and delete actions. Clicking a card opens any required accordion/tab, scrolls to the anchor, and briefly flashes the source.
+When a mark has a note, the marked source text receives a subtle note affordance. Hovering the marked text shows a compact note popover near the source. Moving away hides it. Clicking the marked text pins the popover until the learner closes it or clicks blank page space. The popover shows the source quote, concise note preview, image count or thumbnails, and edit/jump/delete controls.
+
+The right drawer remains available for search, import/export, orphan rebind, and bulk review. Keep it terse by default; show the editor only when creating or editing a note.
+
+Each note card includes section, source quote, mark label, blocks, images, updated time, jump to source, edit, and delete actions. Clicking a card opens any required accordion/tab, scrolls to the anchor, and briefly flashes the source.
 
 Store controlled blocks only:
 
@@ -148,6 +158,7 @@ Keep `ai-10x-learning-record/v1`. Add only this optional summary:
 {
   "annotationSummary": {
     "underlineCount": 0,
+    "highlightCount": 0,
     "noteCount": 0,
     "imageCount": 0,
     "questionNoteCount": 0,

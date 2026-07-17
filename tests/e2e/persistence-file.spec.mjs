@@ -1,11 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { annotationSummary, openFixture, selectFixtureText } from "../helpers/browser.mjs";
+import { annotationSummary, chooseAnnotationColor, chooseAnnotationStyle, openFixture, selectFixtureText } from "../helpers/browser.mjs";
 
 test("file URL keeps current-page notes across reload or reports an honest fallback", async ({ page }, testInfo) => {
   await openFixture(page, testInfo.project.name);
   await selectFixtureText(page, "#selection-text", 0, 12);
-  await page.getByTestId("lm-style-solid").click();
-  await page.getByTestId("lm-color-blue").click();
+  await chooseAnnotationStyle(page, "solid");
+  await chooseAnnotationColor(page, "blue");
   await expect.poll(() => annotationSummary(page)).toMatchObject({ underlineCount: 1 });
 
   const status = await page.getByTestId("lm-status").innerText();

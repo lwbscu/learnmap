@@ -553,7 +553,7 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
     var weakSpots = quizItems.filter(function(q) { return q.answered && !q.correct; }).map(function(q) { return q.id; });
     var annotationSummary = window.LearnMapAnnotations && window.LearnMapAnnotations.getSummary
       ? window.LearnMapAnnotations.getSummary()
-      : { underlineCount: 0, noteCount: 0, imageCount: 0, questionNoteCount: 0, orphanedCount: 0, updatedAt: null };
+      : { underlineCount: 0, highlightCount: 0, noteCount: 0, imageCount: 0, questionNoteCount: 0, orphanedCount: 0, updatedAt: null };
     return {
       schema: "ai-10x-learning-record/v1",
       topic: LESSON_META.topic,
@@ -831,6 +831,7 @@ Required JSON shape:
   "mentorLens": "none",
   "annotationSummary": {
     "underlineCount": 4,
+    "highlightCount": 1,
     "noteCount": 2,
     "imageCount": 1,
     "questionNoteCount": 1,

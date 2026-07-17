@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { annotationSummary, openFixture, selectFixtureText } from "../helpers/browser.mjs";
+import { annotationSummary, chooseAnnotationColor, chooseAnnotationStyle, openFixture, selectFixtureText } from "../helpers/browser.mjs";
 
 test.beforeEach(async ({ page }, testInfo) => {
   await openFixture(page, testInfo.project.name);
@@ -7,8 +7,8 @@ test.beforeEach(async ({ page }, testInfo) => {
 
 test("localhost IndexedDB restores annotations after reload", async ({ page }) => {
   await selectFixtureText(page, "#selection-text", 0, 12);
-  await page.getByTestId("lm-style-wavy").click();
-  await page.getByTestId("lm-color-red").click();
+  await chooseAnnotationStyle(page, "wavy");
+  await chooseAnnotationColor(page, "red");
   await expect.poll(() => annotationSummary(page)).toMatchObject({ underlineCount: 1 });
   await expect.poll(() => page.evaluate(() => new Promise((resolve, reject) => {
     const open = indexedDB.open("learnmap-annotations-v1");
@@ -27,7 +27,7 @@ test("localhost IndexedDB restores annotations after reload", async ({ page }) =
 test("clearing annotations does not clear the lesson learning record", async ({ page }) => {
   await page.getByRole("button", { name: "保存原文、上下文和位置" }).click();
   await selectFixtureText(page, "#selection-text", 0, 12);
-  await page.getByTestId("lm-style-solid").click();
+  await chooseAnnotationStyle(page, "solid");
   await expect.poll(() => annotationSummary(page)).toMatchObject({ underlineCount: 1 });
   const dialogs = [];
   page.on("dialog", async (dialog) => { dialogs.push(dialog.message()); await dialog.accept(); });

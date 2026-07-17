@@ -14,6 +14,24 @@ export async function annotationSummary(page) {
   return page.evaluate(() => window.LearnMapAnnotations.getSummary());
 }
 
+export async function chooseAnnotationStyle(page, style) {
+  const active = page.locator('[data-testid^="lm-style-"][aria-pressed="true"]').first();
+  await active.focus();
+  await active.hover();
+  const option = page.getByTestId(`lm-style-${style}`);
+  await expect(option).toBeVisible();
+  await option.click();
+}
+
+export async function chooseAnnotationColor(page, color) {
+  const active = page.locator('[data-testid^="lm-color-"][aria-pressed="true"]').first();
+  await active.focus();
+  await active.hover();
+  const option = page.getByTestId(`lm-color-${color}`);
+  await expect(option).toBeVisible();
+  await option.click();
+}
+
 export async function ensureDrawerOpen(page) {
   const drawer = page.getByTestId("lm-drawer");
   if (!(await drawer.isVisible())) await page.getByTestId("lm-notes-toggle").click();

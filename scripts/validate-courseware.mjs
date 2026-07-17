@@ -9,8 +9,8 @@ import { computeContentFingerprint, extractLessonMetaObject } from "./inject-cou
 const RUNTIME_VERSION = "1";
 const RUNTIME_START = "LEARNMAP_COURSEWARE_RUNTIME_START";
 const RUNTIME_END = "LEARNMAP_COURSEWARE_RUNTIME_END";
-const RUNTIME_LIMIT = 48 * 1024;
-const ABSOLUTE_TOTAL_LIMIT = 144 * 1024;
+const RUNTIME_LIMIT = 64 * 1024;
+const ABSOLUTE_TOTAL_LIMIT = 160 * 1024;
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const runtimeAssetDir = path.resolve(scriptDir, "../assets/courseware-runtime");
 const runtimeCssPath = path.join(runtimeAssetDir, "annotation-notes.css");
@@ -126,10 +126,10 @@ if (tierOverride && embeddedTier && tierOverride !== embeddedTier) contractProbl
 if (!embeddedTier) contractProblem("Missing or invalid embedded coursewareTier; legacy content normalizes to standard.");
 
 const tierBudgets = {
-  compact: { targetMin: 16 * 1024, targetMax: 32 * 1024, contentMax: 40 * 1024, totalMax: 88 * 1024 },
-  standard: { targetMin: 24 * 1024, targetMax: 60 * 1024, contentMax: 72 * 1024, totalMax: 120 * 1024 },
-  "high-quality": { targetMin: 48 * 1024, targetMax: 88 * 1024, contentMax: 96 * 1024, totalMax: 144 * 1024 },
-  custom: { targetMin: 24 * 1024, targetMax: 60 * 1024, contentMax: 72 * 1024, totalMax: 144 * 1024 }
+  compact: { targetMin: 16 * 1024, targetMax: 32 * 1024, contentMax: 40 * 1024, totalMax: 104 * 1024 },
+  standard: { targetMin: 24 * 1024, targetMax: 60 * 1024, contentMax: 72 * 1024, totalMax: 136 * 1024 },
+  "high-quality": { targetMin: 48 * 1024, targetMax: 88 * 1024, contentMax: 96 * 1024, totalMax: 160 * 1024 },
+  custom: { targetMin: 24 * 1024, targetMax: 60 * 1024, contentMax: 72 * 1024, totalMax: 160 * 1024 }
 };
 const budget = tierBudgets[coursewareTier];
 const resolvedContentMax = Math.min(maxBytesProvided ? maxBytes : budget.contentMax, budget.contentMax);
