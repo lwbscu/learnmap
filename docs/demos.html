@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="LearnMap unified bilingual demo center with overview, walkthrough video, and embedded interactive courseware.">
+  <meta name="learnmap-demo-center-version" content="1">
+  <title>LearnMap | Demo Center</title>
+  <style>
+    :root {
+      --bg: #07090d;
+      --surface: #0d1218;
+      --surface-2: #111922;
+      --line: #25313d;
+      --line-strong: #3b4b5a;
+      --text: #eef5fb;
+      --muted: #9aa8b7;
+      --soft: #cbd7e2;
+      --cyan: #4cc9f0;
+      --green: #8fd694;
+      --amber: #f0c36a;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      background: var(--bg);
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-width: 0;
+      color: var(--text);
+      background:
+        linear-gradient(180deg, #07090d 0%, #0a0f14 46%, #07090d 100%);
+      font-family: Inter, "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+      line-height: 1.58;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.25;
+      background:
+        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 72px 72px;
+      mask-image: linear-gradient(180deg, black, transparent 88%);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    :focus-visible {
+      outline: 3px solid rgba(76, 201, 240, 0.85);
+      outline-offset: 3px;
+    }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid rgba(238,245,251,0.1);
+      background: rgba(7, 9, 13, 0.86);
+      backdrop-filter: blur(16px);
+    }
+
+    .nav-inner {
+      width: min(100%, var(--max));
+      margin: 0 auto;
+      padding: 14px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-width: max-content;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+    }
+
+    .brand-mark {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(76, 201, 240, 0.55);
+      border-radius: 7px;
+      background: #0b151e;
+      color: var(--cyan);
+      font: 800 0.74rem/1 Consolas, ui-monospace, monospace;
+    }
+
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 6px;
+    }
+
+    .nav-links a {
+      border-radius: 7px;
+      padding: 7px 10px;
+      color: var(--soft);
+      font-size: 0.94rem;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+      background: rgba(255,255,255,0.06);
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+    }
+
+    .section {
+      width: min(100%, var(--max));
+      margin: 0 auto;
+      padding: 58px 22px;
+      border-top: 1px solid rgba(238,245,251,0.08);
+      scroll-margin-top: 76px;
+    }
+
+    .section:first-of-type {
+      border-top: 0;
+    }
+
+    .hero {
+      min-height: min(68vh, 680px);
+      display: grid;
+      grid-template-columns: minmax(0, 0.98fr) minmax(320px, 0.86fr);
+      align-items: center;
+      gap: 36px;
+      padding-top: 48px;
+    }
+
+    .hero-copy,
+    .hero-media,
+    .video-panel,
+    .courseware-panel {
+      min-width: 0;
+    }
+
+    .eyebrow {
+      margin: 0 0 14px;
+      color: var(--green);
+      font: 800 0.78rem/1.2 Consolas, ui-monospace, monospace;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 18px;
+      font-size: clamp(3.2rem, 7vw, 6.1rem);
+      line-height: 0.92;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin-bottom: 10px;
+      font-size: clamp(2rem, 4.4vw, 3.4rem);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin-bottom: 8px;
+      font-size: 1.05rem;
+    }
+
+    .lead {
+      max-width: 760px;
+      margin-bottom: 26px;
+      color: var(--soft);
+      font-size: clamp(1rem, 1.8vw, 1.2rem);
+    }
+
+    .zh {
+      display: block;
+      color: var(--text);
+    }
+
+    .en {
+      display: block;
+      color: var(--muted);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 44px;
+      min-width: 44px;
+      border: 1px solid rgba(238,245,251,0.15);
+      border-radius: 7px;
+      padding: 10px 14px;
+      background: rgba(17, 25, 34, 0.82);
+      color: var(--text);
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      border-color: rgba(76, 201, 240, 0.66);
+      background: rgba(22, 33, 44, 0.96);
+    }
+
+    .btn.primary {
+      border-color: var(--cyan);
+      background: var(--cyan);
+      color: #041019;
+    }
+
+    .btn.icon {
+      padding-inline: 12px;
+    }
+
+    .hero-media {
+      border: 1px solid rgba(238,245,251,0.12);
+      border-radius: 8px;
+      background: var(--surface);
+      padding: 10px;
+      box-shadow: 0 28px 80px rgba(0,0,0,0.34);
+    }
+
+    .hero-media img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 6px;
+    }
+
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 24px;
+    }
+
+    .info-card {
+      border: 1px solid rgba(238,245,251,0.1);
+      border-radius: 8px;
+      background: rgba(17, 25, 34, 0.66);
+      padding: 18px;
+    }
+
+    .info-card p {
+      margin-bottom: 0;
+      color: var(--muted);
+    }
+
+    .video-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 280px;
+      gap: 18px;
+      align-items: start;
+      margin-top: 24px;
+    }
+
+    .video-panel,
+    .side-panel,
+    .courseware-panel {
+      border: 1px solid rgba(238,245,251,0.12);
+      border-radius: 8px;
+      background: rgba(13, 18, 24, 0.78);
+      padding: 10px;
+    }
+
+    .demo-video {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 6px;
+      background: #05070a;
+    }
+
+    .side-panel {
+      padding: 16px;
+    }
+
+    .side-panel p {
+      color: var(--muted);
+    }
+
+    .link-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .link-list a {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border: 1px solid rgba(238,245,251,0.1);
+      border-radius: 7px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.035);
+      color: var(--soft);
+      font-weight: 760;
+    }
+
+    .link-list a:hover {
+      color: var(--text);
+      border-color: rgba(76, 201, 240, 0.52);
+    }
+
+    .courseware-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    .courseware-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 10px;
+      min-width: min(100%, 360px);
+    }
+
+    .courseware-panel {
+      padding: 12px;
+    }
+
+    .courseware-frame-wrap {
+      width: 100%;
+      height: 76vh;
+      min-height: 560px;
+      max-height: 780px;
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      overflow: hidden;
+      background: #ffffff;
+    }
+
+    .courseware-frame-wrap:fullscreen {
+      width: 100vw;
+      height: 100vh;
+      max-height: none;
+      border: 0;
+      border-radius: 0;
+      background: #ffffff;
+    }
+
+    .courseware-frame {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #ffffff;
+    }
+
+    .status {
+      min-height: 1.4em;
+      margin: 10px 2px 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    footer {
+      width: min(100%, var(--max));
+      margin: 0 auto;
+      padding: 34px 22px 54px;
+      border-top: 1px solid rgba(238,245,251,0.08);
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    footer a {
+      color: var(--cyan);
+    }
+
+    @media (max-width: 960px) {
+      .hero,
+      .video-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        min-height: auto;
+      }
+
+      .overview-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .nav-inner {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .nav-links {
+        justify-content: flex-start;
+      }
+
+      .section {
+        padding: 44px 18px;
+        scroll-margin-top: 164px;
+      }
+
+      .hero {
+        padding-top: 36px;
+      }
+
+      h1 {
+        font-size: clamp(2.9rem, 15vw, 4rem);
+      }
+
+      .actions,
+      .courseware-actions {
+        align-items: stretch;
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .btn {
+        width: 100%;
+      }
+
+      .courseware-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .courseware-panel {
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+      }
+
+      .courseware-frame-wrap {
+        width: min(100%, 390px);
+        height: 844px;
+        min-height: 844px;
+        max-height: 844px;
+        margin: 0 auto;
+      }
+
+      footer {
+        flex-direction: column;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.001ms !important;
+      }
+    }
+  </style>
+</head>
+<body data-learnmap-demo-center="1">
+  <nav class="nav" aria-label="Demo Center navigation" data-testid="demo-nav">
+    <div class="nav-inner">
+      <a class="brand" href="#overview" aria-label="LearnMap Demo Center overview">
+        <span class="brand-mark" aria-hidden="true">LM</span>
+        <span>LearnMap Demo Center</span>
+      </a>
+      <div class="nav-links">
+        <a href="#overview">概览 / Overview</a>
+        <a href="#walkthrough">视频 / Walkthrough</a>
+        <a href="#courseware">课件 / Courseware</a>
+        <a href="./index.html">主页 / Home</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <section class="section hero" id="overview" aria-labelledby="overview-title">
+      <div class="hero-copy">
+        <p class="eyebrow">Unified bilingual demo</p>
+        <h1 id="overview-title">LearnMap</h1>
+        <p class="lead">
+          <span class="zh">一个统一的双语 Demo Center：先看产品概览，再播放完整流程视频，最后直接体验同源 HTML 交互课件。</span>
+          <span class="en">A unified bilingual demo center: start with the product overview, watch the full workflow, then try the same-origin interactive HTML courseware inline.</span>
+        </p>
+        <div class="actions" aria-label="Demo Center primary actions">
+          <a class="btn primary" href="#walkthrough">观看视频 / Watch</a>
+          <a class="btn" href="#courseware">体验课件 / Try courseware</a>
+          <a class="btn" href="./promo-video.html">独立视频页 / Standalone video</a>
+        </div>
+      </div>
+      <div class="hero-media">
+        <img src="./assets/learnmap-cover.png" alt="LearnMap cover showing a knowledge-map style learning interface">
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="overview-flow-title">
+      <h2 id="overview-flow-title">概览 / Overview</h2>
+      <p class="lead">
+        <span class="zh">LearnMap 的核心是先建地图，再进入章节课件，并把练习记录导出给下一轮 AI 继续补弱。</span>
+        <span class="en">LearnMap builds the map first, turns chapters into local courseware, and exports learning records for follow-up practice.</span>
+      </p>
+      <div class="overview-grid">
+        <article class="info-card">
+          <h3>地图优先 / Map first</h3>
+          <p><span class="zh">先给出全局结构、关键概念和学习路径，避免直接掉进细节。</span><span class="en">See the structure, concepts, and learning path before entering details.</span></p>
+        </article>
+        <article class="info-card">
+          <h3>交互课件 / Interactive courseware</h3>
+          <p><span class="zh">生成本地 HTML 课程，支持展开解释、练习反馈和复习跳转。</span><span class="en">Use local HTML lessons with expandable explanations, feedback, and review jumps.</span></p>
+        </article>
+        <article class="info-card">
+          <h3>持续补弱 / Continue from weak spots</h3>
+          <p><span class="zh">导出学习记录，让下一次对话从错题、薄弱概念和检查清单继续。</span><span class="en">Export progress so the next session resumes from mistakes and weak concepts.</span></p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="walkthrough" aria-labelledby="walkthrough-title">
+      <h2 id="walkthrough-title">流程视频 / Walkthrough</h2>
+      <p class="lead">
+        <span class="zh">16:9 主视频展示从安装、提问、生成课件到导出学习记录的完整链路；竖版视频可用于移动端或社媒预览。</span>
+        <span class="en">The 16:9 video shows installation, prompting, courseware generation, practice, export, and continuation. The vertical cut is available for mobile sharing.</span>
+      </p>
+      <div class="video-layout">
+        <div class="video-panel" role="group" aria-label="LearnMap 16:9 walkthrough video">
+          <video class="demo-video" controls preload="metadata" playsinline poster="./assets/learnmap-demo-poster.png" data-testid="demo-video">
+            <source src="./assets/learnmap-demo-16x9.mp4" type="video/mp4">
+          </video>
+        </div>
+        <aside class="side-panel" aria-label="Video links">
+          <h3>视频资源 / Assets</h3>
+          <p>本页复用现有 16:9 和竖版视频，不加载外部依赖。</p>
+          <div class="link-list">
+            <a href="./assets/learnmap-demo-16x9.mp4">16:9 MP4 <span aria-hidden="true">→</span></a>
+            <a href="./assets/learnmap-demo-vertical.mp4">Vertical MP4 <span aria-hidden="true">→</span></a>
+            <a href="./assets/learnmap-demo-poster.png">16:9 Poster <span aria-hidden="true">→</span></a>
+            <a href="./assets/learnmap-demo-vertical-poster.png">Vertical Poster <span aria-hidden="true">→</span></a>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section" id="courseware" aria-labelledby="courseware-title">
+      <div class="courseware-head">
+        <div>
+          <h2 id="courseware-title">交互课件 / Courseware</h2>
+          <p class="lead">
+            <span class="zh">下面直接加载同源交互课件，保留本地笔记、剪贴板、全屏和学习记录下载能力。</span>
+            <span class="en">The same-origin courseware keeps local notes, clipboard access, fullscreen viewing, and learning-record downloads available.</span>
+          </p>
+        </div>
+        <div class="courseware-actions" aria-label="Courseware actions">
+          <a class="btn" href="./demos/ai-agent-frameworks.html" target="_blank" rel="noopener" aria-label="在新标签页独立打开交互课件 / Open courseware in a new tab" data-testid="courseware-open">独立打开 / Open</a>
+          <button class="btn icon" type="button" aria-label="全屏查看内嵌交互课件 / Open embedded courseware fullscreen" data-testid="courseware-fullscreen" id="courseware-fullscreen">全屏 / Fullscreen</button>
+        </div>
+      </div>
+
+      <div class="courseware-panel">
+        <div class="courseware-frame-wrap" id="courseware-frame-wrap">
+          <iframe
+            class="courseware-frame"
+            src="./demos/ai-agent-frameworks.html"
+            title="LearnMap interactive courseware: AI Agent frameworks"
+            loading="lazy"
+            allow="clipboard-read; clipboard-write; fullscreen"
+            allowfullscreen
+            data-testid="courseware-frame"></iframe>
+        </div>
+        <p class="status" id="courseware-status" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>LearnMap Demo Center</span>
+    <span><a href="#overview">Overview</a> / <a href="#walkthrough">Walkthrough</a> / <a href="#courseware">Courseware</a></span>
+  </footer>
+
+  <script>
+    (function () {
+      var fullscreenButton = document.getElementById("courseware-fullscreen");
+      var frameWrap = document.getElementById("courseware-frame-wrap");
+      var status = document.getElementById("courseware-status");
+
+      function setStatus(message) {
+        if (status) {
+          status.textContent = message;
+        }
+      }
+
+      if (!fullscreenButton || !frameWrap || !frameWrap.requestFullscreen) {
+        if (fullscreenButton) {
+          fullscreenButton.disabled = true;
+          fullscreenButton.setAttribute("aria-disabled", "true");
+        }
+        setStatus("当前浏览器不支持全屏 API。Fullscreen API is not available in this browser.");
+        return;
+      }
+
+      fullscreenButton.addEventListener("click", function () {
+        frameWrap.requestFullscreen().then(function () {
+          setStatus("已进入全屏。按 Esc 退出。Fullscreen enabled. Press Esc to exit.");
+        }).catch(function () {
+          setStatus("全屏请求被浏览器阻止，可使用独立打开。Fullscreen was blocked; use Open instead.");
+        });
+      });
+
+      document.addEventListener("fullscreenchange", function () {
+        if (!document.fullscreenElement) {
+          setStatus("");
+          fullscreenButton.focus();
+        }
+      });
+    }());
+  </script>
+</body>
+</html>

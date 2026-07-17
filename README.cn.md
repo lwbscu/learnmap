@@ -8,8 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/lwbscu/learnmap"><img alt="GitHub Repo" src="https://img.shields.io/badge/GitHub-Repo-181717?style=flat&logo=github&logoColor=white"></a>
-  <a href="https://lwbscu.github.io/learnmap/promo-video.html"><img alt="60s Demo" src="https://img.shields.io/badge/60s-Demo-ff4d4f?style=flat&logo=youtube&logoColor=white"></a>
-  <a href="https://lwbscu.github.io/learnmap/"><img alt="Live Demo" src="https://img.shields.io/badge/Live-Demo-00a6d6?style=flat&logo=gitbook&logoColor=white"></a>
+  <a href="https://lwbscu.github.io/learnmap/demos.html"><img alt="Demos" src="https://img.shields.io/badge/LearnMap-Demos-00a6d6?style=flat&logo=gitbook&logoColor=white"></a>
   <a href="https://mp.weixin.qq.com/s/mO-GAe4arXsKBZTzipwLuA"><img alt="WeChat" src="https://img.shields.io/badge/WeChat-07C160?style=flat&logo=wechat&logoColor=white"></a>
   <a href="https://zhuanlan.zhihu.com/p/2050915019571963028"><img alt="Zhihu" src="https://img.shields.io/badge/Zhihu-0084FF?style=flat&logo=zhihu&logoColor=white"></a>
   <a href="https://juejin.cn/post/7652384976291414054"><img alt="Juejin" src="https://img.shields.io/badge/Juejin-1E80FF?style=flat&logo=juejin&logoColor=white"></a>
@@ -28,16 +27,16 @@
 LearnMap 是一个面向 Agent Skill 的学习工具。它不会直接输出一篇长文，而是先把陌生主题变成知识地图，再生成可交互 HTML 课件、掌握检查、错题复习跳转和可导出的学习记录。
 
 <p align="center">
-  <a href="https://lwbscu.github.io/learnmap/promo-video.html">
+  <a href="https://lwbscu.github.io/learnmap/demos.html#walkthrough">
     <img src="docs/assets/learnmap-demo-poster.png" alt="观看 LearnMap 60 秒使用流程演示" width="900">
   </a>
   <br>
-  <a href="https://lwbscu.github.io/learnmap/promo-video.html">观看 60 秒使用流程演示</a>
+  <a href="https://lwbscu.github.io/learnmap/demos.html">打开双语 LearnMap Demo Center</a>
 </p>
 
 ## What's NEW!
 
-- [2026/07] 🔥 LearnMap runtime v2 新增不遮字的方形笔记徽标、增强高亮、锚定浮动笔记、自定义标记/笔记颜色、兼容 v1 笔记包、等待 5 个子 Agent 结论，并默认不设 runtime/正文/总 HTML 体积上限。
+- [2026/07] 🔥 LearnMap runtime v2 新增不遮字的方形笔记徽标、增强高亮、锚定浮动笔记、自定义标记/笔记颜色、兼容 v1 笔记包、等待 5 个子 Agent 结论、默认不设 runtime/正文/总 HTML 体积上限，并上线含可交互课件的双语统一 Demo Center。
 - [2026/06] 🔥 LearnMap 新增快速总览模式、慢速深学模式和真实录屏演示。
 - [2026/06] 🔥 视频可视化讲解和 mentor lens 改为可选学习路径。
 - [2026/05] 🔥 交互式 HTML 课件支持导出学习记录，方便 AI 续学。

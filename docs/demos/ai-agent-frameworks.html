@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent 框架全景对比 — 快速总览</title>
+<style>
+:root {
+  --bg: #0f172a;
+  --card: #1e293b;
+  --border: #334155;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --accent: #38bdf8;
+  --accent2: #2dd4bf;
+  --correct: #4ade80;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --code-bg: #0f172a;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; line-height: 1.7; }
+.topbar {
+  position: sticky; top: 0; z-index: 100; background: rgba(15,23,42,0.95); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+}
+.topbar .breadcrumb { font-size: 0.82rem; color: var(--muted); }
+.topbar .breadcrumb span { color: var(--accent); }
+.topbar h1 { font-size: 1.1rem; font-weight: 600; flex: 1; min-width: 200px; }
+.record-pill { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 4px 14px; font-size: 0.78rem; color: var(--muted); }
+.topbar button {
+  background: var(--card); color: var(--muted); border: 1px solid var(--border); border-radius: 6px;
+  padding: 6px 14px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s;
+}
+.topbar button:hover { color: var(--text); border-color: var(--accent); }
+.toc {
+  position: fixed; left: 24px; top: 90px; width: 200px; max-height: calc(100vh - 120px);
+  overflow-y: auto; z-index: 50; padding: 12px 0; font-size: 0.82rem;
+}
+.toc a { display: block; color: var(--muted); text-decoration: none; padding: 5px 12px; border-left: 2px solid transparent; transition: all 0.2s; }
+.toc a:hover, .toc a.active { color: var(--accent); border-left-color: var(--accent); }
+.main { max-width: 860px; margin: 0 auto; padding: 24px 24px 80px; }
+.section {
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  padding: 28px 32px; margin-bottom: 24px;
+}
+.section h2 { font-size: 1.25rem; color: var(--accent); margin-bottom: 4px; }
+.section .subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: 16px; }
+.def-box {
+  background: rgba(56,189,248,0.08); border-left: 3px solid var(--accent);
+  padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 12px 0;
+}
+.def-box strong { color: var(--accent); }
+.example-box {
+  background: rgba(74,222,128,0.08); border-left: 3px solid var(--correct);
+  padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 12px 0;
+}
+.warn-box {
+  background: rgba(251,191,36,0.08); border-left: 3px solid var(--warn);
+  padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 12px 0;
+}
+.tag-def, .tag-eg, .tag-warn {
+  display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; margin-right: 6px; font-weight: 600;
+}
+.tag-def { background: rgba(56,189,248,0.18); color: var(--accent); }
+.tag-eg { background: rgba(74,222,128,0.18); color: var(--correct); }
+.tag-warn { background: rgba(251,191,36,0.18); color: var(--warn); }
+code {
+  background: var(--code-bg); color: var(--accent2); padding: 2px 6px; border-radius: 4px;
+  font-family: "Cascadia Code", "Fira Code", "Consolas", monospace; font-size: 0.88em;
+}
+pre {
+  background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 16px; overflow-x: auto; margin: 12px 0; font-size: 0.85rem; line-height: 1.6;
+}
+pre code { background: none; color: var(--text); padding: 0; }
+.comparison-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.85rem; }
+.comparison-table th { background: rgba(56,189,248,0.12); color: var(--accent); padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+.comparison-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.comparison-table tr:hover td { background: rgba(255,255,255,0.02); }
+.formula {
+  text-align: center; padding: 18px; font-family: "Cascadia Code", "Fira Code", monospace;
+  font-size: 1rem; color: var(--accent2); border: 1px solid var(--border); border-radius: 8px; margin: 12px 0;
+  background: rgba(45,212,191,0.06);
+}
+.loop-diagram { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px; margin: 20px 0; }
+.loop-node {
+  background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 16px; text-align: center; font-size: 0.82rem; min-width: 120px;
+}
+.loop-node strong { display: block; color: var(--accent); margin-bottom: 4px; }
+.loop-arrow { font-size: 1.5rem; color: var(--muted); }
+.accordion { border: 1px solid var(--border); border-radius: 8px; margin: 10px 0; overflow: hidden; }
+.accordion-header {
+  padding: 12px 16px; cursor: pointer; background: rgba(255,255,255,0.02); font-weight: 600;
+  display: flex; justify-content: space-between; align-items: center; user-select: none;
+}
+.accordion-header:hover { background: rgba(255,255,255,0.04); }
+.accordion-header::after { content: "+"; font-size: 1.2rem; color: var(--muted); }
+.accordion.open .accordion-header::after { content: "−"; }
+.accordion-body { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; padding: 0 16px; }
+.accordion.open .accordion-body { max-height: 600px; padding: 12px 16px; }
+.accordion-body p { margin: 8px 0; }
+.tabs { display: flex; gap: 4px; margin-bottom: 12px; border-bottom: 1px solid var(--border); }
+.tab-btn {
+  background: none; color: var(--muted); border: none; border-bottom: 2px solid transparent;
+  padding: 8px 16px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;
+}
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-btn:hover { color: var(--text); }
+.tab-panel { display: none; padding: 8px 0; }
+.tab-panel.active { display: block; }
+.mini-quiz { border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin: 14px 0; }
+.mini-quiz p { margin-bottom: 10px; font-weight: 600; }
+.opt {
+  display: block; width: 100%; text-align: left; background: var(--bg); color: var(--text);
+  border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; margin: 6px 0;
+  cursor: pointer; font-size: 0.88rem; transition: all 0.15s;
+}
+.opt:hover { border-color: var(--accent); background: rgba(56,189,248,0.06); }
+.opt.chosen-correct { border-color: var(--correct); background: rgba(74,222,128,0.12); color: var(--correct); }
+.opt.chosen-wrong { border-color: var(--danger); background: rgba(248,113,113,0.12); color: var(--danger); }
+.explain { display: none; margin-top: 10px; padding: 10px 14px; border-radius: 6px; font-size: 0.84rem; }
+.explain.show { display: block; }
+.explain.ok { background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.25); }
+.explain.no { background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.25); }
+.review-link {
+  display: inline-block; margin-left: 8px; color: var(--accent); text-decoration: underline;
+  cursor: pointer; font-weight: 600; font-size: 0.82rem;
+}
+.review-link:hover { color: var(--accent2); }
+.stepper { border: 1px solid var(--accent2); border-radius: 10px; padding: 18px; margin: 16px 0; background: rgba(45,212,191,0.04); }
+.stepper-panels { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.stepper-col { flex: 1; min-width: 140px; }
+.stepper-col h4 { font-size: 0.78rem; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+.stepper-box { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px; min-height: 50px; font-size: 0.8rem; font-family: monospace; }
+.stepper-box .item { padding: 3px 6px; margin: 2px 0; border-radius: 3px; font-size: 0.78rem; }
+.stepper-box .item.stack { background: rgba(56,189,248,0.2); color: var(--accent); }
+.stepper-box .item.micro { background: rgba(45,212,191,0.2); color: var(--accent2); }
+.stepper-box .item.macro { background: rgba(251,191,36,0.2); color: var(--warn); }
+.stepper-console { background: #000; color: #4ade80; padding: 8px 12px; border-radius: 6px; font-family: monospace; font-size: 0.8rem; min-height: 24px; margin-top: 10px; }
+.stepper-btn {
+  background: var(--accent2); color: #fff; border: none; border-radius: 6px; padding: 8px 20px;
+  cursor: pointer; font-size: 0.85rem; font-weight: 600; margin-right: 8px; transition: opacity 0.2s;
+}
+.stepper-btn:hover { opacity: 0.85; }
+.stepper-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.end-card { border: 2px dashed var(--accent2); }
+.checklist { margin: 12px 0; }
+.check-item {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px; margin: 4px 0;
+  border-radius: 6px; cursor: pointer; transition: background 0.15s; flex-wrap: wrap;
+}
+.check-item:hover { background: rgba(255,255,255,0.03); }
+.check-item.done { color: var(--correct); }
+.check-status { font-size: 1.1rem; min-width: 22px; }
+.check-text { flex: 1; min-width: 200px; }
+.record-panel { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin: 14px 0; }
+.record-panel h4 { color: var(--accent); margin-bottom: 6px; }
+.record-panel p { font-size: 0.84rem; color: var(--muted); margin-bottom: 10px; }
+.record-panel button {
+  background: var(--accent); color: #000; border: none; border-radius: 6px; padding: 8px 16px;
+  cursor: pointer; font-size: 0.82rem; font-weight: 600; margin-right: 8px; margin-bottom: 6px;
+}
+.record-panel button:hover { opacity: 0.85; }
+.record-panel small { display: block; color: var(--muted); font-size: 0.75rem; margin-top: 8px; }
+.next-step { text-align: center; margin-top: 14px; }
+.next-cmd {
+  display: inline-block; background: var(--code-bg); border: 1px solid var(--border);
+  padding: 10px 20px; border-radius: 8px; font-family: monospace; font-size: 0.88rem;
+  color: var(--accent); margin: 8px 0;
+}
+.preview { color: var(--muted); font-size: 0.82rem; }
+.bottom-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; background: rgba(15,23,42,0.97);
+  border-top: 1px solid var(--border); padding: 12px 24px; display: flex; align-items: center;
+  gap: 16px; z-index: 100; transform: translateY(100%); transition: transform 0.3s ease;
+  font-size: 0.84rem; flex-wrap: wrap;
+}
+.bottom-bar.visible { transform: translateY(0); }
+.bottom-bar code { font-size: 0.82rem; }
+.bottom-bar button { background: var(--accent); color: #000; border: none; border-radius: 6px; padding: 6px 14px; cursor: pointer; font-size: 0.8rem; }
+.term-hint { border-bottom: 1px dashed var(--accent); cursor: help; position: relative; }
+.term-hint .tooltip {
+  display: none; position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%);
+  background: var(--card); border: 1px solid var(--accent); border-radius: 6px; padding: 6px 10px;
+  font-size: 0.78rem; white-space: nowrap; z-index: 10; color: var(--text); pointer-events: none;
+}
+.term-hint:hover .tooltip { display: block; }
+.color-legend { display: flex; gap: 14px; flex-wrap: wrap; margin: 8px 0; font-size: 0.78rem; }
+.color-legend span { display: flex; align-items: center; gap: 4px; }
+.swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; }
+.swatch.sync { background: var(--accent); }
+.swatch.micro { background: var(--accent2); }
+.swatch.macro { background: var(--warn); }
+.layer-map { display: flex; flex-direction: column; gap: 6px; margin: 16px 0; }
+.layer-row { display: flex; align-items: center; gap: 12px; border-radius: 8px; padding: 12px 16px; border: 1px solid var(--border); background: var(--bg); }
+.layer-row .layer-num { font-size: 0.78rem; font-weight: 700; color: var(--accent2); min-width: 52px; text-align: center; }
+.layer-row .layer-name { font-weight: 600; color: var(--accent); min-width: 110px; font-size: 0.88rem; }
+.layer-row .layer-desc { color: var(--muted); font-size: 0.8rem; flex: 1; }
+.layer-row.l1 { border-left: 3px solid var(--accent); }
+.layer-row.l2 { border-left: 3px solid var(--accent2); }
+.layer-row.l3 { border-left: 3px solid var(--warn); }
+.layer-row.l4 { border-left: 3px solid var(--correct); }
+.layer-row.l5 { border-left: 3px solid var(--danger); }
+.decision-tree { margin: 16px 0; font-size: 0.84rem; line-height: 2; }
+.decision-tree .branch { margin-left: 20px; padding: 4px 0; border-left: 1px solid var(--border); padding-left: 14px; }
+.decision-tree .q { color: var(--accent); font-weight: 600; }
+.decision-tree .a { color: var(--accent2); font-weight: 600; }
+@media (max-width: 1300px) { .toc { display: none; } }
+@media (max-width: 640px) {
+  .main { padding: 12px 8px 80px; }
+  .section { padding: 16px 14px; }
+  .topbar { padding: 8px 12px; }
+  .topbar h1 { font-size: 0.95rem; }
+  .loop-diagram { flex-direction: column; }
+  .stepper-panels { flex-direction: column; }
+  .layer-row { flex-wrap: wrap; }
+}
+</style>
+<!-- LEARNMAP_COURSEWARE_RUNTIME_START version="2" sha256="ce7b47c017f1201a34e6536f5531e84a2f7ac211f42975f7ee5caad33cc3cb0a" -->
+<style data-lm-runtime="annotation-notes" data-lm-version="2">
+:root{--lm-bg: #ffffff;--lm-soft: #f5f6f7;--lm-hover: #eef0f2;--lm-text: #1f2329;--lm-muted: #646a73;--lm-border: #dfe3e8;--lm-primary: #3370ff;--lm-danger: #d83931;--lm-shadow: 0 8px 24px #0003;--lm-amber: #c78b00;--lm-red: #dc3a36;--lm-blue: #246bfd;--lm-cyan: #0089a7;--lm-green: #16855b;--lm-violet: #7f4bd8}.lm-ui,.lm-ui *{box-sizing:border-box}.lm-ui{color:var(--lm-text);font:14px/1.45 system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif}.lm-ui button,.lm-ui input,.lm-ui select,.lm-ui textarea{font:inherit}.lm-ui button{min-width:36px;min-height:36px;border:1px solid transparent;border-radius:8px;padding:8px 10px;color:var(--lm-text);background:transparent;cursor:pointer}.lm-ui button:hover{background:var(--lm-hover)}.lm-ui :where(button,input,select,textarea,[tabindex]):focus-visible{outline:3px solid var(--lm-primary);outline-offset:2px}.lm-toolbar{position:fixed;z-index:1250;left:0;top:0;width:min(260px,calc(100vw - 16px));min-height:44px;padding:4px;display:flex;align-items:center;gap:2px;border:1px solid var(--lm-border);border-radius:8px;background:var(--lm-bg);box-shadow:var(--lm-shadow);transform:translate3d(var(--lm-toolbar-x, -1000px),var(--lm-toolbar-y, -1000px),0);opacity:0;visibility:hidden;pointer-events:none}.lm-toolbar .lm-icon-button{flex:0 0 32px;width:32px;min-width:32px;min-height:32px;padding:0;border-radius:6px;font-weight:650}.lm-toolbar [data-testid=lm-remove-mark]{font-size:10px}.lm-toolbar.open,.lm-toolbar[data-open=true]{opacity:1;visibility:visible;pointer-events:auto}.lm-toolbar-group,.lm-menu-wrap{display:flex;position:relative}.lm-mark-button[aria-pressed=true],.lm-style-option[aria-pressed=true],.lm-color-option[aria-pressed=true]{color:var(--lm-primary);background:#eaf0ff}.lm-style-menu,.lm-color-menu{position:absolute;z-index:1260;left:0;top:calc(100% + 6px);min-width:150px;padding:6px;display:grid;gap:2px;border:1px solid var(--lm-border);border-radius:8px;background:var(--lm-bg);box-shadow:var(--lm-shadow)}.lm-style-menu[hidden],.lm-color-menu[hidden]{display:none}.lm-style-menu.lm-menu-up,.lm-color-menu.lm-menu-up{top:auto;bottom:calc(100% + 6px)}.lm-style-option,.lm-color-option{justify-content:flex-start;gap:8px;width:100%}.lm-line-preview{width:26px;height:13px;display:inline-block;border-bottom:3px solid currentColor}.lm-line-preview[data-style=dashed]{border-bottom-style:dashed}.lm-line-preview[data-style=wavy]{border:0;background:linear-gradient(135deg,transparent 40%,currentColor 41% 59%,transparent 60%) 0 8px / 8px 5px repeat-x,linear-gradient(45deg,transparent 40%,currentColor 41% 59%,transparent 60%) 4px 8px / 8px 5px repeat-x}.lm-color-swatch{width:18px;height:18px;display:inline-block;border-radius:50%;background:var(--lm-swatch, var(--lm-amber));box-shadow:0 0 0 1px var(--lm-border)}.lm-current-color{width:16px;height:16px}.lm-custom-color{width:100%;min-height:44px;border:1px solid var(--lm-border);border-radius:8px;background:var(--lm-bg)}.lm-notes-toggle{position:fixed;right:20px;bottom:20px;z-index:1170;width:44px;min-width:44px;height:44px;padding:0;border-radius:50%;color:var(--lm-text);font-size:20px;line-height:1;background:var(--lm-bg)!important;border:1px solid var(--lm-border)!important;box-shadow:var(--lm-shadow);cursor:pointer}.lm-notes-toggle:hover{background:var(--lm-hover)!important}.lm-overlay-layer{position:absolute;inset:0;z-index:1180;overflow:visible;pointer-events:none}.lm-overlay-segment{position:absolute;height:3px;border-bottom:2px solid var(--lm-mark, var(--lm-amber));pointer-events:none}.lm-overlay-segment[data-style=dashed]{border-bottom-style:dashed}.lm-overlay-segment[data-style=wavy]{height:4px;border:0;background:linear-gradient(135deg,transparent 40%,var(--lm-mark) 41% 59%,transparent 60%) 0 0 / 6px 4px repeat-x,linear-gradient(45deg,transparent 40%,var(--lm-mark) 41% 59%,transparent 60%) 3px 0 / 6px 4px repeat-x}.lm-overlay-segment[data-mark-type=highlight]{height:auto;border:0;border-radius:4px;background:linear-gradient(to bottom,#ffffff26,#fff0 42%),var(--lm-mark);box-shadow:inset 0 -2px 0 var(--lm-mark),inset 0 0 0 1px #ffffff40;opacity:.42}.lm-note-hit{position:absolute;width:24px;height:24px;min-width:24px;min-height:24px;border:0;border-radius:8px;padding:0;color:var(--lm-note-ink, #fff);background:transparent;box-shadow:none;pointer-events:auto;cursor:pointer;font-size:0;line-height:1}.lm-note-hit:before{content:"";position:absolute;left:0;top:0;width:24px;height:24px;border-radius:7px;background:var(--lm-mark, var(--lm-amber));box-shadow:0 3px 10px #0004,inset 0 0 0 1px #fff6}.lm-note-hit:after{content:"";position:absolute;left:7px;top:6px;box-sizing:border-box;width:10px;height:12px;border:2px solid currentColor;border-radius:3px;background:linear-gradient(currentColor,currentColor) 2px 3px / 4px 1px no-repeat,linear-gradient(currentColor,currentColor) 2px 6px / 4px 1px no-repeat}.lm-note-hit:hover:before,.lm-note-hit[aria-expanded=true]:before{box-shadow:0 4px 14px #0005,inset 0 0 0 1px #fff9}.lm-note-hit:focus-visible{outline:3px solid var(--lm-primary);outline-offset:2px}.lm-note-popover,.lm-note-editor-popover,.lm-notes-manager{border:1px solid var(--lm-border);background:var(--lm-bg);box-shadow:var(--lm-shadow)}.lm-note-popover{position:absolute;z-index:1270;width:min(320px,calc(100vw - 24px));padding:10px;border-left:4px solid var(--lm-primary);border-radius:8px;opacity:0;visibility:hidden;pointer-events:none;color:var(--lm-note-fg, var(--lm-text));background:var(--lm-note-surface, var(--lm-bg))}.lm-note-popover.open{opacity:1;visibility:visible}.lm-note-popover[data-pinned=true]{pointer-events:auto}.lm-popover-title{max-height:44px;overflow:hidden;font-size:13px;font-weight:700}.lm-popover-body{max-height:220px;overflow:auto;white-space:pre-wrap;color:inherit;opacity:.82;font-size:13px}.lm-popover-actions,.lm-note-actions,.lm-editor-actions,.lm-manager-footer{display:flex;flex-wrap:wrap;gap:6px}.lm-note-editor-popover{position:absolute;z-index:1280;width:min(380px,calc(100vw - 16px));max-height:min(70dvh,520px);overflow:auto;padding:10px;display:none;gap:8px;border-radius:8px}.lm-note-editor-popover.open{display:grid}.lm-editor-header{position:sticky;top:-10px;z-index:1;display:flex;align-items:center;justify-content:space-between;min-height:42px;margin:-10px -10px 0;padding:6px 8px 6px 12px;border-bottom:1px solid var(--lm-border);background:var(--lm-bg)}.lm-editor-header h2{margin:0;font-size:16px}.lm-note-editor-popover textarea,.lm-note-editor-popover input[type=text],.lm-note-editor-popover select,.lm-notes-manager input[type=search]{width:100%;min-height:40px;border:1px solid var(--lm-border);border-radius:8px;padding:8px;background:var(--lm-bg);color:var(--lm-text)}.lm-note-editor-popover textarea{min-height:110px;resize:vertical}.lm-surface-picker{display:grid;gap:8px}.lm-surface-presets,.lm-surface-custom{display:flex;align-items:center;gap:8px}.lm-surface-preset{width:28px;height:28px;min-width:28px!important;min-height:28px!important;padding:0!important;border:1px solid var(--lm-border)!important;border-radius:50%!important;background:var(--lm-swatch, #fff)!important;box-shadow:inset 0 0 0 2px #fff}.lm-surface-custom input[type=color]{width:48px;min-height:36px;padding:3px;border:1px solid var(--lm-border);border-radius:6px;background:var(--lm-bg)}.lm-surface-apply{flex:1;border-color:var(--lm-border)!important;background:var(--lm-soft)!important}.lm-note-block,.lm-image-card,.lm-note-card{border:1px solid var(--lm-border);border-radius:8px;padding:8px;background:var(--lm-note-surface, var(--lm-bg))}.lm-note-block,.lm-image-card{display:flex;align-items:center;justify-content:space-between;gap:8px}.lm-image-dropzone{min-height:48px;border:1px dashed var(--lm-border);border-radius:8px;padding:12px;color:var(--lm-muted);background:var(--lm-soft)}.lm-note-images{display:flex;flex-wrap:wrap;gap:6px}.lm-note-images img{max-width:132px;max-height:96px;border-radius:6px;object-fit:cover}.lm-check-row{display:flex;align-items:center;gap:8px}.lm-notes-manager{position:fixed;z-index:1200;right:16px;top:76px;width:min(420px,calc(100vw - 32px));max-height:min(70dvh,680px);display:none;flex-direction:column;gap:8px;padding:10px;border-radius:8px}.lm-notes-manager.open{display:flex}.lm-manager-header{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid var(--lm-border)}.lm-manager-header h2{margin:0;font-size:16px}.lm-note-list{display:grid;gap:8px;overflow:auto}.lm-note-card{cursor:pointer;color:var(--lm-note-fg, var(--lm-text))}.lm-note-source{font-weight:700}.lm-note-meta,.lm-status,.lm-empty{color:var(--lm-muted);font-size:12px}.lm-note-card .lm-note-meta{color:inherit;opacity:.68}.lm-rendered-block{margin:4px 0;white-space:pre-wrap}.lm-block-code{padding:8px;border-radius:6px;overflow:auto;background:#111827;color:#f9fafb}.lm-flash{position:absolute;z-index:1190;border-radius:4px;background:#3370ff33;pointer-events:none;animation:lm-flash 1.2s ease-out forwards}.lm-toast-region{position:fixed;right:20px;bottom:76px;z-index:1300;display:grid;gap:8px}.lm-toast{max-width:320px;padding:10px 12px;border-radius:8px;color:#fff;background:#1f2329;box-shadow:var(--lm-shadow)}@keyframes lm-flash{0%{opacity:1}to{opacity:0}}@media(max-width:767px){.lm-ui button{min-width:44px;min-height:44px}.lm-toolbar{inset:auto 8px 8px;width:auto;overflow-x:auto;transform:translateY(120%)}.lm-toolbar.open{transform:none}.lm-toolbar.open+.lm-notes-toggle{bottom:68px}.lm-note-editor-popover,.lm-notes-manager{position:fixed;left:0!important;right:0;top:auto!important;bottom:0;width:100%;max-height:82dvh;border-radius:16px 16px 0 0}.lm-toolbar .lm-icon-button{flex-basis:44px;width:44px;min-width:44px;min-height:44px}.lm-note-hit{width:44px;min-width:44px;height:44px;min-height:44px;border:0;background:transparent;box-shadow:none}.lm-note-hit:before{left:13px;top:13px;width:18px;height:18px;border-radius:6px}.lm-note-hit:after{left:18px;top:17px;width:8px;height:10px;border-width:1.5px}.lm-note-hit[data-side=right-rail]:before{left:26px}.lm-note-hit[data-side=right-rail]:after{left:31px}}@media(prefers-reduced-motion:reduce){.lm-flash{animation:none}}@media(forced-colors:active){.lm-ui button,.lm-note-popover,.lm-note-editor-popover,.lm-notes-manager,.lm-note-card{border-color:CanvasText}.lm-note-hit:before{border:2px solid ButtonText;background:ButtonFace;box-shadow:none}.lm-note-hit:after{color:ButtonText}.lm-overlay-segment{border-color:Highlight}}@media print{.lm-ui,#lm-geometry-lines{display:none!important}}
+</style>
+<script data-lm-runtime="annotation-notes" data-lm-version="2">
+(()=>{"use strict";const Ft="learnmap-annotations-v1",me="learnmap-annotations/v1",ne=["solid","dashed","wavy"],ge=["amber","red","blue","cyan","green","violet","custom"],he={amber:"#c78b00",red:"#dc3a36",blue:"#246bfd",cyan:"#0089a7",green:"#16855b",violet:"#7f4bd8"},je={white:"#FFFFFF",blue:"#EAF2FF",mint:"#ECFDF3",yellow:"#FFF7D6",pink:"#FFF0F3",purple:"#F5F3FF"},Lt=new Set(["paragraph","heading","ordered-list","unordered-list","checklist","quote","code","image"]),ye=/^[A-Za-z0-9._-]{1,160}$/,t={meta:null,root:null,annotations:[],notes:[],assets:[],settings:{markType:"underline",style:"solid",color:"amber",customColor:"#C78B00"},pending:null,pendingGroupId:null,activeId:null,editingNoteId:null,rebindId:null,pendingBlocks:[],pendingAssets:[],db:null,storage:"session-only",saveTimer:null,lastErrorAt:0,highlightNames:[],undo:[],ui:{},previewId:null,previewReturnFocus:null,editorReturnFocus:null,editorSnapshot:null,initialized:!1};function L(){return new Date().toISOString()}function q(e){return window.crypto&&crypto.randomUUID?`${e}-${crypto.randomUUID()}`:`${e}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`}function be(e){return`${e??""}`.replace(/\s+/g," ").trim()}function D(e){return JSON.parse(JSON.stringify(e))}function oe(e){return new TextEncoder().encode(`${e??""}`)}let se=null;function Ie(e){if(!se){se=new Uint32Array(256);for(let s=0;s<256;s+=1){let r=s;for(let i=0;i<8;i+=1)r=r&1?3988292384^r>>>1:r>>>1;se[s]=r>>>0}}const o=typeof e=="string"?oe(e):e;let n=4294967295;for(let s=0;s<o.length;s+=1)n=se[(n^o[s])&255]^n>>>8;return((4294967295^n)>>>0).toString(16).padStart(8,"0")}function re(e){const o=`${e.text||""}`,n=Math.max(0,Math.min(o.length,Number(e.start)||0)),s=Math.max(n,Math.min(o.length,Number(e.end)||n));return{scopeId:`${e.scopeId||""}`,start:n,end:s,exact:o.slice(n,s),prefix:o.slice(Math.max(0,n-48),n),suffix:o.slice(s,s+48),textFingerprint:e.textFingerprint||Ie(be(o))}}function Mt(e,o){const n=[];if(!o)return n;let s=0;for(;(s=e.indexOf(o,s))!==-1;)n.push(s),s+=Math.max(1,o.length);return n}function qe(e,o){const n=e||{},s=Array.isArray(o)?o:[],r=s.find(c=>c.scopeId===n.scopeId);if(r&&r.text.slice(n.start,n.end)===n.exact)return{scopeId:r.scopeId,start:n.start,end:n.end,status:"anchored",method:"position"};const i=c=>{const d=[];return c.forEach(u=>{Mt(u.text,n.exact).forEach(f=>{const g=u.text.slice(Math.max(0,f-`${n.prefix||""}`.length),f),m=u.text.slice(f+n.exact.length,f+n.exact.length+`${n.suffix||""}`.length);let y=0;n.prefix&&g===n.prefix&&(y+=3),n.suffix&&m===n.suffix&&(y+=3),u.scopeId===n.scopeId&&(y+=2),d.push({scopeId:u.scopeId,start:f,end:f+n.exact.length,score:y})})}),d.sort((u,f)=>f.score-u.score),!d.length||d.length>1&&d[0].score===d[1].score?null:d[0]},l=r?i([r]):null,a=l||i(s);return a?{scopeId:a.scopeId,start:a.start,end:a.end,status:"anchored",method:l?"quote-context":"course-quote"}:{scopeId:null,start:null,end:null,status:"orphaned",method:"none"}}function M(e,o="#C78B00"){const n=`${e||""}`.trim();return/^#[0-9a-f]{6}$/i.test(n)?n.toUpperCase():o}function ve(e){const o=M(e,"#FFFFFF").slice(1),n=[0,2,4].map(r=>Number.parseInt(o.slice(r,r+2),16)/255).map(r=>r<=.03928?r/12.92:((r+.055)/1.055)**2.4);return .2126*n[0]+.7152*n[1]+.0722*n[2]>.45?"#1F2329":"#FFFFFF"}function h(e,o){return/^zh(?:-|$)/iu.test(document.documentElement.lang||"")?o:e}function ae(e,o,{width:n=380,gap:s=10,avoid:r=[]}={}){const l=Math.min(n,innerWidth-16),a=Math.min(e.offsetHeight||320,innerHeight-16),c=m=>Math.max(8,Math.min(m,innerWidth-l-8)),d=m=>Math.max(8,Math.min(m,innerHeight-a-8)),u=Array.from(r).map(m=>m?.getBoundingClientRect?.()||m).filter(Boolean),f=[{left:o.left,top:o.bottom+s},{left:o.left,top:o.top-a-s},{left:o.right+s,top:o.top},{left:o.left-l-s,top:o.top}].map(m=>{const y=c(m.left),I=d(m.top);return{left:y,top:I,right:y+l,bottom:I+a}}),g=f.find(m=>!u.some(y=>Me(m,y,2)))||f[0];Object.assign(e.style,{left:`${g.left+scrollX}px`,top:`${g.top+scrollY}px`})}function we(e){return(e.color||t.settings.color)==="custom"?M(e.customColor||t.settings.customColor):he[e.color]||he.amber}function ie(e){return e.markType=e.markType==="highlight"?"highlight":"underline",e.lineStyle=ne.includes(e.lineStyle||e.style)?e.lineStyle||e.style:"solid",e.style=e.lineStyle,e.color=ge.includes(e.color)?e.color:"amber",e.customColor=M(e.customColor||t.settings.customColor),e}function We(e){const o=(Array.isArray(e)?e:[]).map(D).map(ie).sort((s,r)=>`${s.scopeId||""}`.localeCompare(`${r.scopeId||""}`)||(s.anchor&&s.anchor.start||0)-(r.anchor&&r.anchor.start||0)),n=[];return o.forEach(s=>{const r=n[n.length-1];if(!(r&&r.scopeId===s.scopeId&&r.markType===s.markType&&r.lineStyle===s.lineStyle&&r.color===s.color&&r.customColor===s.customColor&&!r.noteId&&!s.noteId&&r.anchor&&s.anchor&&r.anchor.end===s.anchor.start)){n.push(s);return}r.anchor.end=s.anchor.end,r.anchor.exact=`${r.anchor.exact||""}${s.anchor.exact||""}`,r.anchor.suffix=s.anchor.suffix||r.anchor.suffix,r.updatedAt=s.updatedAt||r.updatedAt}),n}function ze(e){const o=[];if(!e||typeof e!="object"||Array.isArray(e))return{ok:!1,errors:["Import must be an object."]};const n=D(e);n.courseId=n.courseId||n.lesson?.courseId,n.lessonId=n.lessonId||n.lesson?.lessonId,n.annotations=Array.isArray(n.annotations)?n.annotations.map(a=>{if(!a||typeof a!="object")return a;const c=`${a.color||"amber"}`,d=/^#[0-9a-f]{6}$/i.test(c)?c.toUpperCase():null;return{...a,lineStyle:a.lineStyle||a.style||"solid",style:a.lineStyle||a.style||"solid",color:d?"custom":c,customColor:d||a.customColor}}):n.annotations,n.notes=Array.isArray(n.notes)?n.notes.map(a=>{if(!a||typeof a!="object")return a;const c=a.surfaceColor??a.surface??"#FFFFFF";return{...a,surfaceColor:/^#[0-9a-f]{6}$/i.test(c)?c.toUpperCase():c}}):n.notes,n.schema!==me&&o.push("Unsupported schema."),n.version!==1&&o.push("Unsupported version."),(typeof n.courseId!="string"||!n.courseId||typeof n.lessonId!="string"||!n.lessonId)&&o.push("Invalid course or lesson id."),Array.isArray(n.annotations)||o.push("annotations must be an array."),Array.isArray(n.notes)||o.push("notes must be an array."),Array.isArray(n.assets)||o.push("assets must be an array."),((n.annotations||[]).length>1e4||(n.notes||[]).length>5e3||(n.assets||[]).length>1e3)&&o.push("Import entry count exceeds limits.");const s=new Set,r=new Set((n.annotations||[]).map(a=>a&&a.id)),i=new Set((n.notes||[]).map(a=>a&&a.id)),l=new Set((n.assets||[]).map(a=>a&&a.id));return(n.annotations||[]).forEach(a=>{!a||typeof a.id!="string"||!ye.test(a.id)||s.has(a.id)?o.push("Invalid or duplicate annotation id."):s.add(a.id);const c=ge.includes(a.color)&&(a.color!=="custom"||/^#[0-9a-f]{6}$/i.test(a.customColor||""));(!a.anchor||typeof a.anchor.exact!="string"||a.anchor.exact.length>2e5||!["underline","highlight",void 0,null].includes(a.markType)||!ne.includes(a.lineStyle||a.style||"solid")||!c)&&o.push("Invalid annotation."),a.noteId&&!i.has(a.noteId)&&o.push("Dangling note reference.")}),(n.notes||[]).forEach(a=>{!a||typeof a.id!="string"||!ye.test(a.id)||s.has(a.id)?o.push("Invalid or duplicate note id."):s.add(a.id),(typeof a.text!="string"||a.text.length>2e5)&&o.push("Invalid note text."),r.has(a.annotationId)||o.push("Dangling annotation reference."),a.surfaceColor&&!/^#[0-9a-f]{6}$/i.test(a.surfaceColor)&&o.push("Invalid note surface color."),a.blocks&&a.blocks.some(c=>!c||!Lt.has(c.type))&&o.push("Unsupported note block."),(a.assetIds||[]).forEach(c=>{l.has(c)||o.push("Dangling asset reference.")})}),(n.assets||[]).forEach(a=>{!a||typeof a.id!="string"||!ye.test(a.id)||s.has(a.id)?o.push("Invalid or duplicate asset id."):s.add(a.id),/^(image\/png|image\/jpeg|image\/webp)$/.test(a.mime||"")||o.push("Unsupported asset type."),(!Number.isInteger(a.bytes)||a.bytes<=0||a.bytes>5242880||!Number.isInteger(a.width)||!Number.isInteger(a.height)||a.width<=0||a.height<=0||a.width*a.height>12582912)&&o.push("Invalid asset dimensions or size.")}),o.length?{ok:!1,errors:o}:{ok:!0,errors:[],value:n}}function p(e,o,n){const s=document.createElement(e);return Object.entries(o||{}).forEach(([r,i])=>{i===!1||i==null||(r==="class"?s.className=i:r==="testid"?s.dataset.testid=i:r==="htmlFor"?s.htmlFor=i:r==="hidden"&&i?s.hidden=!0:s.setAttribute(r,i===!0?"":i))}),n!=null&&(s.textContent=n),s}function b(e,o,n,s={}){const r=p("button",{type:"button","aria-label":e,testid:o,...s},e);return r.addEventListener("click",n),r}function E(e,o="ok"){if(o==="error")t.lastErrorAt=Date.now();else if(Date.now()-t.lastErrorAt<5e3)return;t.ui.status&&(t.ui.status.textContent=e,t.ui.status.dataset.status=o)}function J(e){if(!t.ui.toasts)return;const o=p("div",{class:"lm-toast",role:"status"},e);t.ui.toasts.appendChild(o),setTimeout(()=>o.remove(),2600)}function le(){return`learnmap:annotations:${t.meta.courseId}:${t.meta.lessonId}`}function W(){t.undo.push({annotations:D(t.annotations),notes:D(t.notes),assets:D(t.assets)}),t.undo.length>20&&t.undo.shift()}function xe(e){const o=[],n=document.createTreeWalker(e,NodeFilter.SHOW_TEXT);let s;for(;s=n.nextNode();){const r=s.parentElement;r&&(r.closest("[data-lm-ignore],.lm-ui,[hidden],nav,button,input,textarea,select,option,svg,canvas,.mini-quiz,.tooltip,[role=button],[contenteditable=true]")||o.push(s))}return o}function Ee(e){return e.dataset.lmScope||e.id||"lesson-root"}function Ce(){if(!t.root)return[];const e=Array.from(t.root.querySelectorAll("[data-lm-scope], [id]"));return t.root.matches("[data-lm-scope], [id]")&&e.unshift(t.root),e.filter((n,s)=>{if(n.closest("[data-lm-ignore],.lm-ui"))return!1;const r=Ee(n);return e.findIndex(i=>Ee(i)===r)===s}).map(n=>({scopeId:Ee(n),text:xe(n).map(s=>s.data).join(""),element:n}))}function Ge(e,o){const n=xe(e);let s=0;for(const r of n){const i=s+r.data.length;if(o<=i)return{node:r,offset:Math.max(0,o-s)};s=i}return{node:e,offset:e.childNodes.length}}function $t(e,o,n){const s=Ge(e,o),r=Ge(e,n),i=document.createRange();try{return i.setStart(s.node,s.offset),i.setEnd(r.node,r.offset),i}catch{return null}}function Tt(e){const o=[];return Ce().forEach(n=>{let s=null,r=null,i=0;xe(n.element).forEach(l=>{const a=i;i=i+l.data.length;try{if(!e.intersectsNode(l))return}catch{return}let d=0,u=l.data.length;l===e.startContainer&&(d=e.startOffset),l===e.endContainer&&(u=e.endOffset),u>d&&(s==null&&(s=a+d),r=a+u)}),s!=null&&r>s&&be(n.text.slice(s,r))&&o.push({scope:n.element,anchor:re({scopeId:n.scopeId,text:n.text,start:s,end:r})})}),o.filter(n=>!o.some(s=>s!==n&&n.scope.contains(s.scope)))}function j(){t.ui.toolbar?.classList.remove("open"),t.ui.toolbar&&(t.ui.toolbar.dataset.open="false"),Y()}function H(e={}){if(t.ui.popover?.classList.remove("open"),t.ui.popover&&(t.ui.popover.dataset.pinned="false"),t.previewId=null,document.querySelectorAll('.lm-note-hit[aria-expanded="true"]').forEach(o=>o.setAttribute("aria-expanded","false")),e.restoreFocus){const o=t.previewReturnFocus;t.previewReturnFocus=null,o?.setAttribute?.("aria-expanded","false"),o?.focus?.({preventScroll:!0})}}function Ae(){return t.ui.editor?JSON.stringify({text:t.ui.textarea.value,blockType:t.ui.blockType.value,blocks:t.pendingBlocks,assets:t.pendingAssets.map(e=>e.id),question:t.ui.question.checked,surface:t.ui.surface.value,alt:t.ui.alt.value,decorative:t.ui.decorative.checked}):""}function X({force:e=!1,restoreFocus:o=!0}={}){if(t.ui.editor?.classList.contains("open")&&!e&&t.editorSnapshot!==Ae()&&!confirm("Discard the unsaved note draft?"))return!1;t.ui.editor?.classList.remove("open"),t.ui.editor?.setAttribute("aria-hidden","true"),t.editingNoteId=null,t.pendingBlocks=[],t.pendingAssets=[],t.editorSnapshot=null;const n=t.editorReturnFocus;return t.editorReturnFocus=null,o&&n?.focus?.({preventScroll:!0}),!0}function V(){t.ui.manager?.classList.remove("open"),t.ui.manager?.setAttribute("aria-modal","false"),t.ui.lastFocus?.focus?.()}function He(){const e=innerWidth<768;if(t.ui.editor?.classList.contains("open")){t.ui.editor.dataset.layout=e?"bottom-sheet":"anchored";const o=t.annotations.find(s=>s.id===t.activeId),n=o&&at(o);n&&ae(t.ui.editor,n,{width:380})}if(t.ui.manager?.classList.contains("open")&&(t.ui.manager.dataset.layout=e?"bottom-sheet":"floating",t.ui.manager.setAttribute("aria-modal",e?"true":"false")),t.ui.popover?.classList.contains("open")){const o=Array.from(document.querySelectorAll(".lm-note-hit")).find(n=>n.dataset.annId===t.previewId);o&&ae(t.ui.popover,o.getBoundingClientRect(),{width:320,avoid:document.querySelectorAll(".lm-note-hit")})}}function Se(e){return e!=="editor"&&!X()?!1:(e!=="manager"&&V(),e!=="preview"&&H(),j(),!0)}function ce(){if(!t.ui.toolbar)return;t.ui.toolbar.querySelectorAll("[data-mark-type]").forEach(o=>o.setAttribute("aria-pressed",`${o.dataset.markType===t.settings.markType}`)),t.ui.toolbar.querySelectorAll("[data-style]").forEach(o=>o.setAttribute("aria-pressed",`${o.dataset.style===t.settings.style}`)),t.ui.toolbar.querySelectorAll("[data-color]").forEach(o=>o.setAttribute("aria-pressed",`${o.dataset.color===t.settings.color}`));const e=t.ui.toolbar.querySelector(".lm-custom-color");e&&(e.value=M(t.settings.customColor)),t.ui.toolbar.querySelector(".lm-current-color")?.style.setProperty("--lm-swatch",we(t.settings))}function Nt(){try{localStorage.setItem(le(),JSON.stringify({settings:t.settings}))}catch{}}function z(){clearTimeout(t.saveTimer),t.saveTimer=setTimeout(Ve,350)}function ke(e){return t.db?new Promise((o,n)=>{const s=["annotations","notes","assets"],r=t.db.transaction([...s,"settings"],"readwrite");s.forEach(i=>{const l=r.objectStore(i),a=l.getAll();a.onsuccess=()=>{a.result.filter(c=>c.courseId===t.meta.courseId&&c.lessonId===t.meta.lessonId).forEach(c=>l.delete(c.id)),(e[i]||[]).forEach(c=>l.put(c))}}),r.objectStore("settings").put({id:le(),courseId:t.meta.courseId,lessonId:t.meta.lessonId,value:e.settings||t.settings}),r.oncomplete=()=>o(),r.onerror=()=>n(r.error||new Error("IndexedDB transaction failed")),r.onabort=()=>n(r.error||new Error("IndexedDB transaction aborted"))}):Promise.resolve()}async function Xe(){try{const e=await navigator.storage.estimate();return e.quota?e.usage/e.quota:0}catch{return 0}}async function Ve(){if(!t.db){E(t.storage==="save-failed"?"Save failed. Export now.":"Session-only notes. Export for backup.",t.storage==="save-failed"?"error":"ok");return}try{await ke({annotations:t.annotations,notes:t.notes,assets:t.assets,settings:t.settings}),t.storage="persisted";const e=await Xe();e>=.85?E("Saved locally. Storage is above 85%; delete or export images.","error"):E(e>=.7?"Saved locally. Storage is above 70%.":"Saved locally.")}catch{t.storage="save-failed",E("Save failed. Export now.","error")}}function de(e){return new Promise((o,n)=>{const s=t.db.transaction(e,"readonly").objectStore(e).getAll();s.onsuccess=()=>o(s.result),s.onerror=()=>n(s.error)})}function Bt(){return new Promise((e,o)=>{if(!window.indexedDB){o(new Error("IndexedDB unavailable"));return}const n=indexedDB.open(Ft,1);n.onupgradeneeded=()=>{["annotations","notes","assets","settings"].forEach(s=>{n.result.objectStoreNames.contains(s)||n.result.createObjectStore(s,{keyPath:"id"})})},n.onsuccess=()=>e(n.result),n.onerror=()=>o(n.error||new Error("IndexedDB failed"))})}async function Pt(){try{const e=JSON.parse(localStorage.getItem(le())||"null");e&&(t.settings={...t.settings,...e.settings||{}})}catch{}try{t.db=await Bt();const[e,o,n,s]=await Promise.all([de("annotations"),de("notes"),de("assets"),de("settings")]),r=c=>c.courseId===t.meta.courseId&&c.lessonId===t.meta.lessonId,i=(c,d)=>c.filter(u=>!d.some(f=>f.id===u.id)).concat(d),l=!!(t.annotations.length||t.notes.length||t.assets.length);t.annotations=i(t.annotations,e.filter(r)).map(ie),t.notes=i(t.notes,o.filter(r)).map(c=>({surfaceColor:"#FFFFFF",...c,surfaceColor:M(c.surfaceColor,"#FFFFFF")})),t.assets=i(t.assets,n.filter(r));const a=s.find(c=>c.id===le());a&&(t.settings={...t.settings,...a.value||{}}),t.storage="persisted",Date.now()-t.lastErrorAt>5e3&&E("Saved locally."),P(),ce(),l&&z()}catch{t.storage="session-only",E(location.protocol==="file:"?"Session-only in this browser. Export regularly.":"Session-only notes. Export for backup.","error")}}function G(e={}){if(e.markType&&(t.settings.markType=e.markType==="highlight"?"highlight":"underline"),ne.includes(e.style)&&(t.settings.style=e.style,t.settings.markType="underline"),ge.includes(e.color)&&(t.settings.color=e.color),e.customColor&&(t.settings.customColor=M(e.customColor),t.settings.color="custom"),Nt(),ce(),t.pending?.segments?.length>1){const n=q("ann-group"),s=t.pending;t.pendingGroupId=n,s.segments.forEach(r=>{t.pending=r,t.activeId=null,G({})}),t.pending=s,t.pendingGroupId=null;return}W();let o=t.annotations.find(n=>n.id===t.activeId);if(o)o.markType=t.settings.markType,o.lineStyle=t.settings.style,o.style=t.settings.style,o.color=t.settings.color,o.customColor=M(t.settings.customColor),o.updatedAt=L();else if(t.pending){const n=t.pending.anchor,s=Ce().find(a=>a.scopeId===n.scopeId),r=t.annotations.filter(a=>a.scopeId===n.scopeId&&a.anchor.start<n.end&&n.start<a.anchor.end),i=r.map(a=>a.noteId).filter(Boolean);if(new Set(i).size>1){E("The selection overlaps multiple notes. Adjust them separately.","error"),J("Cannot merge multiple attached notes.");return}const l=[];r.forEach(a=>{s&&(a.anchor.start<n.start&&l.push({...a,id:q("ann"),noteId:null,anchor:re({scopeId:n.scopeId,text:s.text,start:a.anchor.start,end:n.start}),updatedAt:L()}),a.anchor.end>n.end&&l.push({...a,id:q("ann"),noteId:null,anchor:re({scopeId:n.scopeId,text:s.text,start:n.end,end:a.anchor.end}),updatedAt:L()}))}),t.annotations=t.annotations.filter(a=>!r.includes(a)).concat(l),o={id:q("ann"),courseId:t.meta.courseId,lessonId:t.meta.lessonId,scopeId:n.scopeId,anchor:D(n),markType:t.settings.markType,lineStyle:t.settings.style,style:t.settings.style,color:t.settings.color,customColor:M(t.settings.customColor),noteId:i[0]||null,groupId:t.pendingGroupId,createdAt:L(),updatedAt:L()},t.annotations.push(o),t.activeId=o.id,i.length&&t.notes.forEach(a=>{i.includes(a.id)&&(a.annotationId=o.id)})}t.annotations=We(t.annotations),P(),z()}function Ut(){if(!t.activeId)return;W();const e=t.annotations.find(r=>r.id===t.activeId),o=e?.groupId?t.annotations.filter(r=>r.groupId===e.groupId).map(r=>r.id):[t.activeId],n=t.notes.filter(r=>o.includes(r.annotationId)||e?.groupId&&r.groupId===e.groupId),s=new Set(n.flatMap(r=>r.assetIds||[]));t.annotations=t.annotations.filter(r=>!o.includes(r.id)),t.notes=t.notes.filter(r=>!o.includes(r.annotationId)&&!(e?.groupId&&r.groupId===e.groupId)),t.assets=t.assets.filter(r=>!s.has(r.id)||t.notes.some(i=>(i.assetIds||[]).includes(r.id))),t.activeId=null,P(),z(),j(),J("Mark removed. Press Ctrl+Z to undo.")}function Rt(e){if(!t.root||e.target?.closest?.("[data-lm-ignore],.lm-ui"))return;const o=window.getSelection&&window.getSelection();if(!o||!o.rangeCount){j();return}const n=o.getRangeAt(0);if(n.collapsed){j();return}const s=Tt(n),r=s[0];if(!r){j();return}if(t.rebindId){Ot(s);return}t.pending=s.length>1?{segments:s,anchor:r.anchor}:r,t.activeId=s.length===1&&(t.annotations.find(l=>l.scopeId===r.anchor.scopeId&&l.anchor.start===r.anchor.start&&l.anchor.end===r.anchor.end)||{}).id||null;const i=n.getBoundingClientRect();t.ui.toolbar.style.setProperty("--lm-toolbar-x",`${Math.max(8,Math.min(innerWidth-260,i.left))}px`),t.ui.toolbar.style.setProperty("--lm-toolbar-y",`${Math.max(8,i.top-52)}px`),t.ui.toolbar.classList.add("open"),t.ui.toolbar.dataset.open="true",ce()}function Ot(e){const o=t.annotations.find(n=>n.id===t.rebindId);if(!(!o||!e.length)){if(W(),o.groupId){const n=t.annotations.filter(i=>i.groupId===o.groupId).map(i=>i.id),s=o.groupId,r=e.map(i=>({...o,id:q("ann"),groupId:s,scopeId:i.anchor.scopeId,anchor:i.anchor,orphaned:!1,updatedAt:L()}));t.annotations=t.annotations.filter(i=>!n.includes(i.id)).concat(r),t.notes.filter(i=>i.groupId===s||n.includes(i.annotationId)).forEach(i=>{i.groupId=s,i.annotationId=r[0].id})}else o.scopeId=e[0].anchor.scopeId,o.anchor=e[0].anchor,o.orphaned=!1,o.updatedAt=L();t.rebindId=null,P(),z(),j(),J("Note rebound to the new source.")}}function Dt(){window.CSS&&CSS.highlights&&t.highlightNames.forEach(e=>CSS.highlights.delete(e)),t.highlightNames=[],document.getElementById("lm-highlight-rules")?.remove(),document.getElementById("lm-geometry-lines")?.remove(),document.querySelectorAll("[data-lm-note-lane]").forEach(e=>{e.style.paddingInlineEnd=e.dataset.lmNotePadding||"",e.style.boxSizing=e.dataset.lmNoteBoxSizing||"",delete e.dataset.lmNoteLane,delete e.dataset.lmNotePadding,delete e.dataset.lmNoteBoxSizing})}function Fe(){const e=Ce();return t.annotations.map(o=>{ie(o);const n=qe(o.anchor,e),s=e.find(r=>r.scopeId===n.scopeId);return o.orphaned=n.status==="orphaned",{annotation:o,resolved:n,scope:s,range:s?$t(s.element,n.start,n.end):null}}).filter(o=>o.range)}function Le(e,o,n){return Math.max(o,Math.min(n,e))}function Ye(e,o){let n=e.commonAncestorContainer;for(n&&n.nodeType!==Node.ELEMENT_NODE&&(n=n.parentElement);n&&n!==document.body;){if(n.closest("[data-lm-ignore],.lm-ui"))return o||t.root;const s=getComputedStyle(n).display;if(s&&s!=="contents"&&!s.startsWith("inline")&&n.getClientRects().length)return n;if(n===t.root)break;n=n.parentElement}return o||t.root}function Me(e,o,n=4){return e.left<o.right+n&&e.right+n>o.left&&e.top<o.bottom+n&&e.bottom+n>o.top}function _t(e,o,n){if(o!==44)return e;const s=e.left+(n==="right-rail"?26:13),r=e.top+13;return{left:s,top:r,right:s+18,bottom:r+18}}function jt(e){const o=[],n=document.createTreeWalker(e,NodeFilter.SHOW_TEXT);let s;for(;s=n.nextNode();){if(!s.data.trim()||s.parentElement?.closest("[data-lm-ignore],.lm-ui"))continue;const r=document.createRange();r.selectNodeContents(s),Array.from(r.getClientRects()).forEach(i=>{i.width&&i.height&&o.push({left:i.left+scrollX,top:i.top+scrollY,right:i.right+scrollX,bottom:i.bottom+scrollY})})}return o}function qt(e){const o=Ye(e.range,e.scope?.element);if(!o||o.dataset.lmNoteLane)return;const n=o.getBoundingClientRect(),s=innerWidth<768?44:24,r=innerWidth<768?2:8,i=6;if(n.right+r+s<=innerWidth-i||n.left-r-s>=i)return;const a=getComputedStyle(o),c=innerWidth<768?28:34;o.dataset.lmNoteLane="true",o.dataset.lmNotePadding=o.style.paddingInlineEnd,o.dataset.lmNoteBoxSizing=o.style.boxSizing,o.style.boxSizing="border-box",o.style.paddingInlineEnd=`${(Number.parseFloat(a.paddingInlineEnd)||0)+c}px`}function Ke(e,o,n,s,r){const i=Le(e.left,n.left,n.right-o),l=[0,1,-1,2,-2,3,-3,4,-4].map(c=>c*(o+4));for(const c of l){const d=Le(e.top+c,n.top,n.bottom-o),u={left:i,top:d,right:i+o,bottom:d+o},f=_t(u,o,e.side);if(!s.some(g=>Me(u,g))&&!r.some(g=>Me(f,g,1)))return{left:i,top:d,box:u,side:e.side,clear:!0}}const a=Le(e.top,n.top,n.bottom-o);return{left:i,top:a,box:{left:i,top:a,right:i+o,bottom:a+o},side:e.side,clear:!1}}function Wt(e,o,n,s){const r=o[o.length-1],i=Ye(e.range,e.scope?.element),l=i?.getBoundingClientRect?.()||r,a=innerWidth<768?44:24,c=innerWidth<768?2:8,d=6,u=Math.max(document.documentElement.scrollWidth,document.body.scrollWidth,innerWidth),f=Math.max(document.documentElement.scrollHeight,document.body.scrollHeight,innerHeight),g={left:scrollX+d,right:scrollX+innerWidth-d,top:d,bottom:f-d},m=l.left+scrollX,y=l.right+scrollX,I=r.top+scrollY,w=r.bottom+scrollY,v=I+(r.height-a)/2,A=r.left+r.width/2>=l.left+l.width/2,S=Math.min(y-a,u-d-a),U=Math.max(m,d),T=A?S:U,_=A?U:S,k=y+c,Z=m-a-c,ee=scrollX+innerWidth-d-a,K=[],F=(N,O,ue,pe=!0)=>{!Number.isFinite(N)||!Number.isFinite(O)||pe&&(N<g.left||N+a>g.right)||K.push({left:N,top:O,side:ue})};if(i?.dataset?.lmNoteLane){const N=a===44?26:0,O=a===44?18:24;F(y-c-O-N,v,a===44?"right-rail":"right-edge")}else A?(F(k,v,"right"),F(Z,v,"left")):(F(Z,v,"left"),F(k,v,"right"));a===44&&F(ee,v,"right-rail"),F(T,I-a-c,A?"right-edge":"left-edge"),F(T,w+c,A?"right-edge":"left-edge"),F(_,I-a-c,A?"left-edge":"right-edge"),F(_,w+c,A?"left-edge":"right-edge"),F(T,v,A?"right-edge":"left-edge",!1);for(const N of K){const O=Ke(N,a,g,n,s);if(O.clear)return O}return Ke(K[0]||{left:r.right+scrollX+c,top:v,side:"right"},a,g,n,s)}function Je(){Dt();const e=Fe();e.filter(i=>i.annotation.noteId).forEach(qt);const o=jt(t.root),n=window.CSS&&CSS.highlights&&window.Highlight;if(n){const i=[];e.forEach((a,c)=>{const d=`lm-${c}-${a.annotation.id.replace(/[^a-z0-9_-]/gi,"")}`;t.highlightNames.push(d),CSS.highlights.set(d,new Highlight(a.range));const u=we(a.annotation);i.push(`::highlight(${d}){${a.annotation.markType==="highlight"?`background-color:${u}66;text-decoration:underline solid ${u} 2px;text-underline-offset:2px`:`text-decoration:underline ${a.annotation.lineStyle} ${u} 2px;text-underline-offset:3px`}}`)});const l=p("style",{id:"lm-highlight-rules"});l.textContent=i.join(`
+`),document.head.appendChild(l)}const s=p("div",{id:"lm-geometry-lines",class:"lm-overlay-layer open","data-lm-ignore":""});Object.assign(s.style,{width:`${Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)}px`,height:`${Math.max(document.documentElement.scrollHeight,document.body.scrollHeight)}px`});const r=[];e.forEach(i=>{const l=we(i.annotation),a=Array.from(i.range.getClientRects());if(a.forEach(d=>{if(!n){const u=p("div",{class:"lm-overlay-segment","data-style":i.annotation.lineStyle,"data-color":i.annotation.color,"data-mark-type":i.annotation.markType});Object.assign(u.style,i.annotation.markType==="highlight"?{left:`${d.left+scrollX}px`,top:`${d.top+scrollY}px`,width:`${d.width}px`,height:`${d.height}px`}:{left:`${d.left+scrollX}px`,top:`${d.bottom+scrollY-2}px`,width:`${d.width}px`}),u.style.setProperty("--lm-mark",l),s.appendChild(u)}}),a.at(-1)&&i.annotation.noteId){const d=p("button",{class:"lm-note-hit",testid:"lm-note-hit","aria-label":"Toggle note preview",title:"Toggle note preview","aria-expanded":"false","data-ann-id":i.annotation.id}),u=Wt(i,a,r,o);Object.assign(d.style,{left:`${u.left}px`,top:`${u.top}px`}),d.dataset.side=u.side,d.style.setProperty("--lm-mark",l),d.style.setProperty("--lm-note-ink",ve(l)),r.push(u.box),d.addEventListener("mouseenter",()=>{t.ui.popover?.classList.contains("open")&&t.ui.popover?.dataset.pinned==="true"&&t.previewId===i.annotation.id||nt(i.annotation,d.getBoundingClientRect(),!1)}),d.addEventListener("mouseleave",()=>{t.ui.popover?.dataset.pinned!=="true"&&H()}),d.addEventListener("click",f=>{if(f.stopPropagation(),t.ui.popover?.classList.contains("open")&&t.ui.popover?.dataset.pinned==="true"&&t.previewId===i.annotation.id){d.setAttribute("aria-expanded","false"),H({restoreFocus:!0});return}t.activeId=i.annotation.id,t.previewReturnFocus=d,document.querySelectorAll('.lm-note-hit[aria-expanded="true"]').forEach(m=>m.setAttribute("aria-expanded","false")),d.setAttribute("aria-expanded","true"),nt(i.annotation,d.getBoundingClientRect(),!0)}),s.appendChild(d)}}),s.children.length&&document.body.appendChild(s)}function Qe(e){const o=(e.groupId?t.annotations.filter(n=>n.groupId===e.groupId):[e]).map(n=>n.noteId).filter(Boolean);return t.notes.find(n=>o.includes(n.id))}function Q(e){return e?e.text?e.text:(e.blocks||[]).filter(o=>o.type!=="image").map(o=>o.text||"").join(`
+
+`):""}function Ze(e,o){e.textContent="",(o||[]).forEach(n=>{if(n.type==="image")return;const s=n.type==="ordered-list"||n.type==="unordered-list"||n.type==="checklist",r=n.type==="heading"?"h4":n.type==="quote"?"blockquote":n.type==="code"?"pre":s?n.type==="ordered-list"?"ol":"ul":"p",i=p(r,{class:`lm-rendered-block lm-block-${n.type}`,"data-block-type":n.type});s?`${n.text||""}`.split(/\r?\n/u).filter(l=>l.trim()).forEach(l=>{const a=p("li");et(a,l.replace(/^\s*(?:\d+[.)]|[-*]|\[[ xX]\])\s*/u,"")),i.appendChild(a)}):n.type==="code"?i.textContent=n.text||"":et(i,n.text||""),e.appendChild(i)})}function et(e,o){const n=/\*\*([^*]+)\*\*|\*([^*]+)\*|`([^`]+)`|\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/giu;let s=0;for(const r of`${o||""}`.matchAll(n))e.append(document.createTextNode(o.slice(s,r.index))),r[1]?e.appendChild(p("strong",{},r[1])):r[2]?e.appendChild(p("em",{},r[2])):r[3]?e.appendChild(p("code",{},r[3])):e.appendChild(p("a",{href:r[5],target:"_blank",rel:"noopener noreferrer"},r[4])),s=r.index+r[0].length;e.append(document.createTextNode(o.slice(s)))}function tt(e,o){e.textContent="",(o||[]).forEach(n=>{const s=t.assets.find(r=>r.id===n);s&&e.appendChild(p("img",{src:s.dataUrl,alt:s.decorative?"":s.alt||s.name||"note image","data-block-type":"image"}))})}function nt(e,o,n){const s=Qe(e);if(!s||t.ui.editor?.classList.contains("open")||!Se("preview"))return;t.ui.popover||(t.ui.popover=p("div",{class:"lm-ui lm-note-popover","data-lm-ignore":"",role:"dialog","aria-live":"polite",testid:"lm-note-popover"}),document.body.appendChild(t.ui.popover));const r=t.ui.popover;r.textContent="",r.dataset.pinned=n?"true":"false",t.previewId=e.id;const i=M(s.surfaceColor,"#FFFFFF");r.style.setProperty("--lm-note-surface",i),r.style.setProperty("--lm-note-fg",ve(i)),r.appendChild(p("div",{class:"lm-popover-title"},e.anchor.exact||"Source"));const l=p("div",{class:"lm-popover-body"});if(Ze(l,s.blocks||[{type:"paragraph",text:Q(s)}]),(s.assetIds||[]).length){const c=p("div",{class:"lm-note-images"});tt(c,s.assetIds),l.appendChild(c)}r.appendChild(l);const a=p("div",{class:"lm-popover-actions"});a.append(b(h("Edit","\u7F16\u8F91"),"lm-popover-edit",c=>{c.stopPropagation(),t.activeId=e.id,Ne()}),b(h("Jump","\u8DF3\u56DE"),"lm-popover-jump",c=>{c.stopPropagation(),Te(e.id)}),b(h("Copy","\u590D\u5236"),"lm-note-copy",c=>{c.stopPropagation(),ht(s)}),b(h("Close","\u6536\u8D77"),"lm-popover-close",c=>{c.stopPropagation(),H({restoreFocus:!0})})),r.appendChild(a),r.classList.add("open"),ae(r,o,{width:320,avoid:document.querySelectorAll(".lm-note-hit")})}function zt(){const e=p("div",{class:"lm-ui lm-toolbar",role:"toolbar",tabindex:"0",testid:"lm-toolbar","aria-label":"Annotation tools","data-lm-ignore":""}),o=p("div",{class:"lm-toolbar-group"}),n=b("Underline","lm-mark-underline",()=>G({markType:"underline"}),{class:"lm-mark-button lm-icon-button",title:"Underline","data-mark-type":"underline","aria-pressed":"true",tabindex:"-1"}),s=b("Highlight","lm-mark-highlight",()=>G({markType:"highlight"}),{class:"lm-mark-button lm-icon-button",title:"Highlight","data-mark-type":"highlight","aria-pressed":"false",tabindex:"-1"});n.textContent="U",s.textContent="H",o.append(n,s);const r=p("div",{class:"lm-menu-wrap"}),i=b("Line style","lm-style-menu-trigger",()=>ot("style"),{class:"lm-style-menu-button lm-icon-button",title:"Line style","aria-haspopup":"menu","aria-expanded":"false",tabindex:"-1"});i.textContent="S";const l=p("div",{class:"lm-style-menu",testid:"lm-style-menu",role:"menu",hidden:!0});ne.forEach(x=>{const C=b(x,`lm-style-${x}`,()=>{G({style:x}),Y()},{class:"lm-style-option","data-style":x,role:"menuitemradio","aria-pressed":"false"});C.textContent="",C.appendChild(p("span",{class:"lm-line-preview","data-style":x,"aria-hidden":"true"})),C.appendChild(p("span",{class:"lm-option-label"},x)),l.appendChild(C)}),r.append(i,l);const a=p("div",{class:"lm-menu-wrap"}),c=b("Mark color","lm-color-menu-trigger",()=>ot("color"),{class:"lm-color-menu-button lm-icon-button",title:"Mark color","aria-haspopup":"menu","aria-expanded":"false",tabindex:"-1"});c.textContent="",c.appendChild(p("span",{class:"lm-color-swatch lm-current-color","aria-hidden":"true"}));const d=p("div",{class:"lm-color-menu",testid:"lm-color-menu",role:"menu",hidden:!0});Object.entries(he).forEach(([x,C])=>{const R=b(x,`lm-color-${x}`,()=>{G({color:x}),Y()},{class:"lm-color-option","data-color":x,role:"menuitemradio","aria-pressed":"false"});R.textContent="",R.appendChild(p("span",{class:"lm-color-swatch",style:`--lm-swatch:${C}`,"aria-hidden":"true"})),R.appendChild(p("span",{class:"lm-option-label"},x)),d.appendChild(R)});const u=p("input",{class:"lm-custom-color",testid:"lm-custom-color",type:"color",value:t.settings.customColor,"aria-label":"Custom color"});u.addEventListener("input",()=>G({customColor:u.value})),d.appendChild(u),a.append(c,d);const f=b("Add note","lm-add-note",Ne,{class:"lm-note-button lm-icon-button",title:"Add note",tabindex:"-1"}),g=b("Remove mark","lm-remove-mark",Ut,{class:"lm-remove-button lm-icon-button",title:"Remove mark",tabindex:"-1"}),m=b("Clear lesson marks","lm-clear-annotations",Oe,{class:"lm-remove-button lm-icon-button",title:"Clear lesson marks",tabindex:"-1"});f.textContent="N",g.textContent="Del",m.textContent="C",e.append(o,r,a,f,g,m),e.addEventListener("keydown",Gt);const y=h("Learning notes","\u5B66\u4E60\u7B14\u8BB0"),I=b("\u270E","lm-notes-toggle",Xt,{class:"lm-ui lm-notes-toggle","data-lm-ignore":"",title:y,"aria-label":y}),w=p("aside",{class:"lm-ui lm-notes-manager",testid:"lm-notes-manager",role:"dialog","aria-modal":"false","aria-label":y,"data-lm-ignore":""}),v=p("div",{class:"lm-manager-header"});v.append(p("h2",{},y),b(h("Close","\u5173\u95ED"),"lm-notes-manager-close",V));const A=h("Search notes","\u641C\u7D22\u7B14\u8BB0"),S=p("input",{type:"search",placeholder:A,"aria-label":A});S.addEventListener("input",$e);const U=p("div",{class:"lm-note-list",testid:"lm-note-list"}),T=p("div",{class:"lm-manager-footer"}),_=p("div",{class:"lm-status",testid:"lm-status",role:"status","aria-live":"polite"},"Session-only notes."),k=p("input",{type:"file",accept:".learnmap,application/vnd.learnmap.notes+zip",hidden:!0,"aria-label":"Import LearnMap package"});k.addEventListener("change",()=>{k.files[0]&&mt(k.files[0]),k.value=""}),T.append(_,b(h("Export package","\u5BFC\u51FA\u7B14\u8BB0\u5305"),"lm-export-package",Re),b(h("Import package","\u5BFC\u5165\u7B14\u8BB0\u5305"),"lm-import-package",()=>k.click()),b(h("Export Markdown","\u5BFC\u51FA Markdown"),"lm-export-markdown",gt),b(h("Clear notes","\u6E05\u7A7A\u7B14\u8BB0"),"lm-clear-annotations-manager",Oe),k),w.append(v,S,U,T),w.addEventListener("keydown",Ht);const Z=h("Edit note","\u7F16\u8F91\u7B14\u8BB0"),ee=p("section",{class:"lm-ui lm-note-editor-popover",testid:"lm-note-editor-popover",role:"dialog","aria-hidden":"true","aria-label":Z,"data-lm-ignore":""}),K=p("div",{class:"lm-editor-header"});K.append(p("h2",{},Z),b("\xD7","lm-note-editor-close",()=>X(),{"aria-label":h("Close note editor","\u5173\u95ED\u7B14\u8BB0\u7F16\u8F91\u5668"),title:h("Close","\u5173\u95ED")}));const F=p("select",{testid:"lm-block-type","aria-label":"Block type"});[["paragraph",h("Paragraph","\u6B63\u6587")],["heading",h("Heading","\u6807\u9898")],["ordered-list",h("Ordered list","\u6709\u5E8F\u5217\u8868")],["unordered-list",h("Unordered list","\u65E0\u5E8F\u5217\u8868")],["checklist",h("Checklist","\u68C0\u67E5\u6E05\u5355")],["quote",h("Quote","\u5F15\u7528")],["code",h("Code","\u4EE3\u7801")]].forEach(([x,C])=>F.appendChild(p("option",{value:x},C)));const N=p("textarea",{testid:"lm-note-editor","aria-label":h("Note content","\u7B14\u8BB0\u5185\u5BB9"),placeholder:h("Write a note, question, checklist, or code snippet.","\u8BB0\u5F55\u7406\u89E3\u3001\u95EE\u9898\u3001\u6E05\u5355\u6216\u4EE3\u7801\u7247\u6BB5")}),O=p("div",{class:"lm-note-blocks",testid:"lm-note-blocks"}),ue=p("input",{type:"checkbox",testid:"lm-note-question","aria-label":"Question note"}),pe=p("label",{class:"lm-check-row"},h("Question note","\u7591\u95EE\u7B14\u8BB0"));pe.prepend(ue);const It=p("div",{class:"lm-surface-picker",role:"group","aria-label":"Note surface color"}),vt=p("div",{class:"lm-surface-presets"}),te=p("input",{type:"color",value:je.white,testid:"lm-note-surface-custom","aria-label":"Custom note surface color"});Object.entries(je).forEach(([x,C])=>{const R=b(`${x} note surface`,`lm-note-surface-preset-${x}`,()=>{te.value=C},{class:"lm-surface-preset",title:`${x} note surface`,"data-surface":C});R.textContent="",R.style.setProperty("--lm-swatch",C),vt.appendChild(R)});const wt=p("div",{class:"lm-surface-custom"});wt.append(te,b(h("Apply custom color","\u5E94\u7528\u81EA\u5B9A\u4E49\u989C\u8272"),"lm-note-surface-custom-apply",()=>{te.value=M(te.value,"#FFFFFF")},{class:"lm-surface-apply"})),It.append(vt,wt);const xt=p("input",{type:"text",testid:"lm-image-alt","aria-label":h("Image alt text","\u56FE\u7247\u8BF4\u660E"),placeholder:h("Image alt text","\u56FE\u7247\u8BF4\u660E")}),Et=p("input",{type:"checkbox",testid:"lm-image-decorative","aria-label":"Decorative image"}),Ct=p("label",{class:"lm-check-row"},h("Decorative image","\u88C5\u9970\u56FE\u7247"));Ct.prepend(Et);const At=p("div",{class:"lm-note-images"}),St=p("div",{class:"lm-image-dropzone",tabindex:"0"},h("Paste, drop, or choose PNG, JPEG, WebP","\u7C98\u8D34\u3001\u62D6\u653E\u6216\u9009\u62E9 PNG\u3001JPEG\u3001WebP")),fe=p("input",{type:"file",accept:"image/png,image/jpeg,image/webp",multiple:!0,testid:"lm-image-input","aria-label":"Choose note images"}),_e=p("div",{class:"lm-editor-actions"});_e.append(fe,b(h("Cancel","\u53D6\u6D88"),"lm-note-cancel",()=>X()),b(h("Save","\u4FDD\u5B58"),"lm-note-save",Jt)),ee.append(K,F,N,b(h("Add block","\u6DFB\u52A0\u5185\u5BB9\u5757"),"lm-add-block",it),O,pe,p("label",{},h("Note color","\u7B14\u8BB0\u989C\u8272")),It,xt,Ct,At,St,_e),fe.addEventListener("change",()=>{Ue(fe.files),fe.value=""}),[St,N].forEach(x=>{x.addEventListener("dragover",C=>C.preventDefault()),x.addEventListener("drop",C=>{C.preventDefault(),Ue(C.dataTransfer.files)}),x.addEventListener("paste",C=>{const R=Array.from(C.clipboardData?.files||[]);R.length&&(C.preventDefault(),Ue(R))})});const kt=p("div",{class:"lm-ui lm-toast-region","aria-live":"polite","data-lm-ignore":""});document.body.append(e,I,w,ee,kt),t.ui={toolbar:e,toggle:I,manager:w,search:S,list:U,editor:ee,blockType:F,textarea:N,blocks:O,question:ue,surface:te,alt:xt,decorative:Et,images:At,save:_e.lastElementChild,status:_,importInput:k,toasts:kt}}function Y(){t.ui.toolbar?.querySelectorAll(".lm-style-menu,.lm-color-menu").forEach(e=>{e.hidden=!0}),t.ui.toolbar?.querySelectorAll(".lm-style-menu-button,.lm-color-menu-button").forEach(e=>e.setAttribute("aria-expanded","false"))}function ot(e){const o=e==="style"?".lm-style-menu":".lm-color-menu",n=e==="style"?".lm-style-menu-button":".lm-color-menu-button",s=t.ui.toolbar.querySelector(o),r=t.ui.toolbar.querySelector(n),i=s.hidden;Y(),s.hidden=!i,r.setAttribute("aria-expanded",`${i}`),i&&s.classList.toggle("lm-menu-up",r.getBoundingClientRect().bottom+s.scrollHeight+12>innerHeight)}function Gt(e){const o=Array.from(t.ui.toolbar.querySelectorAll("button:not([disabled]),input:not([disabled])")),n=o.indexOf(document.activeElement);if(e.key==="Tab"&&document.activeElement===t.ui.toolbar)e.preventDefault(),o[0]?.focus();else if(e.key==="ArrowRight"||e.key==="ArrowLeft"){e.preventDefault();const s=e.key==="ArrowRight"?1:-1;o[(Math.max(0,n)+s+o.length)%o.length]?.focus()}else e.key==="Escape"&&(e.preventDefault(),Y(),j(),t.root?.focus?.())}function st(e){return Array.from(e.querySelectorAll("button,input,select,textarea,[tabindex]")).filter(o=>o.offsetParent&&!o.disabled)}function Ht(e){if(e.key==="Escape"){e.preventDefault(),V();return}if(e.key!=="Tab"||innerWidth>=768)return;const o=st(t.ui.manager);o.length&&(e.shiftKey&&document.activeElement===o[0]?(e.preventDefault(),o[o.length-1].focus()):!e.shiftKey&&document.activeElement===o[o.length-1]&&(e.preventDefault(),o[0].focus()))}function Xt(){t.ui.manager.classList.contains("open")?V():Vt()}function Vt(){Se("manager")&&(t.ui.lastFocus=document.activeElement,t.ui.manager.classList.add("open"),t.ui.manager.setAttribute("aria-modal",innerWidth<768?"true":"false"),t.ui.manager.dataset.layout=innerWidth<768?"bottom-sheet":"floating",$e(),innerWidth<768&&st(t.ui.manager)[0]?.focus())}function rt(e){return`${e.color==="custom"?e.customColor:e.color} / ${e.markType==="highlight"?"highlight":e.lineStyle}`}function $e(){if(!t.ui.list)return;const e=be(t.ui.search.value).toLowerCase();t.ui.list.textContent="";const o=t.notes.filter(n=>{const s=t.annotations.find(i=>i.id===n.annotationId)||{},r=`${Q(n)} ${s.anchor?.exact||""}`.toLowerCase();return!e||r.includes(e)});if(!o.length){t.ui.list.appendChild(p("p",{class:"lm-empty"},h("No notes yet. Select teaching text to start.","\u8FD8\u6CA1\u6709\u7B14\u8BB0\u3002\u9009\u62E9\u8BFE\u4EF6\u539F\u6587\u5373\u53EF\u5F00\u59CB\u3002")));return}o.forEach(n=>{const s=t.annotations.find(u=>u.id===n.annotationId)||{},i=(n.groupId?t.annotations.filter(u=>u.groupId===n.groupId):[s]).map(u=>u.anchor?.exact).filter(Boolean).join(" ... ")||h("Unbound source","\u672A\u7ED1\u5B9A\u539F\u6587"),l=M(n.surfaceColor,"#FFFFFF"),a=p("article",{class:"lm-note-card",testid:"lm-note-card","data-surface":l,style:`--lm-note-surface:${l};--lm-note-fg:${ve(l)}`});a.appendChild(p("div",{class:"lm-note-source"},i)),a.appendChild(p("div",{class:"lm-note-meta"},`${rt(s)}${n.tag==="question"?" / question":""}${s.orphaned?" / orphaned":""}`));const c=p("div",{class:"lm-note-body"});if(Ze(c,n.blocks||[{type:"paragraph",text:Q(n)}]),a.appendChild(c),(n.assetIds||[]).length){const u=p("div",{class:"lm-note-images"});tt(u,n.assetIds),a.appendChild(u)}const d=p("div",{class:"lm-note-actions"});d.append(b(h("Jump","\u8DF3\u56DE"),"lm-note-jump",()=>Te(s.id)),b(h("Edit","\u7F16\u8F91"),"lm-note-edit",()=>{t.activeId=s.id,Ne()}),b(h("Copy","\u590D\u5236"),"lm-note-copy",()=>ht(n)),b(h("Delete","\u5220\u9664"),"lm-note-delete",()=>Qt(n.id))),s.orphaned&&d.appendChild(b(h("Rebind","\u91CD\u65B0\u7ED1\u5B9A"),"lm-note-rebind",()=>{t.rebindId=s.id,V(),E("Select the replacement source text.")})),a.appendChild(d),a.addEventListener("click",u=>{u.target.closest("button")||Te(s.id)}),t.ui.list.appendChild(a)})}function Te(e){const o=Fe().find(r=>r.annotation.id===e),n=o?.scope?.element;if(!o||!n)return;Yt(n);const s=o.range.getBoundingClientRect();scrollTo({top:Math.max(0,s.top+scrollY-innerHeight*.28),behavior:"smooth"}),Kt(o.range)}function Yt(e){let o=e;for(;o&&o!==document.body;){o.tagName==="DETAILS"&&(o.open=!0),o.classList?.contains("accordion")&&!o.classList.contains("open")&&o.querySelector(".accordion-header")?.click();const n=o.closest?.("[hidden]");n&&(n.hidden=!1),o=o.parentElement}}function Kt(e){const o=p("div",{class:"lm-flash","data-lm-ignore":""}),n=e.getBoundingClientRect();Object.assign(o.style,{left:`${n.left+scrollX}px`,top:`${n.top+scrollY}px`,width:`${n.width}px`,height:`${Math.max(18,n.height)}px`}),document.body.appendChild(o),setTimeout(()=>o.remove(),1200)}function Ne(){t.activeId||G({});const e=t.annotations.find(s=>s.id===t.activeId);if(!e)return;const o=Qe(e);if(t.editorReturnFocus=document.activeElement,!Se("editor"))return;t.editingNoteId=o?.id||null,t.pendingAssets=o?t.assets.filter(s=>(o.assetIds||[]).includes(s.id)):[],t.pendingBlocks=o?D(o.blocks||[{type:"paragraph",text:o.text||""}]):[],t.ui.textarea.value="",t.ui.question.checked=o?.tag==="question",t.ui.surface.value=M(o?.surfaceColor,"#FFFFFF"),t.ui.alt.value="",t.ui.decorative.checked=!1,Be(),Pe();const n=at(e)||{left:innerWidth/2-160,top:96};t.ui.editor.classList.add("open"),t.ui.editor.setAttribute("aria-hidden","false"),t.ui.editor.dataset.layout=innerWidth<768?"bottom-sheet":"anchored",ae(t.ui.editor,{left:n.left,top:n.top,bottom:n.bottom??n.top},{width:380}),t.editorSnapshot=Ae(),t.ui.textarea.focus()}function at(e){return Fe().find(n=>n.annotation.id===e.id)?.range?.getBoundingClientRect()}function it(){const e=t.ui.textarea.value.trim();e&&(t.pendingBlocks.push({type:t.ui.blockType.value,text:e}),t.ui.textarea.value="",Be())}function Be(){t.ui.blocks.textContent="",t.pendingBlocks.filter(e=>e.type!=="image").forEach((e,o)=>{const n=p("div",{class:"lm-note-block"});n.append(p("span",{},`${e.type}: ${e.text}`),b("Remove block",null,()=>{t.pendingBlocks.splice(o,1),Be()},{class:"lm-remove-button"})),t.ui.blocks.appendChild(n)})}function Pe(){t.ui.images.textContent="",t.pendingAssets.forEach(e=>{const o=p("div",{class:"lm-image-card"});o.append(p("img",{src:e.dataUrl,alt:e.decorative?"":e.alt||e.name||"note image"}),b("Remove image",null,()=>{t.pendingAssets=t.pendingAssets.filter(n=>n.id!==e.id),t.assets=t.assets.filter(n=>n.id!==e.id||t.notes.some(s=>(s.assetIds||[]).includes(n.id))),Pe()},{class:"lm-remove-button"})),t.ui.images.appendChild(o)})}function Jt(){it();const e=t.pendingAssets.map(i=>({type:"image",assetId:i.id})),o=t.pendingBlocks.filter(i=>i.type!=="image").concat(e);if(!o.length){E("Enter text or add an image before saving.","error");return}const n=t.annotations.find(i=>i.id===t.activeId);if(!n)return;W();let s=t.editingNoteId&&t.notes.find(i=>i.id===t.editingNoteId);s||(s={id:q("note"),courseId:t.meta.courseId,lessonId:t.meta.lessonId,annotationId:n.id,text:"",assetIds:[],tag:"note",surfaceColor:"#FFFFFF",createdAt:L(),updatedAt:L()},t.notes.push(s));const r=s.assetIds||[];s.text=o.filter(i=>i.type!=="image").map(i=>i.text).join(`
+
+`),s.blocks=o,s.assetIds=t.pendingAssets.map(i=>i.id),s.tag=t.ui.question.checked?"question":"note",s.surfaceColor=M(t.ui.surface.value,"#FFFFFF"),s.groupId=n.groupId||null,s.updatedAt=L(),t.pendingAssets.forEach(i=>{t.assets.some(l=>l.id===i.id)||t.assets.push(i)}),t.assets=t.assets.filter(i=>!r.includes(i.id)||s.assetIds.includes(i.id)||t.notes.some(l=>l!==s&&(l.assetIds||[]).includes(i.id))),(n.groupId?t.annotations.filter(i=>i.groupId===n.groupId):[n]).forEach(i=>{i.noteId=s.id,i.updatedAt=L()}),P(),clearTimeout(t.saveTimer),X({force:!0}),E("Saving locally..."),Ve()}function Qt(e){const o=t.notes.find(s=>s.id===e);if(!o||!confirm("Delete this note?"))return;W();const n=new Set(o.assetIds||[]);t.notes=t.notes.filter(s=>s.id!==e),t.annotations.forEach(s=>{s.noteId===e&&(s.noteId=null)}),t.assets=t.assets.filter(s=>!n.has(s.id)||t.notes.some(r=>(r.assetIds||[]).includes(s.id))),P(),z()}function lt(e){return e.length>=8&&e[0]===137&&e[1]===80&&e[2]===78&&e[3]===71?"image/png":e.length>=3&&e[0]===255&&e[1]===216&&e[2]===255?"image/jpeg":e.length>=12&&String.fromCharCode(...e.slice(0,4))==="RIFF"&&String.fromCharCode(...e.slice(8,12))==="WEBP"?"image/webp":null}function ct(e){return new Promise((o,n)=>{const s=new FileReader;s.onload=()=>o(s.result),s.onerror=()=>n(s.error),s.readAsDataURL(e)})}function dt(e){return window.createImageBitmap?createImageBitmap(e):new Promise((o,n)=>{const s=new Image,r=URL.createObjectURL(e);s.onload=()=>{URL.revokeObjectURL(r),o(s)},s.onerror=()=>{URL.revokeObjectURL(r),n(new Error("Image could not be decoded."))},s.src=r})}async function Zt(e){if(!e||e.size>5242880)throw new Error("Image must be 5 MiB or smaller.");const o=new Uint8Array(await e.arrayBuffer()),n=lt(o);if(!n)throw new Error("Unsupported image. Use PNG, JPEG, or WebP.");const s=await dt(new Blob([o],{type:n})),r=s.width||s.naturalWidth,i=s.height||s.naturalHeight;if(!r||!i||r*i>12582912)throw s.close?.(),new Error("Decoded image exceeds 12 MP.");const l=Math.min(1,1920/Math.max(r,i)),a=document.createElement("canvas");a.width=Math.max(1,Math.round(r*l)),a.height=Math.max(1,Math.round(i*l)),a.getContext("2d").drawImage(s,0,0,a.width,a.height),s.close?.();const c=await new Promise(d=>a.toBlob(d,n,.9));if(!c)throw new Error("Image re-encode failed.");return{id:q("asset"),courseId:t.meta.courseId,lessonId:t.meta.lessonId,mime:n,name:e.name||"note-image",alt:t.ui.decorative.checked?"":t.ui.alt.value.trim()||e.name||"note image",decorative:!!t.ui.decorative.checked,width:a.width,height:a.height,bytes:c.size,dataUrl:await ct(c),createdAt:L()}}async function Ue(e){const o=Array.from(e||[]);if(o.length){t.ui.save.disabled=!0;try{if(await Xe()>=.85)throw new Error("Storage is above 85%. Delete or export images before adding more.");for(const n of o){const s=await Zt(n);t.pendingAssets.push(s)}Pe(),E("Image processed. Save the note to persist it.")}catch(n){E(n.message||"Image rejected.","error")}finally{t.ui.save.disabled=!1}}}function ut(e){const o=e.indexOf(","),n=atob(e.slice(o+1)),s=new Uint8Array(n.length);for(let r=0;r<n.length;r+=1)s[r]=n.charCodeAt(r);return s}function B(e,o,n){e.setUint16(o,n,!0)}function $(e,o,n){e.setUint32(o,n>>>0,!0)}function pt(e){return parseInt(Ie(e),16)>>>0}function en(e){const o=[],n=[];let s=0;e.forEach(u=>{const f=oe(u.name),g=u.data,m=pt(g),y=new Uint8Array(30+f.length),I=new DataView(y.buffer);$(I,0,67324752),B(I,4,20),B(I,6,2048),B(I,8,0),$(I,14,m),$(I,18,g.length),$(I,22,g.length),B(I,26,f.length),y.set(f,30),o.push(y,g);const w=new Uint8Array(46+f.length),v=new DataView(w.buffer);$(v,0,33639248),B(v,4,20),B(v,6,20),B(v,8,2048),B(v,10,0),$(v,16,m),$(v,20,g.length),$(v,24,g.length),B(v,28,f.length),$(v,42,s),w.set(f,46),n.push(w),s+=y.length+g.length});const r=n.reduce((u,f)=>u+f.length,0),i=new Uint8Array(22),l=new DataView(i.buffer);$(l,0,101010256),B(l,8,e.length),B(l,10,e.length),$(l,12,r),$(l,16,s);const a=o.concat(n,[i]),c=new Uint8Array(a.reduce((u,f)=>u+f.length,0));let d=0;return a.forEach(u=>{c.set(u,d),d+=u.length}),c}function ft(e,o){const n=p("a",{href:URL.createObjectURL(e),download:o});document.body.appendChild(n),n.click(),n.remove(),setTimeout(()=>URL.revokeObjectURL(n.href),1e3)}function tn(){return{schema:me,version:1,courseId:t.meta.courseId,lessonId:t.meta.lessonId,contentFingerprint:t.meta.contentFingerprint||null,exportedAt:L(),annotations:D(t.annotations),notes:D(t.notes),assets:t.assets.map(e=>({id:e.id,mime:e.mime,name:e.name,alt:e.alt,decorative:!!e.decorative,width:e.width,height:e.height,bytes:e.bytes}))}}function Re(){const e=tn(),o=[{name:"manifest.json",data:oe(JSON.stringify({schema:e.schema,version:1,courseId:e.courseId,lessonId:e.lessonId,exportedAt:e.exportedAt}))},{name:"notes.json",data:oe(JSON.stringify(e))}];t.assets.forEach(s=>o.push({name:`assets/${s.id}.${s.mime==="image/png"?"png":s.mime==="image/jpeg"?"jpg":"webp"}`,data:ut(s.dataUrl)}));const n=`${t.meta.topic||"learnmap"}`.replace(/[\\/:*?"<>|]+/g,"-");ft(new Blob([en(o)],{type:"application/vnd.learnmap.notes+zip"}),`${n}-${t.meta.lessonId}-notes.learnmap`),J("Package exported. It may contain personal notes and screenshots.")}function nn(e){if(e.length>67108864)throw new Error("Package is too large.");const o=new Map,n=new Map;let s=0,r=0;for(;s+30<=e.length&&new DataView(e.buffer,e.byteOffset+s,4).getUint32(0,!0)===67324752;){const g=new DataView(e.buffer,e.byteOffset+s),m=g.getUint16(6,!0),y=g.getUint16(8,!0),I=g.getUint32(14,!0),w=g.getUint32(18,!0),v=g.getUint16(26,!0),A=g.getUint16(28,!0);if((m&-2049)!==0||y!==0)throw new Error("Encrypted, descriptor, or compressed packages are not supported.");const S=new TextDecoder().decode(e.slice(s+30,s+30+v));if(!S||S.includes("..")||S.startsWith("/")||S.includes("\\")||o.has(S))throw new Error("Invalid package path.");const U=s+30+v+A,T=e.slice(U,U+w);if(T.length!==w||pt(T)!==I)throw new Error("Package CRC validation failed.");if(o.set(S,T),n.set(S,{crc:I,size:w,offset:s}),r+=w,o.size>1002||r>67108864)throw new Error("Package entry limit exceeded.");s=U+w}let i=-1;for(let g=e.length-22,m=Math.max(0,e.length-65557);g>=m;g-=1)if(new DataView(e.buffer,e.byteOffset+g,4).getUint32(0,!0)===101010256){i=g;break}if(i<0)throw new Error("Package central directory is missing.");const l=new DataView(e.buffer,e.byteOffset+i),a=l.getUint16(10,!0),c=l.getUint32(12,!0),d=l.getUint32(16,!0);if(a!==o.size||d+c!==i)throw new Error("Central directory count or offset is invalid.");let u=d;const f=new Set;for(let g=0;g<a;g+=1){if(u+46>i||new DataView(e.buffer,e.byteOffset+u,4).getUint32(0,!0)!==33639248)throw new Error("Central directory is corrupt.");const m=new DataView(e.buffer,e.byteOffset+u),y=m.getUint16(8,!0),I=m.getUint16(10,!0),w=m.getUint32(16,!0),v=m.getUint32(20,!0),A=m.getUint16(28,!0),S=m.getUint16(30,!0),U=m.getUint16(32,!0),T=m.getUint32(42,!0),_=new TextDecoder().decode(e.slice(u+46,u+46+A)),k=n.get(_);if((y&-2049)!==0||I!==0||!k||k.crc!==w||k.size!==v||k.offset!==T||f.has(_))throw new Error("Central directory does not match local entries.");f.add(_),u+=46+A+S+U}if(!o.has("manifest.json")||!o.has("notes.json"))throw new Error("Package must include manifest.json and notes.json.");return o}async function mt(e){try{const o=new Uint8Array(await e.arrayBuffer()),n=e.type==="application/json"||/\.json$/i.test(e.name||""),s=n?null:nn(o),r=JSON.parse(new TextDecoder().decode(n?o:s.get("notes.json"))),i=ze(r);if(!i.ok)throw new Error(i.errors.join(" "));const l=i.value,a=n?{schema:l.schema,version:l.version,courseId:l.courseId,lessonId:l.lessonId}:JSON.parse(new TextDecoder().decode(s.get("manifest.json")));if(!a||a.schema!==me||a.version!==1||a.courseId!==l.courseId||a.lessonId!==l.lessonId)throw new Error("Manifest and note data do not match.");const c=[];if(n){if(l.assets.length)throw new Error("JSON imports cannot contain binary image assets. Use a .learnmap package.")}else{const u=new Set(["manifest.json","notes.json"]);if(l.assets.forEach(f=>u.add(`assets/${f.id}.${f.mime==="image/png"?"png":f.mime==="image/jpeg"?"jpg":"webp"}`)),s.size!==u.size||Array.from(s.keys()).some(f=>!u.has(f)))throw new Error("Package contains undeclared or missing entries.");for(const f of l.assets){const g=`assets/${f.id}.${f.mime==="image/png"?"png":f.mime==="image/jpeg"?"jpg":"webp"}`,m=s.get(g);if(!m||m.length>5242880||m.length!==f.bytes||lt(m)!==f.mime)throw new Error("Image signature, size, or reference is invalid.");const y=await dt(new Blob([m],{type:f.mime})),I=y.width||y.naturalWidth,w=y.height||y.naturalHeight;if(!I||!w||I*w>12582912||I!==f.width||w!==f.height)throw y.close?.(),new Error("Image dimensions are invalid.");y.close?.(),c.push({...f,courseId:t.meta.courseId,lessonId:t.meta.lessonId,dataUrl:await ct(new Blob([m],{type:f.mime}))})}}const d={annotations:l.annotations.map(u=>ie({...u,courseId:t.meta.courseId,lessonId:t.meta.lessonId})),notes:l.notes.map(u=>({...u,courseId:t.meta.courseId,lessonId:t.meta.lessonId,surfaceColor:M(u.surfaceColor,"#FFFFFF")})),assets:c,settings:t.settings};return t.db&&await ke(d),W(),t.annotations=d.annotations,t.notes=d.notes,t.assets=d.assets,P(),z(),E("Package imported."),{ok:!0,summary:yt()}}catch(o){throw E(`Import failed: ${o.message||o}`,"error"),o}}function gt(){const e=["# LearnMap Learning Notes","",`- Course: ${t.meta.topic||""}`,`- Lesson: ${t.meta.lessonId}`,`- Exported: ${L()}`,""];t.notes.forEach((o,n)=>{const s=t.annotations.find(r=>r.id===o.annotationId);e.push(`## ${n+1}. ${s?.anchor?.exact||"Unbound source"}`,"",Q(o),"",`- Style: ${s?rt(s):"-"}`,`- Images: ${(o.assetIds||[]).length}`,"")}),ft(new Blob([e.join(`
+`)],{type:"text/markdown;charset=utf-8"}),`${`${t.meta.topic||"learnmap"}`.replace(/[\\/:*?"<>|]+/g,"-")}-notes.md`)}async function ht(e){const o=Q(e),n=(e.assetIds||[]).map(s=>t.assets.find(r=>r.id===s)).filter(Boolean);try{if(window.isSecureContext&&window.ClipboardItem&&navigator.clipboard?.write&&n.length){const s=a=>`${a}`.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]),r=`<p>${s(o).replace(/\n/g,"<br>")}</p>${n.map(a=>`<img src="${a.dataUrl}" alt="${s(a.alt||a.name||"note image")}">`).join("")}`,i=n[0],l=new ClipboardItem({"text/plain":new Blob([o],{type:"text/plain"}),"text/html":new Blob([r],{type:"text/html"}),[i.mime]:new Blob([ut(i.dataUrl)],{type:i.mime})});await navigator.clipboard.write([l]),E("Copied note text and images.");return}await navigator.clipboard.writeText(o),E(n.length?"Copied text only. Image clipboard writes require ClipboardItem in a secure context.":"Copied note text.")}catch{try{await navigator.clipboard.writeText(o),E(n.length?"Copied text only after image clipboard failed.":"Copied note text.")}catch{E("Clipboard copy failed.","error")}}}async function Oe(){if(confirm("Export a full note backup before clearing?")&&Re(),!confirm("Confirm permanent deletion of this lesson's annotations and notes. Learning progress is preserved."))return!1;try{t.db&&await ke({annotations:[],notes:[],assets:[],settings:t.settings})}catch{return E("Clear failed. Existing notes were preserved.","error"),!1}return W(),t.annotations=[],t.notes=[],t.assets=[],t.activeId=null,P(),X(),E("Lesson annotations and notes cleared."),!0}function yt(){const e=t.annotations.concat(t.notes).reduce((o,n)=>{const s=`${n.updatedAt||n.createdAt||""}`;return s>o?s:o},"");return{underlineCount:t.annotations.filter(o=>o.markType!=="highlight").length,highlightCount:t.annotations.filter(o=>o.markType==="highlight").length,noteCount:t.notes.length,imageCount:t.notes.reduce((o,n)=>o+(n.assetIds||[]).length,0),questionNoteCount:t.notes.filter(o=>o.tag==="question").length,orphanedCount:t.annotations.filter(o=>o.orphaned).length,updatedAt:e||null}}function P(){Je(),$e()}function De(e={}){return t.initialized||(t.meta={courseId:"learnmap-course",topic:"LearnMap",lessonId:location.pathname||"lesson",annotationRuntimeVersion:"2",...e},t.root=document.querySelector("[data-lm-annotatable]")||document.querySelector(".main")||document.body,!t.root)||(t.initialized=!0,zt(),P(),ce(),document.addEventListener("mouseup",Rt),document.addEventListener("click",o=>{t.ui.popover?.dataset.pinned==="true"&&!o.target.closest(".lm-note-popover,.lm-note-hit")&&H({restoreFocus:!0}),o.target.closest(".lm-menu-wrap")||Y()}),document.addEventListener("keyup",o=>{o.key==="Escape"&&(j(),H({restoreFocus:!0}),t.ui.editor?.classList.contains("open")?X():t.ui.manager?.classList.contains("open")&&V())}),document.addEventListener("keydown",o=>{if((o.ctrlKey||o.metaKey)&&o.key.toLowerCase()==="z"&&!/textarea|input/i.test(document.activeElement?.tagName||"")){const n=t.undo.pop();n&&(o.preventDefault(),t.annotations=n.annotations,t.notes=n.notes,t.assets=n.assets||t.assets,P(),z(),J("Undo complete."))}}),window.addEventListener("resize",()=>{P(),He()}),window.addEventListener("scroll",()=>{window.CSS&&CSS.highlights||Je(),He()},{passive:!0}),window.addEventListener("beforeunload",o=>{t.ui.editor?.classList.contains("open")&&t.editorSnapshot!==Ae()&&(o.preventDefault(),o.returnValue="")}),Pt()),window.LearnMapAnnotations}window.LearnMapAnnotations={version:"2",init:De,getSummary:yt,clearLessonAnnotations:Oe,exportPackage:Re,importPackage:mt,exportMarkdown:gt,__test:{crc32:Ie,buildAnchor:re,resolveAnchor:qe,mergeAnnotations:We,validateImport:ze}};const bt=()=>!window.LESSON_META||window.LESSON_META.annotationEnabled!==!1;document.readyState==="loading"?document.addEventListener("DOMContentLoaded",()=>{bt()&&De(window.LESSON_META||{})},{once:!0}):bt()&&De(window.LESSON_META||{})})();
+</script>
+<!-- LEARNMAP_COURSEWARE_RUNTIME_END -->
+</head>
+<body>
+
+<div class="topbar">
+  <div class="breadcrumb">AI Agent / <span>快速总览</span></div>
+  <h1>AI Agent 框架全景对比</h1>
+  <span class="record-pill" id="recordPill">0% 完成</span>
+  <button onclick="resetLearningProgress()">重置学习进度</button>
+</div>
+
+<nav class="toc" id="toc">
+  <a href="#s0">0. 五层架构地图</a>
+  <a href="#s1">1. 什么是Agent框架</a>
+  <a href="#s2">2. 五层架构详解</a>
+  <a href="#s3">3. 六大框架深度对比</a>
+  <a href="#s4">4. 实战代码示例</a>
+  <a href="#s5">5. 常见误区与选型边界</a>
+  <a href="#s6">6. 掌握检查</a>
+  <a href="#s7">7. 结课卡</a>
+</nav>
+
+<div class="main" data-lm-annotatable>
+
+<!-- s0: Five-Layer Map -->
+<div class="section" id="s0" data-lm-scope="s0">
+  <h2>0. AI Agent 框架全景：五层架构地图</h2>
+  <p class="subtitle">从裸API调用到成品工具，一张图看清所有选项的定位</p>
+
+  <p>构建AI Agent时，你面对的不是"选哪个框架"的单选题，而是<strong>在五层架构中定位自己的需求</strong>。不同层级对应不同的<strong>控制粒度</strong>、<strong>抽象程度</strong>和<strong>运维复杂度</strong>。</p>
+
+  <div class="layer-map">
+    <div class="layer-row l1">
+      <span class="layer-num">L1</span>
+      <span class="layer-name">直接API层</span>
+      <span class="layer-desc">OpenAI SDK + Responses API / Anthropic Messages API — 应用自行管理工具循环和状态</span>
+    </div>
+    <div class="layer-row l2">
+      <span class="layer-num">L2</span>
+      <span class="layer-name">通用框架层</span>
+      <span class="layer-desc">Pydantic AI — 模型/提供商无关，类型化输出，内置Agent循环和MCP集成</span>
+    </div>
+    <div class="layer-row l3">
+      <span class="layer-num">L3</span>
+      <span class="layer-name">专用SDK层</span>
+      <span class="layer-desc">Claude Agent SDK / OpenAI Codex SDK — 暴露特定产品内部工具循环和能力</span>
+    </div>
+    <div class="layer-row l4">
+      <span class="layer-num">L4</span>
+      <span class="layer-name">成品工具层</span>
+      <span class="layer-desc">Claude Code — 开箱即用的Agentic Coding产品，CLI/IDE体验</span>
+    </div>
+    <div class="layer-row l5">
+      <span class="layer-num">L5</span>
+      <span class="layer-name">传输集成层</span>
+      <span class="layer-desc">MCP协议 / JSON-RPC / stdio — 可选的编排路径，非默认架构</span>
+    </div>
+  </div>
+
+  <div class="def-box">
+    <strong>核心判断轴：</strong>选择Agent方案时，沿三条轴评估——<strong>产品 vs SDK vs 框架 vs 传输</strong>。产品开箱即用但定制有限；SDK暴露能力但绑定特定生态；框架抽象通用但学习成本高；传输层是管道而非方案本身。
+  </div>
+
+  <p style="margin-top:12px;color:var(--muted);font-size:0.84rem;">本课目标：30分钟内建立AI Agent框架选型的完整心智模型，能独立判断"什么场景该用哪一层"。</p>
+</div>
+
+<!-- s1: What is an Agent Framework -->
+<div class="section" id="s1" data-lm-scope="s1">
+  <h2>1. 什么是AI Agent框架？</h2>
+  <p class="subtitle">从"调用一次LLM"到"LLM自主调用工具并循环决策"</p>
+
+  <p>一个<span class="term-hint">AI Agent<span class="tooltip">能够自主感知环境、做出决策、调用工具并迭代执行以完成目标的AI系统</span></span>和"调用一次ChatGPT API"的本质区别在于<strong>工具调用循环（Tool Loop）</strong>。普通API调用是"一问一答"；Agent则是"LLM判断→选择工具→执行工具→观察结果→再判断→……→最终回复"。</p>
+
+  <div class="warn-box">
+    <strong>关键区分：</strong>并不是所有带"Agent"字样的东西都是Agent框架。<strong>Claude Code</strong>首先是成品工具（product），不应被当成通用业务Agent框架；若要编程复用其Agent循环与工具能力，应使用<strong>Claude Agent SDK</strong>。<strong>Pydantic AI</strong>则是通用Agent框架，不与任何单一提供商绑定。
+  </div>
+
+  <div class="def-box" style="margin-top:12px;">
+    <strong><span class="term-hint">Agent框架<span class="tooltip">提供工具定义、LLM调用、工具执行循环、上下文管理等基础设施的软件开发包</span></span> 的四个必备能力：</strong>
+    <p style="margin-top:6px;">① <strong>工具定义与注册</strong> — 声明Agent可以调用哪些函数/API<br>
+    ② <strong>LLM调用与解析</strong> — 发送请求并解析LLM返回的工具调用指令<br>
+    ③ <strong>工具执行循环</strong> — 执行工具→获取结果→送回LLM→判断是否继续<br>
+    ④ <strong>上下文与状态管理</strong> — 在多轮工具调用中维护对话历史和中间状态</p>
+  </div>
+
+  <table class="comparison-table" style="margin-top:14px;">
+    <tr><th>对比维度</th><th>直接API调用</th><th>Agent框架/SDK</th><th>成品Agent工具</th></tr>
+    <tr><td>工具循环归属</td><td>你的应用代码自行管理</td><td>框架/SDK内置管理</td><td>产品内部封闭管理</td></tr>
+    <tr><td>定制灵活性</td><td>最高，完全控制</td><td>高，通过配置和扩展</td><td>低，受产品功能边界限制</td></tr>
+    <tr><td>开发成本</td><td>高，需手写循环逻辑</td><td>中，框架封装了循环</td><td>极低，开箱即用</td></tr>
+    <tr><td>典型代表</td><td>OpenAI SDK + 自建循环</td><td>Pydantic AI / Claude Agent SDK</td><td>Claude Code</td></tr>
+  </table>
+
+  <p style="margin-top:12px;"><span class="tag-def">核心洞见</span> <strong>选择框架层级 = 选择"控制 vs 便利"的平衡点。</strong>越底层越灵活但越费劲；越上层越省力但越受限。不存在"最好"的层级，只存在"最匹配你当前需求"的层级。</p>
+</div>
+
+<!-- s2: Five-Layer Architecture Detail -->
+<div class="section" id="s2" data-lm-scope="s2">
+  <h2>2. 五层架构详解</h2>
+  <p class="subtitle">每一层的运行方式、进程模型和适用场景</p>
+
+  <section data-quality-evidence="evidence-map">
+  <p style="font-size:0.82rem;color:var(--muted);margin-bottom:8px;"><strong>主张：</strong>AI Agent方案可按"产品/SDK/框架/传输"轴分为五层 → <strong>证据：</strong>官方文档明确区分了各层级的运行边界——Direct API由应用持有循环，Claude Agent SDK启动独立CLI子进程，Codex SDK通过JSON-RPC控制本地app-server → <strong>前提：</strong>基于各产品官方reference的架构描述。</p>
+  </section>
+
+  <div class="accordion" id="accL1">
+    <div class="accordion-header" onclick="toggleAccordion('accL1')">L1 — <span class="term-hint">直接API层<span class="tooltip">应用代码直接调用LLM API，自行实现工具定义、调用解析、循环执行和状态管理</span></span>（OpenAI SDK + Responses API / Anthropic Messages API）</div>
+    <div class="accordion-body">
+      <p><strong>运行方式：</strong>进程内（in-process）。你的Python/TypeScript应用直接<code>pip install openai</code>或<code>pip install anthropic</code>，在代码中调用API。</p>
+      <p><strong>工具循环：</strong><em>你完全拥有。</em>你定义function schema，解析LLM返回的tool_calls，在你的代码中执行对应函数，把结果作为新消息追加到上下文，再调用API——循环直到LLM不再返回tool_calls。</p>
+      <p><strong>状态管理：</strong>你维护消息列表（messages array），每次API调用你决定传哪些历史。</p>
+      <p><strong>适用：</strong>需要<em>最大控制权</em>的场景——定制化工具执行逻辑、特殊的错误处理、与现有业务系统深度集成。</p>
+      <p style="font-size:0.78rem;color:var(--muted);">参考：<a href="https://developers.openai.com/api/docs/quickstart" style="color:var(--accent2);">OpenAI Quickstart</a> · <a href="https://platform.claude.com/docs/en/build-with-claude/working-with-messages" style="color:var(--accent2);">Anthropic Messages API</a></p>
+    </div>
+  </div>
+
+  <div class="accordion" id="accL2">
+    <div class="accordion-header" onclick="toggleAccordion('accL2')">L2 — 通用Agent框架层（Pydantic AI）</div>
+    <div class="accordion-body">
+      <p><strong>运行方式：</strong>进程内（in-process），<code>pip install pydantic-ai</code>，<code>import pydantic_ai</code>。</p>
+      <p><strong>核心特性：</strong>模型/提供商无关（可切换OpenAI、Anthropic、Groq等），<strong>类型化输出</strong>（用Pydantic模型约束LLM响应结构），内置Agent循环（自动处理工具调用的迭代），MCP集成（可作为MCP客户端连接工具服务器）。</p>
+      <p><strong>工具循环：</strong>框架管理。你只需用装饰器注册工具函数，框架自动处理"LLM判断→调用工具→获取结果→继续"的循环。</p>
+      <p><strong>适用：</strong>需要快速构建<em>生产级Agent</em>，想要类型安全和提供商灵活性，不想从头写工具循环。</p>
+      <p style="font-size:0.78rem;color:var(--muted);">参考：<a href="https://pydantic.dev/docs/ai/overview/" style="color:var(--accent2);">Pydantic AI Overview</a></p>
+    </div>
+  </div>
+
+  <div class="accordion" id="accL3">
+    <div class="accordion-header" onclick="toggleAccordion('accL3')">L3 — 专用Agent SDK层（Claude Agent SDK / OpenAI Codex SDK）</div>
+    <div class="accordion-body">
+      <p><strong>Claude Agent SDK：</strong>TypeScript包<code>@anthropic-ai/claude-agent-sdk</code>和Python包<code>claude-agent-sdk</code>。它<strong>启动独立的claude CLI子进程通过stdio通信</strong>——不是进程内调用。它暴露了驱动Claude Code的工具、Agent循环和上下文管理能力，但以SDK形式供你编程调用。注意与Managed Agents区分。</p>
+      <p><strong>OpenAI Codex SDK：</strong>TypeScript包<code>@openai/codex-sdk</code>包装本地codex CLI，通过<strong>stdin/stdout交换JSONL</strong>；Python包<code>openai-codex</code>通过<strong>JSON-RPC控制本地Codex app-server</strong>。Codex-as-MCP-server是可选编排路径，<strong>不是SDK的默认架构</strong>。</p>
+      <p><strong>关键区分：</strong>OpenAI Codex SDK（coding-agent专用SDK）≠ OpenAI Agents SDK（通用编排框架）。前者针对代码生成场景，后者是通用Agent编排。</p>
+      <p style="font-size:0.78rem;color:var(--muted);">参考：<a href="https://code.claude.com/docs/en/agent-sdk/overview" style="color:var(--accent2);">Claude Agent SDK</a> · <a href="https://learn.chatgpt.com/docs/codex-sdk" style="color:var(--accent2);">OpenAI Codex SDK</a></p>
+    </div>
+  </div>
+
+  <div class="accordion" id="accL4">
+    <div class="accordion-header" onclick="toggleAccordion('accL4')">L4 — 成品工具层（Claude Code）</div>
+    <div class="accordion-body">
+      <p><strong>本质：</strong>一个<em>已完成的Agentic Coding产品</em>，提供CLI和IDE体验。它可交互使用，也可脚本化处理软件工程任务，但本身不是用来抽象任意业务Agent的通用框架；构建客服或数据分析Agent应选通用框架，编程复用Claude Code能力则使用Claude Agent SDK。</p>
+      <p><strong>提供商支持：</strong>支持第三方提供商路由访问Claude模型。不要简单标签化为"仅限Anthropic"。</p>
+      <p><strong>适用：</strong>开发者需要<em>直接使用</em>一个强大的AI编码助手，而非构建新的Agent系统。</p>
+      <p style="font-size:0.78rem;color:var(--muted);">参考：<a href="https://code.claude.com/docs/en/overview" style="color:var(--accent2);">Claude Code Overview</a></p>
+    </div>
+  </div>
+
+  <div class="accordion" id="accL5">
+    <div class="accordion-header" onclick="toggleAccordion('accL5')">L5 — 传输/集成层（MCP / JSON-RPC / stdio）</div>
+    <div class="accordion-body">
+      <p><strong>MCP（Model Context Protocol）：</strong>一个开放协议，定义了LLM与外部工具/数据源之间的通信标准。Pydantic AI内置MCP集成。Codex-as-MCP-server是Codex的<em>可选</em>编排路径——你可以把Codex作为MCP服务器使用，但这不是Codex SDK的默认工作方式。</p>
+      <p><strong>JSON-RPC / stdio：</strong>Claude Agent SDK使用stdio启动子进程通信；OpenAI Codex Python SDK使用JSON-RPC控制app-server。这些都是<em>传输机制</em>，不是Agent方案本身。</p>
+      <p><strong>关键认知：</strong>传输层是你<em>连接</em>Agent组件的方式，不是你<em>选择</em>的Agent方案。先确定你需要的Agent层级（L1-L4），再考虑传输方式。</p>
+    </div>
+  </div>
+
+  <!-- Domain Interactive: Agent Tool-Calling Loop Stepper -->
+  <div class="domain-interactive stepper" id="stepper">
+    <h3 style="color:var(--accent2);margin-bottom:4px;">交互演示：Agent 工具调用循环</h3>
+    <p class="subtitle">点击"下一步"观察一个典型Agent如何处理"北京天气"查询。蓝色=LLM推理，青色=工具调用，橙色=上下文状态。</p>
+    <div class="stepper-panels">
+      <div class="stepper-col"><h4>LLM 推理层</h4><div class="stepper-box" id="stepperStack"></div></div>
+      <div class="stepper-col"><h4>工具调用队列</h4><div class="stepper-box" id="stepperMicro"></div></div>
+      <div class="stepper-col"><h4>上下文状态</h4><div class="stepper-box" id="stepperMacro"></div></div>
+    </div>
+    <div><strong style="font-size:0.82rem;">Agent 输出：</strong></div>
+    <div class="stepper-console" id="stepperConsole"></div>
+    <div style="margin-top:10px;">
+      <button class="stepper-btn" id="stepperBtn" onclick="stepperNext()">下一步</button>
+      <button class="stepper-btn" style="background:var(--muted);" onclick="stepperReset()">重置</button>
+    </div>
+    <p style="font-size:0.78rem;color:var(--muted);margin-top:6px;">演示流程：用户查询 → LLM判断需调用工具 → 执行get_weather("北京") → 工具返回数据 → LLM综合回复 → 最终答案</p>
+  </div>
+</div>
+
+<!-- s3: Comparison Table -->
+<div class="section" id="s3" data-lm-scope="s3">
+  <h2>3. 六大方案深度对比</h2>
+  <p class="subtitle">产品 vs SDK vs 框架 vs 传输 — 一张表看清所有差异</p>
+
+  <section data-quality-evidence="evidence-map">
+  <p style="font-size:0.82rem;color:var(--muted);margin-bottom:8px;"><strong>主张：</strong>按产品/SDK/框架/传输轴区分六大方案能准确指导选型 → <strong>证据：</strong>各官方文档对运行方式（in-process/subprocess/CLI product）有明确描述 → <strong>前提：</strong>基于2025年各产品官方reference的最新架构信息。</p>
+  </section>
+
+  <table class="comparison-table">
+    <tr>
+      <th>方案</th>
+      <th>类型</th>
+      <th>语言</th>
+      <th>运行方式</th>
+      <th>工具循环归属</th>
+      <th>状态管理</th>
+      <th>适用场景</th>
+    </tr>
+    <tr>
+      <td><strong>OpenAI SDK + Responses API</strong></td>
+      <td><span class="tag-def">直接API</span></td>
+      <td>Python / TS</td>
+      <td>进程内</td>
+      <td>应用自行管理</td>
+      <td>应用维护messages数组</td>
+      <td>需要最大控制权的定制Agent</td>
+    </tr>
+    <tr>
+      <td><strong>Anthropic Messages API</strong></td>
+      <td><span class="tag-def">直接API</span></td>
+      <td>Python / TS</td>
+      <td>进程内</td>
+      <td>应用自行管理</td>
+      <td>应用维护context</td>
+      <td>深度集成Claude的定制Agent</td>
+    </tr>
+    <tr>
+      <td><strong>Pydantic AI</strong></td>
+      <td><span class="tag-eg">通用框架</span></td>
+      <td>Python</td>
+      <td>进程内</td>
+      <td>框架内置</td>
+      <td>框架管理</td>
+      <td>快速构建生产级、多模型Agent</td>
+    </tr>
+    <tr>
+      <td><strong>Claude Code</strong></td>
+      <td><span class="tag-warn">成品工具</span></td>
+      <td>CLI / IDE</td>
+      <td>独立产品</td>
+      <td>产品内部封闭</td>
+      <td>产品内部管理</td>
+      <td>直接使用AI编码助手</td>
+    </tr>
+    <tr>
+      <td><strong>Claude Agent SDK</strong></td>
+      <td><span class="tag-eg">专用SDK</span></td>
+      <td>Python / TS</td>
+      <td>启动独立CLI子进程（stdio）</td>
+      <td>SDK管理</td>
+      <td>SDK+子进程管理</td>
+      <td>编程调用Claude Code能力</td>
+    </tr>
+    <tr>
+      <td><strong>OpenAI Codex SDK</strong></td>
+      <td><span class="tag-eg">专用SDK</span></td>
+      <td>Python / TS</td>
+      <td>JSONL stdio 或 JSON-RPC</td>
+      <td>SDK管理</td>
+      <td>SDK+本地app-server</td>
+      <td>Coding-agent编程集成</td>
+    </tr>
+  </table>
+
+  <div class="formula">
+    选型公式：需求类型 → 对应层级 → 具体方案<br>
+    定制Agent = L1/L2 · 编码助手 = L3/L4 · 快速体验 = L4
+  </div>
+
+  <div class="accordion" id="accWhySDK">
+    <div class="accordion-header" onclick="toggleAccordion('accWhySDK')">Claude Agent SDK 和 Claude Code 的本质区别是什么？</div>
+    <div class="accordion-body">
+      <p><strong>Claude Code</strong>是面向<em>终端用户</em>的产品——你在终端输入<code>claude</code>，它帮你写代码。它是封闭的、开箱即用的体验。</p>
+      <p><strong>Claude Agent SDK</strong>是面向<em>开发者</em>的编程接口——你在自己的代码中<code>import</code>它，通过它<em>以编程方式</em>驱动一个claude CLI子进程。它暴露了工具、循环和上下文管理能力，让你能把Claude Code的强大能力<em>嵌入</em>到你自己的应用或工作流中。</p>
+      <p>简单类比：Claude Code是"用Photoshop修图"；Claude Agent SDK是"在你的App里调用Photoshop引擎的API做批量修图"。</p>
+    </div>
+  </div>
+
+  <div class="accordion" id="accWhyCodex">
+    <div class="accordion-header" onclick="toggleAccordion('accWhyCodex')">OpenAI Codex SDK ≠ OpenAI Agents SDK，别搞混</div>
+    <div class="accordion-body">
+      <p><strong>OpenAI Codex SDK：</strong>coding-agent专用SDK。TypeScript版通过<code>@openai/codex-sdk</code>包装本地codex CLI，用stdin/stdout交换JSONL；Python版通过<code>openai-codex</code>用JSON-RPC控制本地Codex app-server。专注<em>代码生成</em>场景。</p>
+      <p><strong>OpenAI Agents SDK：</strong>通用Agent编排框架，用于构建各种类型的Agent（客服、分析、自动化等），不限于代码生成。</p>
+      <p><strong>Codex-as-MCP-server</strong>是可选路径——你可以把Codex作为MCP服务器暴露给其他Agent使用。但这不是Codex SDK的默认架构，不要在未验证的情况下假设Codex SDK是HTTP MCP/uvicorn服务。</p>
+    </div>
+  </div>
+
+  <section data-quality-evidence="tradeoffs">
+  <h3 style="color:var(--accent);margin-top:20px;">模型取舍与边界</h3>
+  <table class="comparison-table">
+    <tr><th>维度</th><th>L1 直接API</th><th>L2 通用框架</th><th>L3 专用SDK</th><th>L4 成品工具</th></tr>
+    <tr><td>控制粒度</td><td>极细，每行代码可控</td><td>细，框架提供钩子</td><td>中，SDK封装核心循环</td><td>产品级交互，可配置与脚本化</td></tr>
+    <tr><td>学习成本</td><td>高，需理解完整Agent循环</td><td>中，需学习框架抽象</td><td>中，需学习SDK接口</td><td>低，开箱即用</td></tr>
+    <tr><td>提供商灵活性</td><td>绑定单一API</td><td>模型无关</td><td>绑定特定产品</td><td>绑定产品</td></tr>
+    <tr><td>运维复杂度</td><td>高，需自行管理状态/重试/错误</td><td>中，框架处理大部分</td><td>中，需管理子进程</td><td>极低，产品负责</td></tr>
+    <tr><td>典型故障模式</td><td>状态混乱、循环死锁</td><td>框架配置错误</td><td>子进程通信断开</td><td>产品功能不满足需求</td></tr>
+  </table>
+  </section>
+</div>
+
+<!-- s4: Code Examples -->
+<div class="section" id="s4" data-lm-scope="s4">
+  <h2>4. 实战代码示例</h2>
+  <p class="subtitle">同一任务（查询天气Agent），三种层级的实现对比</p>
+
+  <div class="example-box">
+    <strong>示例 1：L1 — 直接OpenAI API（应用自行管理工具循环）</strong>
+    <pre><code>import openai
+
+client = openai.OpenAI()
+messages = [{"role": "user", "content": "北京今天天气如何？"}]
+
+# 定义工具
+tools = [{
+    "type": "function",
+    "function": {
+        "name": "get_weather",
+        "parameters": {"city": {"type": "string"}}
+    }
+}]
+
+# 应用自行管理循环
+while True:
+    resp = client.responses.create(
+        model="gpt-4o",
+        input=messages,
+        tools=tools
+    )
+    if not resp.tool_calls:
+        break  # LLM不再调用工具，循环结束
+    for tc in resp.tool_calls:
+        if tc.function.name == "get_weather":
+            result = my_weather_func(tc.function.arguments)
+            messages.append({
+                "role": "tool",
+                "tool_call_id": tc.id,
+                "content": str(result)
+            })
+
+print(resp.output_text)  # 最终回复</code></pre>
+    <p style="font-size:0.78rem;color:var(--muted);margin-top:4px;">关键点：<code>while True</code>循环由<strong>你的应用代码</strong>编写和管理。每一步的工具执行、结果追加、循环判断都是你的责任。</p>
+  </div>
+
+  <section data-quality-evidence="execution-chain">
+  <h4 style="color:var(--accent);margin-top:14px;">执行链路追踪（Execution Chain #1）— 直接API的Agent循环</h4>
+  <div style="font-size:0.84rem;line-height:1.9;">
+    <p><strong>Step 1：</strong>应用构建messages，包含用户查询"北京天气"。</p>
+    <p><strong>Step 2：</strong>调用<code>client.responses.create()</code>，传入messages和tools定义。</p>
+    <p><strong>Step 3：</strong>LLM返回tool_calls: [{function: "get_weather", arguments: {city: "北京"}}]。</p>
+    <p><strong>Step 4：</strong>应用代码解析tool_calls，执行<code>my_weather_func("北京")</code>，获得结果<code>{temp: 22}</code>。</p>
+    <p><strong>Step 5：</strong>应用将tool结果作为新消息追加到messages，再次调用API。</p>
+    <p><strong>Step 6：</strong>LLM不再返回tool_calls，返回自然语言回复："北京今天22°C，晴"。</p>
+    <p><strong>循环结束。</strong>整个过程中应用持有并管理所有状态。</p>
+  </div>
+  </section>
+
+  <div class="example-box" style="margin-top:16px;">
+    <strong>示例 2：L2 — Pydantic AI（框架管理工具循环）</strong>
+    <pre><code>from pydantic_ai import Agent
+
+weather_agent = Agent(
+    "openai:gpt-4o",
+    system_prompt="你是一个天气助手。"
+)
+
+@weather_agent.tool
+async def get_weather(city: str) -> str:
+    # 实际调用天气API
+    return f"{city}: 22°C, 晴"
+
+# 一行调用，框架自动处理工具循环
+result = await weather_agent.run("北京今天天气如何？")
+print(result.data)  # "北京今天22°C，晴"</code></pre>
+    <p style="font-size:0.78rem;color:var(--muted);margin-top:4px;">关键点：<strong>没有显式的while循环</strong>。<code>agent.run()</code>内部自动处理了LLM调用→工具执行→结果回传的完整循环。你用装饰器注册工具，框架接管一切。</p>
+  </div>
+
+  <section data-quality-evidence="execution-chain">
+  <h4 style="color:var(--accent);margin-top:14px;">执行链路追踪（Execution Chain #2）— Pydantic AI框架循环</h4>
+  <div style="font-size:0.84rem;line-height:1.9;">
+    <p><strong>Step 1：</strong>调用<code>weather_agent.run("北京今天天气如何？")</code>。</p>
+    <p><strong>Step 2：</strong>框架内部构建prompt，调用OpenAI API（或配置的其他提供商）。</p>
+    <p><strong>Step 3：</strong>LLM返回tool_call: get_weather(city="北京")。</p>
+    <p><strong>Step 4：</strong>框架自动匹配到<code>@weather_agent.tool</code>装饰的<code>get_weather</code>函数，执行它。</p>
+    <p><strong>Step 5：</strong>框架将工具返回值自动追加到上下文，再次调用LLM。</p>
+    <p><strong>Step 6：</strong>LLM综合后返回最终文本。框架将<code>result.data</code>设为回复字符串。</p>
+    <p><strong>关键差异：</strong>所有循环逻辑、状态管理、工具匹配都由框架完成，开发者只需定义工具和调用<code>run()</code>。</p>
+  </div>
+  </section>
+
+  <div class="example-box" style="margin-top:16px;">
+    <strong>示例 3：L3 — Claude Agent SDK（子进程模式）</strong>
+    <pre><code>from claude_agent_sdk import ClaudeAgent
+
+# SDK启动独立claude CLI子进程，通过stdio通信
+agent = ClaudeAgent()
+
+# 编程方式驱动Agent
+result = agent.run(
+    prompt="分析当前目录的代码结构并给出优化建议",
+    working_dir="./my-project"
+)
+print(result.output)
+
+# 注意：这不是进程内调用！
+# agent.run() 启动了独立的 claude 子进程</code></pre>
+    <p style="font-size:0.78rem;color:var(--muted);margin-top:4px;">关键点：<strong>不是进程内调用</strong>。SDK启动独立claude CLI子进程，通过stdio管道交换数据。这提供了进程隔离，但也意味着你需要管理子进程的生命周期。</p>
+  </div>
+
+  <div class="color-legend" style="margin-top:12px;">
+    <span><span class="swatch sync"></span> L1 进程内直接API</span>
+    <span><span class="swatch micro"></span> L2 进程内框架</span>
+    <span><span class="swatch macro"></span> L3 子进程SDK</span>
+  </div>
+</div>
+
+<!-- s5: Misconceptions and Boundaries -->
+<div class="section" id="s5" data-lm-scope="s5">
+  <h2>5. 常见误区与选型边界</h2>
+  <p class="subtitle">这些直觉会让你选错方案，但它们看起来都"说得通"</p>
+
+  <div class="warn-box">
+    <strong><span class="tag-warn">误区 1</span> "Claude Code是Agent框架，我可以基于它构建任何Agent"</strong>
+    <p style="margin-top:6px;">Claude Code首先是面向软件工程的<strong>成品工具</strong>，不是抽象任意业务Agent的通用框架。它支持配置和脚本化使用；如果要在应用中编程复用其Agent循环、工具和上下文管理能力，应使用<strong>Claude Agent SDK</strong>。客服或数据分析Agent则通常选择通用Agent框架。</p>
+  </div>
+
+  <div class="warn-box">
+    <strong><span class="tag-warn">误区 2</span> "OpenAI Codex SDK = OpenAI Agents SDK，选哪个都一样"</strong>
+    <p style="margin-top:6px;">它们是<strong>两个完全不同的产品</strong>。Codex SDK是coding-agent专用SDK，专注于代码生成；Agents SDK是通用Agent编排框架。如果你要构建代码生成Agent用Codex SDK；如果你要构建通用Agent（客服、RAG、工作流编排）用Agents SDK。</p>
+  </div>
+
+  <div class="warn-box">
+    <strong><span class="tag-warn">误区 3</span> "Claude Agent SDK是进程内调用，和Pydantic AI一样"</strong>
+    <p style="margin-top:6px;">不是。Claude Agent SDK<strong>启动独立的claude CLI子进程</strong>，通过stdio通信。这是进程外（out-of-process）模式。Pydantic AI是进程内（in-process）模式，在同一个Python进程中运行。进程外意味着：额外的启动开销、进程间通信延迟、需要管理子进程生命周期——但也有更好的隔离性。</p>
+  </div>
+
+  <div class="warn-box">
+    <strong><span class="tag-warn">误区 4</span> "Codex SDK默认就是MCP/HTTP服务"</strong>
+    <p style="margin-top:6px;">Codex SDK的<strong>默认架构不是</strong>HTTP MCP/uvicorn服务。TypeScript版通过stdin/stdout交换JSONL，Python版通过JSON-RPC控制本地app-server。Codex-as-MCP-server是<strong>可选</strong>编排路径——你<em>可以</em>把Codex配置为MCP服务器，但这不是SDK的默认工作方式。不要在没有验证的情况下假设传输方式。</p>
+  </div>
+
+  <div class="warn-box">
+    <strong><span class="tag-warn">误区 5</span> "选最上层的方案总是最好"</strong>
+    <p style="margin-top:6px;">成品工具（L4）最省力，但<strong>功能边界最严格</strong>。如果你的需求超出了Claude Code的设计范围（比如需要自定义工具、特殊状态管理、嵌入到现有系统），你会被卡住。选型是"控制 vs 便利"的权衡——没有普适最优解。</p>
+  </div>
+
+  <section data-quality-evidence="tradeoffs">
+  <h3 style="color:var(--accent);margin-top:20px;">选型决策树</h3>
+  <div class="decision-tree">
+    <p class="q">Q1: 你需要的是一个可以直接使用的工具，还是需要编程构建Agent？</p>
+    <div class="branch">
+      <p>→ 直接使用工具：<span class="a">→ Claude Code（L4）</span> — 确认你的需求在代码生成范围内</p>
+    </div>
+    <div class="branch">
+      <p>→ 编程构建Agent：继续 Q2</p>
+    </div>
+    <p class="q" style="margin-top:8px;">Q2: 你需要最大控制权，还是希望框架帮你管理工具循环？</p>
+    <div class="branch">
+      <p>→ 最大控制权：<span class="a">→ 直接API层（L1）</span> — OpenAI SDK 或 Anthropic Messages API</p>
+    </div>
+    <div class="branch">
+      <p>→ 希望框架管理循环：继续 Q3</p>
+    </div>
+    <p class="q" style="margin-top:8px;">Q3: 你需要提供商灵活性（切换模型），还是绑定特定生态？</p>
+    <div class="branch">
+      <p>→ 提供商灵活、类型安全：<span class="a">→ Pydantic AI（L2）</span></p>
+    </div>
+    <div class="branch">
+      <p>→ 绑定Claude/Codex生态：继续 Q4</p>
+    </div>
+    <p class="q" style="margin-top:8px;">Q4: 你需要的是编码Agent能力还是通用Agent能力？</p>
+    <div class="branch">
+      <p>→ 编码Agent：<span class="a">→ OpenAI Codex SDK 或 Claude Agent SDK（L3）</span></p>
+    </div>
+    <div class="branch">
+      <p>→ 通用Agent：<span class="a">→ OpenAI Agents SDK 或回到 Pydantic AI（L2）</span></p>
+    </div>
+  </div>
+  </section>
+
+  <section data-quality-evidence="extension-path">
+  <h4 style="color:var(--accent);margin-top:12px;">扩展路径</h4>
+  <p style="font-size:0.84rem;color:var(--muted);">掌握框架选型后，可以深入：Pydantic AI的类型化输出和依赖注入系统、Claude Agent SDK的托管部署（Hosting）、OpenAI Agents SDK的多Agent编排模式、MCP协议的服务端与客户端实现、以及如何将Agent框架与LangChain/LlamaIndex等工具链集成。</p>
+  </section>
+</div>
+
+<!-- s6: Mastery Check -->
+<div class="section" id="s6" data-lm-scope="s6" style="border-color: var(--accent2);">
+  <h2>6. 掌握检查</h2>
+  <p class="subtitle">4 道诊断题，测试你的框架选型理解深度</p>
+
+  <div class="mini-quiz" id="mq1"
+    data-question="以下哪项是成品工具而非Agent框架/SDK？"
+    data-concept="产品 vs 框架 vs SDK 的区分"
+    data-correct="Claude Code"
+    data-retry="回顾 s1 的关键区分：Claude Code首先是成品coding工具，不是通用业务Agent框架。Pydantic AI是通用框架，Claude Agent SDK和OpenAI Codex SDK是专用SDK。"
+    data-review-target="#s1">
+    <p>1. 以下哪项是<strong>成品工具</strong>而非Agent框架/SDK？</p>
+    <button class="opt" onclick="checkMQ('mq1', 0, false)">A. Pydantic AI</button>
+    <button class="opt" onclick="checkMQ('mq1', 1, true)">B. Claude Code</button>
+    <button class="opt" onclick="checkMQ('mq1', 2, false)">C. Claude Agent SDK</button>
+    <button class="opt" onclick="checkMQ('mq1', 3, false)">D. OpenAI Codex SDK</button>
+    <div class="explain" id="mq1-explain" data-default="Claude Code是面向终端用户的成品工具（CLI/IDE），不是供开发者编程调用的框架。Pydantic AI、Claude Agent SDK和OpenAI Codex SDK都属于框架/SDK类别，用于编程构建Agent。">
+      ✅ <strong>正确！</strong>Claude Code首先是开箱即用的成品coding工具；要编程复用其能力应使用Claude Agent SDK。其余三项属于SDK/框架层。
+      <button class="review-link" onclick="event.stopPropagation(); scrollToDetail('s1');">复习 →</button>
+    </div>
+  </div>
+
+  <div class="mini-quiz" id="mq2"
+    data-question="Claude Agent SDK的运行方式是什么？"
+    data-concept="进程模型：in-process vs subprocess vs product"
+    data-correct="启动独立claude CLI子进程，通过stdio通信"
+    data-retry="回顾 s2 L3 和 s5 误区3：Claude Agent SDK启动独立子进程，不是进程内调用。这与Pydantic AI的进程内模式有本质区别。"
+    data-review-target="#s2">
+    <p>2. Claude Agent SDK的运行方式是什么？</p>
+    <button class="opt" onclick="checkMQ('mq2', 0, false)">A. 纯HTTP API调用，与OpenAI SDK相同</button>
+    <button class="opt" onclick="checkMQ('mq2', 1, true)">B. 启动独立claude CLI子进程，通过stdio通信</button>
+    <button class="opt" onclick="checkMQ('mq2', 2, false)">C. 浏览器插件模式</button>
+    <button class="opt" onclick="checkMQ('mq2', 3, false)">D. Python进程内直接调用</button>
+    <div class="explain" id="mq2-explain" data-default="Claude Agent SDK启动独立的claude CLI子进程，通过stdio管道交换数据。这是进程外（out-of-process）架构，提供进程隔离但也带来额外开销。不要与Pydantic AI的进程内模式混淆。">
+      ✅ <strong>正确！</strong>Claude Agent SDK启动独立claude CLI子进程通过stdio通信，是out-of-process模式。
+      <button class="review-link" onclick="event.stopPropagation(); scrollToDetail('s2');">复习 →</button>
+    </div>
+  </div>
+
+  <div class="mini-quiz" id="mq3"
+    data-question="OpenAI Codex SDK与OpenAI Agents SDK的关系是？"
+    data-concept="Codex SDK vs Agents SDK 区分"
+    data-correct="Codex SDK是coding-agent专用SDK，Agents SDK是通用编排框架，两者不同"
+    data-retry="回顾 s2 L3 和 s5 误区2：Codex SDK专注代码生成，Agents SDK是通用Agent编排。不要混淆这两个独立产品。"
+    data-review-target="#s3">
+    <p>3. OpenAI Codex SDK与OpenAI Agents SDK的关系是？</p>
+    <button class="opt" onclick="checkMQ('mq3', 0, false)">A. 完全相同，只是名称不同</button>
+    <button class="opt" onclick="checkMQ('mq3', 1, false)">B. Codex SDK是Agents SDK的旧版本</button>
+    <button class="opt" onclick="checkMQ('mq3', 2, true)">C. Codex SDK是coding-agent专用SDK，Agents SDK是通用编排框架</button>
+    <button class="opt" onclick="checkMQ('mq3', 3, false)">D. Agents SDK已废弃，应全部迁移到Codex SDK</button>
+    <div class="explain" id="mq3-explain" data-default="OpenAI Codex SDK（coding-agent专用）和OpenAI Agents SDK（通用编排）是两个独立产品，定位完全不同。前者用于代码生成场景，后者用于构建各类Agent。">
+      ✅ <strong>正确！</strong>Codex SDK专注coding场景，Agents SDK是通用Agent编排框架，两者定位完全不同。
+      <button class="review-link" onclick="event.stopPropagation(); scrollToDetail('s3');">复习 →</button>
+    </div>
+  </div>
+
+  <div class="mini-quiz" id="mq4"
+    data-question="关于Pydantic AI的描述，哪项是正确的？"
+    data-concept="Pydantic AI的核心特性"
+    data-correct="模型/提供商无关，支持类型化输出和Agent循环"
+    data-retry="回顾 s2 L2：Pydantic AI的核心特性包括模型无关、类型化输出、内置Agent循环和MCP集成。它不是Anthropic官方产品，也不需要MCP才能使用。"
+    data-review-target="#s2">
+    <p>4. 关于Pydantic AI的描述，哪项是<strong>正确</strong>的？</p>
+    <button class="opt" onclick="checkMQ('mq4', 0, false)">A. 只能使用OpenAI模型</button>
+    <button class="opt" onclick="checkMQ('mq4', 1, true)">B. 模型/提供商无关，支持类型化输出和Agent循环</button>
+    <button class="opt" onclick="checkMQ('mq4', 2, false)">C. 必须通过MCP协议才能使用</button>
+    <button class="opt" onclick="checkMQ('mq4', 3, false)">D. 是Anthropic官方维护的产品</button>
+    <div class="explain" id="mq4-explain" data-default="Pydantic AI是模型/提供商无关的Python Agent框架（pip install pydantic-ai），核心特性包括类型化输出（Pydantic模型）、内置Agent循环和MCP集成。MCP是可选的集成方式，不是必须的。">
+      ✅ <strong>正确！</strong>Pydantic AI是模型无关的通用Agent框架，内置类型化输出和Agent循环。MCP集成是可选的。
+      <button class="review-link" onclick="event.stopPropagation(); scrollToDetail('s2');">复习 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- s7: End Card -->
+<div class="section end-card" id="endCard" data-lm-scope="s7">
+  <h3>课程完成</h3>
+  <p>确认以下每一项你都能做到，再继续深入。</p>
+
+  <section data-quality-evidence="extension-path">
+  <h4 style="color:var(--accent);margin-top:8px;">扩展路径</h4>
+  <p style="font-size:0.84rem;color:var(--muted);">掌握框架全景后，可以继续深入：Pydantic AI的依赖注入和类型系统、Claude Agent SDK的托管部署（Hosting）、OpenAI Agents SDK的多Agent编排、MCP协议的完整实现、以及LangChain/LlamaIndex与这些框架的互操作模式。</p>
+  </section>
+
+  <div class="checklist">
+    <span class="check-item" onclick="toggleCheck(this)">
+      <span class="check-status">☐</span>
+      <span class="check-text">我能画出五层架构地图（L1-L5）并解释每层的定位</span>
+      <a class="review-link" href="#s0" onclick="event.stopPropagation();">复习 →</a>
+    </span>
+    <span class="check-item" onclick="toggleCheck(this)">
+      <span class="check-status">☐</span>
+      <span class="check-text">我能区分产品、SDK、框架、传输四类方案</span>
+      <a class="review-link" href="#s1" onclick="event.stopPropagation();">复习 →</a>
+    </span>
+    <span class="check-item" onclick="toggleCheck(this)">
+      <span class="check-status">☐</span>
+      <span class="check-text">我能解释Claude Agent SDK的子进程模式与Pydantic AI进程内模式的区别</span>
+      <a class="review-link" href="#s2" onclick="event.stopPropagation();">复习 →</a>
+    </span>
+    <span class="check-item" onclick="toggleCheck(this)">
+      <span class="check-status">☐</span>
+      <span class="check-text">我能区分OpenAI Codex SDK和OpenAI Agents SDK</span>
+      <a class="review-link" href="#s3" onclick="event.stopPropagation();">复习 →</a>
+    </span>
+    <span class="check-item" onclick="toggleCheck(this)">
+      <span class="check-status">☐</span>
+      <span class="check-text">我能根据需求场景使用决策树选出合适的方案层级</span>
+      <a class="review-link" href="#s5" onclick="event.stopPropagation();">复习 →</a>
+    </span>
+  </div>
+
+  <div class="record-panel">
+    <h4>学习记录</h4>
+    <p id="recordSummary">进度加载中...</p>
+    <button onclick="copyLearningRecord()">复制学习记录给 AI</button>
+    <button onclick="downloadLearningRecord()">下载学习记录.json</button>
+    <small>将下载的 JSON 文件放在课件旁，下次 AI 可以读取它来了解你的学习状态。</small>
+  </div>
+
+  <div class="next-step">
+    <p>准备好深入了吗？复制下面的命令给 AI：</p>
+    <span class="next-cmd">展开 Pydantic AI，教我构建第一个 Agent</span>
+    <p class="preview">进阶预览：使用Pydantic AI从零构建一个带工具调用的Agent——定义工具函数、配置Agent、处理类型化输出、理解Agent循环的每一步。这是从"看框架"到"用框架"的关键一步。</p>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<div class="bottom-bar" id="bottomBar">
+  <span class="msg">本课完成！</span>
+  <span>下一步: <code>展开 Pydantic AI，教我构建第一个 Agent</code></span>
+  <button onclick="document.getElementById('endCard').scrollIntoView({behavior:'smooth'})">查看结课卡</button>
+</div>
+
+<script>
+var LESSON_RECORD_KEY = "ai10x:ai-agent-frameworks:overview";
+var LESSON_META = {
+  topic: "AI Agent 框架全景对比",
+  courseId: "ai-agent-frameworks-comparison",
+  lessonId: "overview",
+  lessonTitle: "AI Agent 框架全景对比",
+  language: "zh-CN",
+  outputMode: "fast",
+  htmlPlan: "single-overview",
+  htmlPlanInstructions: null,
+  coursewareTier: "high-quality",
+  coursewareTierInstructions: null,
+  deliveryMode: "batch",
+  deliveryInstructions: null,
+  videoInstructions: null,
+  mentorLens: "none",
+  annotationEnabled: true,
+  annotationRuntimeVersion: "2",
+  contentFingerprint: "5fb7fd8e010e527a5fe9851c4fd9a16e6448c375d66882e58075592609dac1db",
+  nextCommand: "展开 Pydantic AI，教我构建第一个 Agent",
+  recordFileName: "学习记录.json"
+};
+
+function scrollToDetail(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  var top = el.getBoundingClientRect().top + window.pageYOffset - 85;
+  window.scrollTo({ top: top, behavior: "smooth" });
+}
+
+function toggleAccordion(id) {
+  document.getElementById(id).classList.toggle("open");
+}
+
+// --- Domain Interactive: Agent Tool-Calling Loop Stepper ---
+var _stepperState = {
+  step: 0,
+  total: 6,
+  consoleOutput: [],
+  stack: [],
+  micro: [],
+  macro: []
+};
+var _stepperSteps = [
+  { desc: "用户输入查询", stackIn: ["解析: '北京天气?'"], stackOut: [], microIn: [], macroIn: [], log: "用户> 北京今天天气如何？", stackAfter: [] },
+  { desc: "LLM判断需调用工具", stackIn: [], stackOut: ["解析: '北京天气?'"], microIn: ["get_weather('北京')"], macroIn: [], log: "LLM> 需要调用get_weather工具", stackAfter: [] },
+  { desc: "执行get_weather工具", stackIn: [], stackOut: [], microIn: [], microAfter: [], macroIn: ["API请求中..."], log: "工具> 正在查询北京天气...", stackAfter: [] },
+  { desc: "工具返回天气数据", stackIn: [], stackOut: [], microIn: [], macroIn: [], macroAfter: [], log: "工具> 返回: {temp:22, condition:'晴'}", stackAfter: [] },
+  { desc: "LLM综合生成回复", stackIn: ["生成自然语言回复"], stackOut: [], microIn: [], macroIn: [], log: "LLM> 综合天气数据，生成回复...", stackAfter: [] },
+  { desc: "返回最终答案", stackIn: [], stackOut: ["生成自然语言回复"], microIn: [], macroIn: [], log: "Agent> 北京今天晴，气温22°C。", stackAfter: [], microAfter: [], macroAfter: [] }
+];
+
+function stepperRender() {
+  var s = _stepperState;
+  var stackEl = document.getElementById("stepperStack");
+  var microEl = document.getElementById("stepperMicro");
+  var macroEl = document.getElementById("stepperMacro");
+  var consoleEl = document.getElementById("stepperConsole");
+  var btn = document.getElementById("stepperBtn");
+
+  stackEl.innerHTML = s.stack.map(function(fn) { return '<div class="item stack">' + fn + '</div>'; }).join("");
+  microEl.innerHTML = s.micro.map(function(fn) { return '<div class="item micro">' + fn + '</div>'; }).join("");
+  macroEl.innerHTML = s.macro.map(function(fn) { return '<div class="item macro">' + fn + '</div>'; }).join("");
+  consoleEl.textContent = s.consoleOutput.length ? "> " + s.consoleOutput.join("\n> ") : "> _";
+
+  if (s.step >= s.total) {
+    btn.textContent = "演示完毕";
+    btn.disabled = true;
+  } else {
+    btn.textContent = "下一步 (" + (s.step + 1) + "/" + s.total + ")";
+    btn.disabled = false;
+  }
+}
+
+function stepperNext() {
+  var s = _stepperState;
+  if (s.step >= s.total) return;
+  var step = _stepperSteps[s.step];
+  step.stackIn.forEach(function(fn) { s.stack.push(fn); });
+  step.microIn.forEach(function(fn) { s.micro.push(fn); });
+  step.macroIn.forEach(function(fn) { s.macro.push(fn); });
+  if (step.log) s.consoleOutput.push(step.log);
+  step.stackOut.forEach(function(fn) {
+    var idx = s.stack.lastIndexOf(fn);
+    if (idx >= 0) s.stack.splice(idx, 1);
+  });
+  if (step.microAfter) s.micro = step.microAfter.slice();
+  if (step.macroAfter) s.macro = step.macroAfter.slice();
+  s.step++;
+  stepperRender();
+}
+
+function stepperReset() {
+  _stepperState = { step: 0, total: 6, consoleOutput: [], stack: [], micro: [], macro: [] };
+  stepperRender();
+}
+
+// --- Mini-quiz ---
+var _mqAnswered = {};
+var _mqState = {};
+function checkMQ(mqId, optIdx, isCorrect) {
+  if (_mqAnswered[mqId]) return;
+  _mqAnswered[mqId] = true;
+  _mqState[mqId] = { choiceIndex: optIdx, correct: isCorrect };
+  var mq = document.getElementById(mqId);
+  var explain = document.getElementById(mqId + "-explain");
+  var opts = mq.querySelectorAll(".opt");
+  var reviewTarget = mq.getAttribute("data-review-target") || "";
+  var reviewId = reviewTarget.replace("#", "");
+  var baseExplain = explain.getAttribute("data-default") || "";
+  var reviewBtn = reviewId ? ' <button class="review-link" onclick="event.stopPropagation(); scrollToDetail(\'' + reviewId + '\');">复习 →</button>' : "";
+  opts.forEach(function(o) { o.classList.remove("chosen-correct", "chosen-wrong"); });
+  if (isCorrect) {
+    opts[optIdx].classList.add("chosen-correct");
+    explain.className = "explain show ok";
+    explain.innerHTML = "✅ <strong>正确！</strong> " + baseExplain + reviewBtn;
+  } else {
+    opts[optIdx].classList.add("chosen-wrong");
+    explain.className = "explain show no";
+    explain.innerHTML = "❌ <strong>不对。</strong> " + baseExplain + reviewBtn;
+  }
+  saveRecord();
+  updateRecordUI();
+}
+
+// --- Checklist ---
+function toggleCheck(el) {
+  var status = el.querySelector(".check-status");
+  if (el.classList.contains("done")) {
+    el.classList.remove("done");
+    if (status) status.textContent = "☐";
+  } else {
+    el.classList.add("done");
+    if (status) status.textContent = "☑";
+  }
+  saveRecord();
+  updateRecordUI();
+}
+
+// --- Learning Record ---
+function buildLearningRecord() {
+  var outputMode = LESSON_META.outputMode || "fast";
+  var htmlPlan = LESSON_META.htmlPlan || "single-overview";
+  var coursewareTier = LESSON_META.coursewareTier || "high-quality";
+  var deliveryMode = LESSON_META.deliveryMode || "batch";
+  if (outputMode === "fast" || htmlPlan === "single-overview") {
+    outputMode = "fast"; htmlPlan = "single-overview"; deliveryMode = "batch";
+  }
+  var quizItems = [];
+  document.querySelectorAll(".mini-quiz").forEach(function(q) {
+    var id = q.id || "";
+    var chosen = q.querySelector(".chosen-correct, .chosen-wrong");
+    var state = _mqState[id] || null;
+    quizItems.push({
+      id: id,
+      question: q.getAttribute("data-question") || "",
+      concept: q.getAttribute("data-concept") || "",
+      answered: !!chosen || !!state,
+      correct: state ? !!state.correct : !!(chosen && chosen.classList.contains("chosen-correct")),
+      choiceIndex: state ? state.choiceIndex : null,
+      choiceText: chosen ? chosen.textContent.trim() : "",
+      correctAnswer: q.getAttribute("data-correct") || "",
+      feedback: (document.getElementById(id + "-explain") || {}).textContent || "",
+      retrySuggestion: q.getAttribute("data-retry") || "",
+      reviewTarget: q.getAttribute("data-review-target") || ""
+    });
+  });
+  var checklist = [];
+  document.querySelectorAll(".check-item").forEach(function(c) {
+    var textEl = c.querySelector(".check-text");
+    var reviewEl = c.querySelector(".review-link");
+    checklist.push({
+      text: textEl ? textEl.textContent.trim() : c.textContent.replace("☑", "").replace("☐", "").trim(),
+      checked: c.classList.contains("done"),
+      reviewTarget: reviewEl ? reviewEl.getAttribute("href") : ""
+    });
+  });
+  var answered = quizItems.filter(function(q) { return q.answered; }).length;
+  var correct = quizItems.filter(function(q) { return q.correct; }).length;
+  var checked = checklist.filter(function(c) { return c.checked; }).length;
+  var totalTasks = quizItems.length + checklist.length;
+  var doneTasks = answered + checked;
+  var completion = totalTasks ? Math.round(doneTasks * 100 / totalTasks) : 0;
+  var weakSpots = quizItems.filter(function(q) { return q.answered && !q.correct; }).map(function(q) { return q.id; });
+  var annotationSummary = window.LearnMapAnnotations && window.LearnMapAnnotations.getSummary
+    ? window.LearnMapAnnotations.getSummary()
+    : { underlineCount: 0, highlightCount: 0, noteCount: 0, imageCount: 0, questionNoteCount: 0, orphanedCount: 0, updatedAt: null };
+  return {
+    schema: "ai-10x-learning-record/v1",
+    topic: LESSON_META.topic,
+    lessonId: LESSON_META.lessonId,
+    lessonTitle: LESSON_META.lessonTitle,
+    language: LESSON_META.language,
+    outputMode: outputMode,
+    htmlPlan: htmlPlan,
+    htmlPlanInstructions: LESSON_META.htmlPlanInstructions || null,
+    coursewareTier: coursewareTier,
+    coursewareTierInstructions: LESSON_META.coursewareTierInstructions || null,
+    deliveryMode: deliveryMode,
+    deliveryInstructions: LESSON_META.deliveryInstructions || null,
+    videoInstructions: LESSON_META.videoInstructions || null,
+    mentorLens: LESSON_META.mentorLens || "none",
+    annotationSummary: annotationSummary,
+    updatedAt: new Date().toISOString(),
+    completion: { percent: completion, quizAnswered: answered, quizCorrect: correct, checklistChecked: checked, checklistTotal: checklist.length },
+    quiz: quizItems,
+    checklist: checklist,
+    weakSpots: weakSpots,
+    nextCommand: LESSON_META.nextCommand
+  };
+}
+
+function saveRecord() {
+  try { localStorage.setItem(LESSON_RECORD_KEY, JSON.stringify(buildLearningRecord())); } catch (e) {}
+}
+
+function loadRecord() {
+  try {
+    var raw = localStorage.getItem(LESSON_RECORD_KEY);
+    if (!raw) return;
+    var record = JSON.parse(raw);
+    if (!record || !record.checklist) return;
+    if (record.quiz) {
+      record.quiz.forEach(function(item) {
+        if (!item.answered || item.choiceIndex === null || item.choiceIndex === undefined) return;
+        var mq = document.getElementById(item.id);
+        if (!mq) return;
+        var opts = mq.querySelectorAll(".opt");
+        if (!opts[item.choiceIndex]) return;
+        _mqAnswered[item.id] = true;
+        _mqState[item.id] = { choiceIndex: item.choiceIndex, correct: !!item.correct };
+        opts[item.choiceIndex].classList.add(item.correct ? "chosen-correct" : "chosen-wrong");
+        var explain = document.getElementById(item.id + "-explain");
+        if (explain) explain.className = item.correct ? "explain show ok" : "explain show no";
+      });
+    }
+    document.querySelectorAll(".check-item").forEach(function(c, idx) {
+      if (record.checklist[idx] && record.checklist[idx].checked && !c.classList.contains("done")) {
+        var status = c.querySelector(".check-status");
+        c.classList.add("done");
+        if (status) status.textContent = "☑";
+      }
+    });
+  } catch (e) {}
+}
+
+function updateRecordUI() {
+  var record = buildLearningRecord();
+  var pill = document.getElementById("recordPill");
+  var summary = document.getElementById("recordSummary");
+  if (pill) pill.textContent = record.completion.percent + "% 完成";
+  if (summary) {
+    summary.textContent = "进度 " + record.completion.percent + "% | 测验 " +
+      record.completion.quizCorrect + "/" + record.quiz.length + " | 自检 " +
+      record.completion.checklistChecked + "/" + record.completion.checklistTotal;
+  }
+}
+
+function buildLearningReport() {
+  var record = buildLearningRecord();
+  var lines = [];
+  lines.push("# 学习记录 — " + record.topic + " / " + record.lessonTitle);
+  lines.push("");
+  lines.push("- 完成度: " + record.completion.percent + "%");
+  lines.push("- 测验: " + record.completion.quizCorrect + "/" + record.quiz.length);
+  lines.push("- 自检: " + record.completion.checklistChecked + "/" + record.completion.checklistTotal);
+  lines.push("- 输出模式: " + record.outputMode);
+  lines.push("- HTML 数量方案: " + record.htmlPlan);
+  lines.push("- 课件规格: " + record.coursewareTier);
+  lines.push("- 生成节奏: " + record.deliveryMode);
+  lines.push("- 更新时间: " + record.updatedAt);
+  lines.push("");
+  lines.push("## 答题明细");
+  record.quiz.forEach(function(q, idx) {
+    lines.push("");
+    lines.push((idx + 1) + ". [" + q.id + "] " + (q.question || "未填写题干"));
+    lines.push("   - 考察概念: " + (q.concept || "-"));
+    lines.push("   - 状态: " + (q.answered ? (q.correct ? "正确" : "错误") : "未作答"));
+    lines.push("   - 我的选择: " + (q.choiceText || "-"));
+    lines.push("   - 正确答案: " + (q.correctAnswer || "-"));
+    lines.push("   - 反馈/建议: " + (q.feedback || q.retrySuggestion || "-"));
+  });
+  lines.push("");
+  lines.push("## 自检清单");
+  record.checklist.forEach(function(c) {
+    lines.push("- [" + (c.checked ? "x" : " ") + "] " + c.text + (c.reviewTarget ? " (复习: " + c.reviewTarget + ")" : ""));
+  });
+  lines.push("");
+  lines.push("## 薄弱点");
+  var weak = record.quiz.filter(function(q) { return q.answered && !q.correct; });
+  if (weak.length === 0) {
+    lines.push("- 暂无已发现薄弱点。");
+  } else {
+    weak.forEach(function(q) {
+      lines.push("- " + q.id + ": " + (q.concept || q.question || "-") + " — " + (q.retrySuggestion || "建议复习相关概念。"));
+    });
+  }
+  lines.push("");
+  lines.push("## 下一步");
+  lines.push("`" + record.nextCommand + "`");
+  return lines.join("\n");
+}
+
+function copyLearningRecord() {
+  var text = buildLearningReport();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() { alert("学习记录已复制到剪贴板！"); });
+    return;
+  }
+  var ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed"; ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand("copy");
+  document.body.removeChild(ta);
+  alert("学习记录已复制到剪贴板！");
+}
+
+function downloadLearningRecord() {
+  var text = JSON.stringify(buildLearningRecord(), null, 2);
+  var blob = new Blob([text], { type: "application/json" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = LESSON_META.recordFileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+}
+
+function resetLearningProgress() {
+  _mqAnswered = {};
+  _mqState = {};
+  document.querySelectorAll(".mini-quiz .explain").forEach(function(e) { e.classList.remove("show", "ok", "no"); });
+  document.querySelectorAll(".mini-quiz .opt").forEach(function(o) { o.classList.remove("chosen-correct", "chosen-wrong"); });
+  document.querySelectorAll(".check-item").forEach(function(c) {
+    var status = c.querySelector(".check-status");
+    c.classList.remove("done");
+    if (status) status.textContent = "☐";
+  });
+  document.querySelectorAll(".accordion").forEach(function(a) { a.classList.remove("open"); });
+  stepperReset();
+  try { localStorage.removeItem(LESSON_RECORD_KEY); } catch (e) {}
+  updateRecordUI();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function resetAll() { resetLearningProgress(); }
+
+// --- IntersectionObserver for bottom bar ---
+(function() {
+  var bottomBar = document.getElementById("bottomBar");
+  var endCard = document.getElementById("endCard");
+  if (!bottomBar || !endCard) return;
+  var shown = false;
+  var observer = new IntersectionObserver(function(entries) {
+    if (entries[0].isIntersecting && !shown) {
+      bottomBar.classList.add("visible");
+    }
+  }, { threshold: 0.3 });
+  observer.observe(endCard);
+  bottomBar.addEventListener("click", function(e) {
+    if (e.target.tagName === "BUTTON") return;
+    bottomBar.classList.remove("visible");
+    shown = true;
+  });
+})();
+
+// --- Initialize ---
+loadRecord();
+updateRecordUI();
+stepperRender();
+</script>
+</body>
+</html>

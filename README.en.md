@@ -8,8 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/lwbscu/learnmap"><img alt="GitHub Repo" src="https://img.shields.io/badge/GitHub-Repo-181717?style=flat&logo=github&logoColor=white"></a>
-  <a href="https://lwbscu.github.io/learnmap/promo-video.html"><img alt="60s Demo" src="https://img.shields.io/badge/60s-Demo-ff4d4f?style=flat&logo=youtube&logoColor=white"></a>
-  <a href="https://lwbscu.github.io/learnmap/"><img alt="Live Demo" src="https://img.shields.io/badge/Live-Demo-00a6d6?style=flat&logo=gitbook&logoColor=white"></a>
+  <a href="https://lwbscu.github.io/learnmap/demos.html"><img alt="Demos" src="https://img.shields.io/badge/LearnMap-Demos-00a6d6?style=flat&logo=gitbook&logoColor=white"></a>
   <a href="https://mp.weixin.qq.com/s/mO-GAe4arXsKBZTzipwLuA"><img alt="WeChat" src="https://img.shields.io/badge/WeChat-07C160?style=flat&logo=wechat&logoColor=white"></a>
   <a href="https://zhuanlan.zhihu.com/p/2050915019571963028"><img alt="Zhihu" src="https://img.shields.io/badge/Zhihu-0084FF?style=flat&logo=zhihu&logoColor=white"></a>
   <a href="https://juejin.cn/post/7652384976291414054"><img alt="Juejin" src="https://img.shields.io/badge/Juejin-1E80FF?style=flat&logo=juejin&logoColor=white"></a>
@@ -28,16 +27,16 @@
 LearnMap is an Agent Skill that turns a vague learning request into mapped, interactive HTML courseware. It starts with a knowledge map, then builds lessons with navigation, checks, wrong-answer feedback, review jumps, and exportable learning records for AI follow-up.
 
 <p align="center">
-  <a href="https://lwbscu.github.io/learnmap/promo-video.html">
+  <a href="https://lwbscu.github.io/learnmap/demos.html#walkthrough">
     <img src="docs/assets/learnmap-demo-poster.png" alt="Watch the LearnMap 60-second usage walkthrough" width="900">
   </a>
   <br>
-  <a href="https://lwbscu.github.io/learnmap/promo-video.html">Watch the 60-second usage walkthrough</a>
+  <a href="https://lwbscu.github.io/learnmap/demos.html">Open the bilingual LearnMap Demo Center</a>
 </p>
 
 ## What's NEW!
 
-- [2026/07] 🔥 LearnMap runtime v2 adds non-obscuring square note badges, stronger highlights, anchored floating notes, custom mark/note colors, v1-compatible packages, awaited five-agent generation, and no default runtime/content/total HTML ceiling.
+- [2026/07] 🔥 LearnMap runtime v2 adds non-obscuring square note badges, stronger highlights, anchored floating notes, custom mark/note colors, v1-compatible packages, awaited five-agent generation, no default runtime/content/total HTML ceiling, and a unified bilingual Demo Center with live interactive courseware.
 - [2026/06] 🔥 LearnMap adds fast overview mode, slow deep-course mode, and a recorded usage walkthrough.
 - [2026/06] 🔥 Optional HTML video explainers and mentor lenses are now opt-in learning paths.
 - [2026/05] 🔥 Interactive HTML lessons export learning records for AI follow-up.
