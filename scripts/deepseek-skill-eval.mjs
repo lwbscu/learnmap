@@ -52,6 +52,47 @@ const cases = [
     ]
   },
   {
+    id: "compact-keeps-annotations",
+    prompt: "用 1 个 compact HTML 教我 MDP，保留全部课件交互和笔记能力。",
+    expected: [
+      "keeps all three underline styles and all six colors",
+      "keeps structured text and safe image notes, source jumps, autosave status, portable package import/export, and Markdown export",
+      "uses the canonical injected runtime instead of asking the model to rewrite it",
+      "reports content, runtime, and total bytes separately against the compact ceilings",
+      "does not treat compact as permission to remove annotation features"
+    ]
+  },
+  {
+    id: "reset-preserves-notes",
+    prompt: "我已经写了三条带图片的课件笔记。重置本课学习进度，然后继续从薄弱点学习。",
+    expected: [
+      "resetLearningProgress and resetAll preserve annotations, notes, and images",
+      "only clearLessonAnnotations can delete notes after confirmation and an export-first prompt",
+      "ordinary underlines do not affect mastery or weak spots",
+      "only explicit question-tagged notes enter continuation signals"
+    ]
+  },
+  {
+    id: "file-storage-honesty",
+    prompt: "我直接双击打开多个 LearnMap 课件 HTML，笔记是否一定会跨页面自动共享？",
+    expected: [
+      "does not promise cross-page persistence or sharing under file URLs",
+      "capability-tests storage and shows persisted, session-only, or failed status honestly",
+      "recommends localhost or HTTPS for same-origin course sharing",
+      "recommends portable .learnmap export for reliable migration"
+    ]
+  },
+  {
+    id: "term-hint-separation",
+    prompt: "正文里的术语 hover 使用旧 .annotate 类；给新课件加入紫色波浪线笔记。",
+    expected: [
+      "uses .term-hint for newly generated glossary hover hints",
+      "keeps old .annotate only as legacy-compatible term-hint behavior",
+      "does not confuse term hints with learner annotations",
+      "renders the learner underline through the canonical non-mutating annotation runtime"
+    ]
+  },
+  {
     id: "custom-courseware-tier-other",
     prompt: "课件规格选择 Other：每页控制在约 35 KiB，但保留源码证据、调用链和全部交互。",
     expected: [
@@ -255,6 +296,7 @@ const quality = readText("references/quality-ratchet.md");
 const artifacts = readText("references/session-artifacts.md");
 const resilientGeneration = readText("references/resilient-generation.md");
 const coursewareTiers = readText("references/courseware-tiers.md");
+const annotationNotes = readText("references/annotation-notes.md");
 
 const system = [
   "You are an independent evaluator for an Agent Skill.",
@@ -270,6 +312,7 @@ const user = JSON.stringify({
   sessionArtifacts: artifacts,
   resilientGeneration,
   coursewareTiers,
+  annotationNotes,
   cases,
   outputSchema: {
     overallScore: "0-100",

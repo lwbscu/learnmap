@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LearnMap 批注测试课件</title>
+  <link rel="stylesheet" href="../../assets/courseware-runtime/annotation-notes.css">
+  <style>
+    :root { color-scheme: light dark; --bg: #f6f7fb; --card: #fff; --text: #172033; --accent: #3370ff; }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--text); background: var(--bg); font: 16px/1.7 system-ui, sans-serif; }
+    .topbar { position: sticky; top: 0; z-index: 4; display: flex; gap: 1rem; align-items: center; padding: .75rem 1rem; background: var(--card); border-bottom: 1px solid #dfe3ec; }
+    .topbar h1 { margin: 0; flex: 1; font-size: 1.1rem; }
+    .main { width: min(820px, calc(100% - 2rem)); margin: 2rem auto 8rem; }
+    .section { margin: 0 0 1rem; padding: 1.5rem; background: var(--card); border: 1px solid #dfe3ec; border-radius: 14px; }
+    .term-hint { text-decoration: underline dotted #64748b; text-underline-offset: .2em; }
+    .accordion-body { display: none; }
+    .accordion.open .accordion-body { display: block; }
+    .explain { display: none; }
+    .explain.show { display: block; }
+    button, input { min-height: 44px; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #0f172a; --card: #1e293b; --text: #e2e8f0; }
+      .topbar, .section { border-color: #334155; }
+    }
+  </style>
+  <script>
+    window.LESSON_META = {
+      courseId: "course-annotation-fixture",
+      topic: "annotation-test",
+      lessonId: "lesson-annotation-fixture",
+      lessonTitle: "批注功能确定性测试",
+      language: "zh-CN",
+      annotationEnabled: true,
+      annotationRuntimeVersion: "1",
+      contentVersion: "fixture-v1",
+      contentFingerprint: "fixture-annotation-content-v1"
+    };
+  </script>
+  <script defer src="../../assets/courseware-runtime/annotation-notes.js"></script>
+</head>
+<body>
+  <header class="topbar" data-lm-ignore>
+    <h1>LearnMap 批注测试课件</h1>
+    <span id="recordPill">0% complete</span>
+    <button id="resetProgress" type="button">重置练习进度</button>
+  </header>
+
+  <main class="main" data-lm-annotatable>
+    <section class="section" id="core-concept" data-lm-scope="core-concept">
+      <h2>核心概念</h2>
+      <p id="selection-text">学习批注应当帮助学习者留下自己的理解，同时不破坏原有课件结构与交互。</p>
+      <p>稳定锚点结合 <span class="term-hint" tabindex="0" title="原文与上下文定位">Text Quote Anchor</span>，即使段落发生轻微变化也应恢复到正确内容。</p>
+      <ul>
+        <li>重点可以使用直线。</li>
+        <li>疑问可以使用波浪线。</li>
+        <li>补充内容可以使用虚线。</li>
+      </ul>
+      <table>
+        <thead><tr><th>类型</th><th>用途</th></tr></thead>
+        <tbody><tr><td>下划线</td><td>快速标记重点</td></tr></tbody>
+      </table>
+      <pre><code>const anchor = buildAnchor(range);</code></pre>
+      <button id="ignoredControl" type="button" data-lm-ignore>不允许标记此按钮</button>
+    </section>
+
+    <section class="section accordion" id="expanded-detail" data-lm-scope="expanded-detail">
+      <button class="accordion-header" type="button" data-lm-ignore aria-expanded="false">展开解释</button>
+      <div class="accordion-body">
+        <p id="expanded-text">展开区域中的教学文字同样允许用户添加下划线和笔记。</p>
+      </div>
+    </section>
+
+    <section class="section mini-quiz" id="quiz-one" data-lm-scope="quiz-one" data-lm-ignore>
+      <h2>掌握检查</h2>
+      <p>哪种行为最可靠？</p>
+      <button class="opt" type="button" data-correct="false">只保存 DOM 路径</button>
+      <button class="opt" type="button" data-correct="true">保存原文、上下文和位置</button>
+      <div class="explain" id="quizExplain">正确答案结合多种锚点证据。<a href="#core-concept">复习 →</a></div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const recordKey = "learnmap:test:learning-record";
+      const accordion = document.querySelector(".accordion");
+      document.querySelector(".accordion-header").addEventListener("click", (event) => {
+        accordion.classList.toggle("open");
+        event.currentTarget.setAttribute("aria-expanded", String(accordion.classList.contains("open")));
+      });
+      document.querySelectorAll(".opt").forEach((option) => option.addEventListener("click", () => {
+        const correct = option.dataset.correct === "true";
+        localStorage.setItem(recordKey, JSON.stringify({ answered: true, correct }));
+        document.getElementById("recordPill").textContent = correct ? "100% complete" : "50% complete";
+        document.getElementById("quizExplain").classList.add("show");
+      }));
+      document.getElementById("resetProgress").addEventListener("click", () => {
+        localStorage.removeItem(recordKey);
+        document.getElementById("recordPill").textContent = "0% complete";
+        document.getElementById("quizExplain").classList.remove("show");
+      });
+      window.__fixture = {
+        recordKey,
+        selectText(selector, start = 0, end) {
+          const element = document.querySelector(selector);
+          const node = element.firstChild;
+          const range = document.createRange();
+          range.setStart(node, start);
+          range.setEnd(node, end ?? node.textContent.length);
+          const selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(range);
+          element.dispatchEvent(new MouseEvent("mouseup", { bubbles: true, clientX: 300, clientY: 180 }));
+          document.dispatchEvent(new Event("selectionchange", { bubbles: true }));
+          return range.toString();
+        }
+      };
+    })();
+  </script>
+</body>
+</html>

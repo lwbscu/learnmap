@@ -42,6 +42,9 @@ Run this checklist in order:
    - Optional video explainers stay opt-in.
    - Mentor lenses stay opt-in.
    - The learner is not advanced until they demonstrate understanding.
+   - Every newly generated lesson injects the canonical annotation runtime before validation; its version and SHA-256 match the committed runtime assets.
+   - Runtime injection is idempotent, and content, runtime, and total byte budgets are reported separately.
+   - Legacy lessons without the runtime remain readable and receive a capability warning rather than an automatic rewrite.
 
 5. Specificity
    - The next command is written exactly.
@@ -49,11 +52,15 @@ Run this checklist in order:
    - Checklist items store clean text, checked state, and review target.
    - Exported records include `outputMode`, `htmlPlan`, `htmlPlanInstructions`, `coursewareTier`, `coursewareTierInstructions`, `deliveryMode`, `deliveryInstructions`, and `videoInstructions`.
    - Learner-entered custom instruction fields survive normalization and remain `null` only when no injected `Other` text was provided.
+   - New lesson metadata includes `courseId`, `annotationEnabled`, `annotationRuntimeVersion`, and `contentFingerprint`.
+   - Exported learning records may include `annotationSummary`, but full note text and images only leave through an explicit `.learnmap` or Markdown export.
+   - `resetLearningProgress()` and its compatibility alias `resetAll()` preserve annotations; only `clearLessonAnnotations()` can delete them after confirmation and an export-first prompt.
 
 6. Resource links
    - Use `session-artifacts.md` for lesson scaffolds.
    - Use `resilient-generation.md` for multi-HTML transactions, size budgets, checkpoints, and recovery.
    - Use `courseware-tiers.md` for per-page production specifications and the high-quality evidence contract.
+   - Use `annotation-notes.md` for selection boundaries, anchors, notes, images, storage, import/export, accessibility, and security.
    - Use `assessment-rubric.md` for mastery diagnosis.
    - Use `video-visualization.md` only after the learner accepts a visual explainer.
    - Use `cognitive-distillation.md` only after the learner requests a mentor lens.
@@ -67,6 +74,7 @@ Run this checklist in order:
    - Test 2-3 representative prompts mentally or with a subagent when available.
    - Confirm the skill stays on the intended path and does not introduce a negative behavior.
    - When `DEEPSEEK_API_KEY` is available, run `node scripts/deepseek-skill-eval.mjs` and read the generated `.skill-evals/*.json` feedback before editing.
+   - Generate one Chinese high-quality fixture and one English compact fixture; inject and validate both, then exercise annotations in `file://` and localhost modes.
 
 9. Anti-pattern blacklist
    - Do not create plain Markdown lessons instead of HTML courseware.
@@ -82,6 +90,11 @@ Run this checklist in order:
    - Do not use HTML line count as a completion or quality signal.
    - Do not equate fast with compact, deep-series with high-quality, or a large byte count with high quality.
    - Do not remove navigation, expanders, hover notes, review jumps, record export, or weak-spot continuation in compact mode.
+   - Do not remove underlines, text/image notes, anchored source jumps, honest storage status, or portable exports in compact mode.
+   - Do not handwrite a different annotation engine per lesson, wrap selected source text in mutation-prone spans, or treat `.annotate` term hints as learner annotations.
+   - Do not claim persistent storage under `file://` unless the runtime capability check succeeds.
+   - Do not let learning-progress reset delete notes, or let normal underlines affect mastery and weak spots; only explicit question-tagged notes may enter continuation signals.
+   - Do not import partial or invalid `.learnmap` data: validate the complete package before one atomic database transaction.
    - Do not add unrelated frameworks just to look comprehensive.
    - Do not create commits, result cards, scoring logs, or optimizer branches during normal teaching.
 
@@ -106,6 +119,30 @@ Expected: set `outputMode: fast`, `htmlPlan: single-overview`, and `deliveryMode
 ```
 
 Expected: set `fast + single-overview + high-quality + batch`; do not ask a redundant tier popup; keep all interactions; include inspectable evidence mapping, two execution chains, tradeoffs/failure boundaries, an extension path, and a domain-specific interactive. Do not inflate size merely to reach the target range.
+
+```text
+用 1 个 compact HTML 教我 MDP，保留全部课件交互和笔记能力。
+```
+
+Expected: keep the complete canonical annotation runtime, including all three underline styles, six colors, text/image notes, source jumps, autosave status, `.learnmap` import/export, and Markdown export. Compact changes teaching density, not the interaction floor; report content, runtime, and total bytes against the 40/48/88 KiB ceilings.
+
+```text
+我写了三条带图片的笔记。现在重置本课学习进度，然后继续从薄弱点学习。
+```
+
+Expected: `resetLearningProgress()` or `resetAll()` clears only quizzes, checklists, and learning state; annotation and note counts remain unchanged. Only notes explicitly tagged as questions contribute to weak-spot continuation.
+
+```text
+我直接双击打开多个课件 HTML，笔记是否一定会跨页面自动共享？
+```
+
+Expected: capability-test IndexedDB and report the real state as persisted, session-only, or failed; never promise cross-HTML sharing under `file://`. Recommend `.learnmap` export for reliable migration and localhost/HTTPS for same-origin course sharing.
+
+```text
+正文里的术语 hover 使用旧 `.annotate` 类；给新课件加入紫色波浪线笔记。
+```
+
+Expected: migrate newly generated term hints to `.term-hint`, keep `.annotate` only as a legacy-compatible term-hint signal, and render the learner underline through the canonical non-mutating annotation layer rather than conflating the two systems.
 
 ```text
 继续旧课程；记录没有 coursewareTier 字段。

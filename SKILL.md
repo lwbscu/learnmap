@@ -1,6 +1,6 @@
 ---
 name: learnmap-skill
-description: Map-first personalized learning skill for Claude Code/Codex. Use when the user wants to learn an unfamiliar domain, turn articles/docs/repos into a curriculum, choose HTML count plus compact/standard/high-quality courseware through native popup calibration, choose batch or multi-turn delivery, receive interactive HTML teaching, create concept maps, run mastery quizzes and review links, optionally create visual explainers or use a named mentor lens, or use an agent tutor that adapts to stated background and mistakes.
+description: Map-first personalized learning skill for Claude Code/Codex. Use when the user wants to learn an unfamiliar domain, turn articles/docs/repos into a curriculum, choose HTML count plus compact/standard/high-quality courseware through native popup calibration, choose batch or multi-turn delivery, receive interactive HTML teaching with portable underlines and image-rich notes, create concept maps, run mastery quizzes and review links, optionally create visual explainers or use a named mentor lens, or use an agent tutor that adapts to stated background and mistakes.
 ---
 
 # LearnMap
@@ -44,15 +44,11 @@ Also initialize `outputMode: fast | slow` in the profile/progress files. Use `sl
 Also initialize `htmlPlan: single-overview | compact-series | standard-series | deep-series | custom` and `htmlPlanInstructions: null | <learner text>` in the profile/progress files. Use `standard-series` by default; preserve courseware-scope `Other` text even if normalization later maps the plan to `single-overview`, otherwise store `null`.
 Also initialize `deliveryMode: batch | interactive | custom` and `deliveryInstructions: null | <learner text>` in the profile/progress files. `batch` queues the whole multi-HTML plan without mastery waits, but commits it as resumable one-lesson transactions; `interactive` generates one lesson at a time across learner-agent turns; `custom` stores the learner's `Other` text in `deliveryInstructions`. Use `interactive` by default for multi-HTML plans. A `single-overview` is inherently `batch` because it contains only one HTML file.
 Also initialize `coursewareTier: compact | standard | high-quality | custom` and `coursewareTierInstructions: null | <learner text>`. It controls per-page density and production quality, not page count or cadence. Use `standard` by default and preserve injected `Other` text.
----
-
 ## Purpose
 
 Turn Claude Code/Codex into a patient domain tutor that helps a learner build conceptual understanding, not just collect notes. Prefer interactive HTML lessons, local learning artifacts, short teaching loops, and mastery checks over long one-shot explanations.
 
 This skill is distilled from the workflow in the article "如何用 Claude Code 开启 10 倍学习法？": use an agent to map a new field, teach one chapter at a time, test understanding, diagnose mistakes, and adapt until the learner can explain the domain in their own words.
-
----
 
 ## Core Rules
 
@@ -65,7 +61,7 @@ This skill is distilled from the workflow in the article "如何用 Claude Code 
 - Explain concepts from at least three perspectives when useful: end user, business/operator, implementer/builder.
 - Use concrete examples immediately after abstract concepts.
 - Embed "learn-and-practice" mini-quizzes inside lessons, not just at the end.
-- Persist lesson interactions in the browser with `localStorage`, and provide copy/download learning-record actions for AI follow-up.
+- Persist quizzes/checklists with `localStorage`; inject the canonical annotation runtime for IndexedDB-backed underlines and image-rich notes, portable `.learnmap` backup, and learning-record summaries.
 - Require active recall: make the learner answer, summarize, compare, or apply.
 - Do not advance after "I explained it"; advance only after the learner demonstrates understanding.
 - Keep a mistake log and use it to adapt future explanations and questions.
@@ -229,7 +225,7 @@ Apply `deliveryMode` after the lesson plan is defined:
 
 ### 2A. Generate Every HTML Resumably
 
-Before writing any lesson HTML, including a single overview, read and follow [resilient-generation.md](references/resilient-generation.md). Never mark progress generated or pre-create future lesson directories. One provider/tool turn writes at most one `.partial` lesson; validate it, rename it inside staging, atomically commit the staging directory, then checkpoint. Use the tier contract; 96 KiB is absolute and size alone never proves quality. On resume, reconcile final files, ignore partial artifacts, and keep generation separate from mastery.
+Before writing any lesson HTML, including a single overview, read and follow [resilient-generation.md](references/resilient-generation.md). Never mark progress generated or pre-create future lesson directories. One provider/tool turn writes at most one `.partial` lesson; inject the canonical annotation runtime, validate it, rename it inside staging, atomically commit the staging directory, then checkpoint. Enforce separate teaching-content/runtime budgets; size alone never proves quality. On resume, reconcile final files, ignore partial artifacts, and keep generation separate from mastery.
 
 ### 2B. Build The Global Map First In Slow Mode
 
@@ -277,7 +273,8 @@ Each HTML lesson MUST include:
 **Interactive features (REQUIRED in every lesson):**
 - **Multi-perspective tabs** — user / business / engineer视角 switching for the same concept
 - **Inline mini-quizzes (即学即练 / Learn & Practice)** — embedded multiple-choice questions that highlight green (correct) or red (wrong) with explanatory feedback. Must guard against double-click content duplication (use a `_mqAnswered` dictionary).
-- **Hover annotations** — key terms with dashed underline; hover to reveal a tooltip with deeper insight
+- **Term hints** — key terms use neutral `.term-hint` styling and reveal a tooltip; keep them visually distinct from learner-created marks
+- **Learner annotations and notes** — read and follow [annotation-notes.md](references/annotation-notes.md); inject the canonical self-contained runtime for three underline styles, six named colors, anchored structured text/images, honest local save status, orphan recovery, and `.learnmap` import/export. Do not add another calibration question.
 - **MDP card click-to-scroll** — when using concept tuple cards, clicking scrolls to the detail section. Use manual position calculation (`getBoundingClientRect().top + pageYOffset - offset`) instead of `scroll-margin-top` for cross-browser reliability.
 - **Learning record persistence** — save quiz results, checklist state, viewed lesson, completion percentage, weak spots, and last updated time to `localStorage` under a stable key such as `ai10x:<topic>:lesson-01`.
 - **Detailed diagnostic records** — each mini-quiz MUST expose enough metadata for later AI diagnosis: question text, tested concept, chosen answer, correct answer (when available), correctness, feedback, retry recommendation, and review target.
@@ -295,13 +292,13 @@ Each HTML lesson MUST include:
 - **Floating bottom bar** — a fixed bar that slides up from the bottom when the user scrolls the end-card into view (use `IntersectionObserver`). Contains a summary message and the next command. Dismisses on click.
 
 **Functionality:**
-- **Reset button** in top bar — resets all quizzes, accordions, tabs, checklists to initial state and scrolls to top
+- **Reset learning button** in top bar — resets quizzes, accordions, tabs, and checklists, preserves annotations/notes, and scrolls to top; clearing notes is a separate confirmed action
 - **Save-on-interaction** — every quiz answer and checklist toggle calls `saveRecord()` and `updateRecordUI()`.
 - **Restore-on-load** — when the page loads, call `loadRecord()` to restore previous quiz/checklist state from `localStorage`.
 - **Copy format** — clipboard text MUST be a detailed Markdown report, not a terse dashboard. It must list every quiz question, whether it was correct, the learner's selected answer, the correct answer when available, feedback/retry notes, every checked/unchecked checklist item, weak spots, and next command.
-- **Export format** — exported JSON MUST include `topic`, `lessonId`, `lessonTitle`, `language`, `outputMode`, `htmlPlan`, `htmlPlanInstructions`, `coursewareTier`, `coursewareTierInstructions`, `deliveryMode`, `deliveryInstructions`, `mentorLens`, `videoInstructions`, `updatedAt`, `completion`, `quiz`, `checklist`, `weakSpots`, and `nextCommand`. Each `quiz` item MUST include `id`, `question`, `concept`, `answered`, `correct`, `choiceIndex`, `choiceText`, `correctAnswer`, `feedback`, `retrySuggestion`, and `reviewTarget` when available. Each checklist item MUST include clean `text`, `checked`, and `reviewTarget`.
+- **Export format** — exported JSON MUST include `topic`, `lessonId`, `lessonTitle`, `language`, `outputMode`, `htmlPlan`, `htmlPlanInstructions`, `coursewareTier`, `coursewareTierInstructions`, `deliveryMode`, `deliveryInstructions`, `mentorLens`, `videoInstructions`, optional `annotationSummary`, `updatedAt`, `completion`, `quiz`, `checklist`, `weakSpots`, and `nextCommand`. Never embed full notes/images. Each `quiz` item MUST include `id`, `question`, `concept`, `answered`, `correct`, `choiceIndex`, `choiceText`, `correctAnswer`, `feedback`, `retrySuggestion`, and `reviewTarget` when available. Each checklist item MUST include clean `text`, `checked`, and `reviewTarget`.
 - **Tab switching** — MUST query panels from the parent section (`section.querySelectorAll(".tab-panel")`), NOT from the tabs container (`.tabs` only contains buttons, not panels — this is a verified bug pattern to avoid)
-- **All JS uses `function` keyword and `var`** (not arrow functions or `const`/`let`) for maximum browser compatibility
+- **Lesson-authored scaffold JS uses `function` and `var`** for broad compatibility; the versioned canonical runtime is deterministic and may use tested modern syntax
 
 See [session-artifacts.md](references/session-artifacts.md) for the design tokens and complete HTML lesson scaffold.
 
@@ -418,6 +415,7 @@ Minimum pass criteria:
 - the next learner action is explicit
 - every quiz/checklist item has a target concept and review path
 - export data contains enough detail for the next AI session to diagnose mistakes
+- learner annotations are non-destructive, independently resettable, portable, and browser-tested
 - optional video and mentor-lens paths remain opt-in
 - failure modes are handled directly rather than hidden in generic advice
 - 2-3 representative prompts dry-run without changing the intended workflow
@@ -485,6 +483,7 @@ Record the chosen values in profile/progress files before generating lesson file
 - Asking the delivery-mode question repeatedly after `deliveryMode` is stored.
 - Treating fast mode as a shallow summary; it must still be an interactive HTML lesson with checks and export.
 - Treating high quality as file size, or removing core interactions from compact/standard tiers.
+- Rewriting annotation code per lesson, wrapping teaching DOM to draw marks, treating `file://` storage as guaranteed, placing images in `localStorage`, or letting learning reset delete notes.
 - Creating multiple chapter folders in fast mode before the learner asks to expand.
 - Rendering MP4 by default when the learner only asked for learning help; start with HTML preview unless MP4 is explicitly requested.
 - Turning a mentor lens into impersonation, role-play, or fake quotations.

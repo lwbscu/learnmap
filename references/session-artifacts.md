@@ -302,7 +302,7 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
     <div class="breadcrumb">[Domain] / <span>Lesson N</span></div>
     <h1>[Lesson Title]</h1>
     <span class="record-pill" id="recordPill">[0% complete]</span>
-    <button onclick="resetAll()">[Reset Text]</button>
+    <button onclick="resetLearningProgress()">[Reset Learning Text]</button>
   </div>
 
   <!-- [REQUIRED] Sidebar TOC (hidden on screens < 1300px) -->
@@ -312,10 +312,10 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
     <!-- ... -->
   </nav>
 
-  <div class="main">
+  <div class="main" data-lm-annotatable>
 
     <!-- [REQUIRED] Section 0: Core question this lesson answers -->
-    <div class="section" id="s0">
+    <div class="section" id="s0" data-lm-scope="s0">
       <h2>[Icon] Core Question / 本课核心问题</h2>
       <p class="subtitle">[One-line summary]</p>
       <div class="def-box">
@@ -408,6 +408,7 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
   var LESSON_RECORD_KEY = "ai10x:[topic-slug]:lesson-N";
   var LESSON_META = {
     topic: "[Domain]",
+    courseId: "[stable-course-id]",
     lessonId: "lesson-N",
     lessonTitle: "[Lesson Title]",
     language: "zh-CN", // or "en"
@@ -420,6 +421,9 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
     deliveryInstructions: null, // learner-entered delivery Other text
     videoInstructions: null, // learner text for a custom accepted video request
     mentorLens: "none", // or requested lens name
+    annotationEnabled: true,
+    annotationRuntimeVersion: "1",
+    contentFingerprint: "[normalized-annotatable-text-sha256]",
     nextCommand: "[Command to type in Claude Code]",
     recordFileName: "学习记录.json" // English mode: "learning-record.json"
   };
@@ -547,6 +551,9 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
     var doneTasks = answered + checked;
     var completion = totalTasks ? Math.round(doneTasks * 100 / totalTasks) : 0;
     var weakSpots = quizItems.filter(function(q) { return q.answered && !q.correct; }).map(function(q) { return q.id; });
+    var annotationSummary = window.LearnMapAnnotations && window.LearnMapAnnotations.getSummary
+      ? window.LearnMapAnnotations.getSummary()
+      : { underlineCount: 0, noteCount: 0, imageCount: 0, questionNoteCount: 0, orphanedCount: 0, updatedAt: null };
     return {
       schema: "ai-10x-learning-record/v1",
       topic: LESSON_META.topic,
@@ -573,6 +580,7 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
       quiz: quizItems,
       checklist: checklist,
       weakSpots: weakSpots,
+      annotationSummary: annotationSummary,
       nextCommand: LESSON_META.nextCommand
     };
   }
@@ -702,8 +710,8 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
     URL.revokeObjectURL(a.href);
   }
 
-  // Reset all interactive state
-  function resetAll() {
+  // Reset learning progress only. Learner annotations and notes are independent high-value data.
+  function resetLearningProgress() {
     _mqAnswered = {};
     _mqState = {};
     document.querySelectorAll(".accordion").forEach(function(a) {
@@ -732,6 +740,9 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
     updateRecordUI();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
+
+  // Compatibility alias; it MUST preserve annotations and notes.
+  function resetAll() { resetLearningProgress(); }
 
   // Restore saved checklist/progress state and initialize record UI.
   loadRecord();
@@ -782,7 +793,8 @@ For every lesson, including Lesson 1, generate an interactive HTML page. Below i
 | `.record-panel`, `#recordSummary` | Learning record summary and AI handoff buttons |
 | `.next-cmd` | Monospace code block for next command |
 | `.bottom-bar` | Floating slide-up bar on scroll-to-end |
-| `.annotate`, `.annotate .tooltip` | Hover annotation tooltips |
+| `.term-hint`, `.term-hint .tooltip` | Neutral system-authored term hints; legacy `.annotate` remains validator-compatible only |
+| `[data-lm-annotatable]`, `[data-lm-scope]`, `[data-lm-ignore]` | Canonical learner-annotation boundaries; runtime UI uses `.lm-*` classes |
 
 ---
 
@@ -795,7 +807,7 @@ Every lesson must support both local persistence and AI handoff:
 - Provide a copy button that copies a detailed Markdown report to clipboard. The report must include every quiz question, selected answer, correct/wrong status, correct answer when available, feedback, retry suggestion, all checked/unchecked self-check items, each item's review target, weak spots, and next command.
 - Provide a download button for a portable JSON file.
 - Checklist export MUST read `.check-text`, not the entire `.check-item`, so labels like `复习 →` / `Review →` do not pollute the learning record.
-- JSON export MUST include `outputMode`, `htmlPlan`, `htmlPlanInstructions`, `coursewareTier`, `coursewareTierInstructions`, `deliveryMode`, `deliveryInstructions`, and `videoInstructions` so a later AI session knows page count, per-page specification, cadence, and custom instructions.
+- JSON export MUST include `outputMode`, `htmlPlan`, `htmlPlanInstructions`, `coursewareTier`, `coursewareTierInstructions`, `deliveryMode`, `deliveryInstructions`, `videoInstructions`, and optional `annotationSummary`. Full notes and images belong only in the separate `.learnmap` package.
 - Chinese mode download name: `学习记录.json`.
 - English mode download name: `learning-record.json`.
 
@@ -817,6 +829,14 @@ Required JSON shape:
   "deliveryInstructions": null,
   "videoInstructions": null,
   "mentorLens": "none",
+  "annotationSummary": {
+    "underlineCount": 4,
+    "noteCount": 2,
+    "imageCount": 1,
+    "questionNoteCount": 1,
+    "orphanedCount": 0,
+    "updatedAt": "2026-07-17T00:00:00.000Z"
+  },
   "updatedAt": "2026-05-29T00:00:00.000Z",
   "completion": {
     "percent": 75,

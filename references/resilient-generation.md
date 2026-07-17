@@ -49,8 +49,11 @@ Create an agent-maintained state file before writing any lesson HTML, including 
       "finalPath": "第01课-全局地图/课件.html",
       "coursewareTier": "high-quality",
       "coursewareTierInstructions": null,
+      "annotationRuntimeVersion": "1",
       "status": "committed",
-      "byteSize": 34816,
+      "contentBytes": 34816,
+      "runtimeBytes": 42100,
+      "totalBytes": 76916,
       "sha256": "<validator output>"
     }
   ],
@@ -75,21 +78,22 @@ Process lessons strictly in plan order. Do not create all future lesson director
 3. Create a staging directory beside the final lesson directory, such as `.learnmap-staging/lesson-02/`.
 4. Generate exactly one complete HTML file as `课件.html.partial` or `index.html.partial` in the staging directory. One provider/tool turn writes at most one lesson HTML.
 5. Do not echo the HTML source in chat. Tool output and chat summaries should contain paths and compact validation results only.
-6. Validate with `node "<loaded-learnmap-skill-root>/scripts/validate-courseware.mjs" <partial-path> --tier <current-lesson.coursewareTier>`. Resolve the script from the loaded Skill, and require the state tier to match the HTML-embedded tier.
-7. If validation fails, keep the final path untouched, record `failed`, and retry only the current lesson.
-8. If validation passes, rename the `.partial` file inside staging to its final basename (`课件.html` or `index.html`). Remove an existing final lesson directory only when it is empty; preserve any non-empty legacy or user-authored directory. Then atomically rename the staging lesson directory itself to the final lesson directory on the same filesystem.
-9. Immediately checkpoint `status: committed`, byte size, SHA-256, and the next lesson index.
-10. Only after the checkpoint may batch mode start the next lesson. Interactive mode stops after the committed lesson.
+6. Inject the deterministic self-contained annotation runtime with `node "<loaded-learnmap-skill-root>/scripts/inject-courseware-runtime.mjs" <partial-path>`. Do not ask the model to write, summarize, or modify the runtime. Injection must be idempotent.
+7. Validate with `node "<loaded-learnmap-skill-root>/scripts/validate-courseware.mjs" <partial-path> --tier <current-lesson.coursewareTier>`. Resolve scripts from the loaded Skill, require the state tier to match the HTML tier, and require the canonical runtime version/hash.
+8. If validation fails, keep the final path untouched, record `failed`, and retry only the current lesson.
+9. If validation passes, rename the `.partial` file inside staging to its final basename (`课件.html` or `index.html`). Remove an existing final lesson directory only when it is empty; preserve any non-empty legacy or user-authored directory. Then atomically rename the staging lesson directory itself to the final lesson directory on the same filesystem.
+10. Immediately checkpoint `status: committed`, content/runtime/total byte sizes, SHA-256, runtime version, and the next lesson index. Only then may batch mode start the next lesson; interactive mode stops after the committed lesson.
 
 Never claim “课件已生成 / lesson generated” in progress metadata before step 9 succeeds.
 
 ## 4. Output Budget
 
-- Read [courseware-tiers.md](courseware-tiers.md) and use the selected tier: compact targets 16–32 KiB with a 40 KiB ceiling, standard 24–60 KiB with a 72 KiB ceiling, and high-quality 48–88 KiB with a 96 KiB ceiling.
-- Custom defaults to the standard budget unless the learner specifies a smaller ceiling; 96 KiB is the absolute per-page maximum.
+- Read [courseware-tiers.md](courseware-tiers.md). Teaching content keeps its selected budget: compact targets 16–32 KiB with a 40 KiB ceiling, standard 24–60 KiB with a 72 KiB ceiling, and high-quality 48–88 KiB with a 96 KiB ceiling.
+- The canonical annotation runtime has a separate 48 KiB ceiling. Total HTML ceilings are 88 KiB compact, 120 KiB standard, and 144 KiB high-quality/custom; 144 KiB is absolute. Validator output reports `contentBytes`, `runtimeBytes`, and `totalBytes`.
+- Custom teaching content defaults to the standard budget unless the learner specifies a smaller ceiling; runtime cannot consume or inflate the teaching-content budget.
 - Line count is not a quality metric. Prefer compact CSS/JS and focused content over a 1000-line scaffold.
 - Every tier keeps the complete interaction contract. High-quality must satisfy its evidence/chain/extension rubric; byte count alone never proves quality.
-- If a lesson would exceed the ceiling, reduce duplicated boilerplate and move non-core detail to another planned page. Do not silently add extra pages beyond `htmlPlan`.
+- If teaching content exceeds its ceiling, reduce duplicated lesson boilerplate or move non-core detail to another planned page. If runtime exceeds 48 KiB, optimize the canonical asset rather than deleting functionality or changing one lesson. Do not silently add pages or relax limits.
 - A provider/tool turn writes one lesson HTML. Other small state/tool calls may occur in the same turn.
 
 ## 5. Recovery
