@@ -262,11 +262,18 @@
       box-shadow: 0 28px 80px rgba(0,0,0,0.34);
     }
 
-    .hero-media img {
+    .hero-media img,
+    .hero-media video {
       display: block;
       width: 100%;
       height: auto;
       border-radius: 6px;
+    }
+
+    .hero-media video {
+      aspect-ratio: 16 / 9;
+      background: #05090e;
+      object-fit: cover;
     }
 
     .overview-grid {
@@ -535,8 +542,9 @@
           <a class="btn" href="./promo-video.html">独立视频页 / Standalone video</a>
         </div>
       </div>
-      <div class="hero-media">
-        <img src="./assets/learnmap-cover.png" alt="LearnMap cover showing a knowledge-map style learning interface">
+      <div class="hero-media" role="group" aria-label="LearnMap 海报轮播 / Poster carousel">
+        <video preload="none" playsinline muted poster="./assets/learnmap-poster-en-courseware.png" aria-label="LearnMap 海报轮播 / Poster carousel"
+          data-learnmap-poster-carousel="./assets/learnmap-poster-en-courseware.png,./assets/learnmap-poster-en-atlas.png,./assets/learnmap-poster-en-notes.png,./assets/learnmap-poster-en-agents.png,./assets/learnmap-poster-cn-courseware.png,./assets/learnmap-poster-cn-atlas.png,./assets/learnmap-poster-cn-notes.png,./assets/learnmap-poster-cn-agents.png"></video>
       </div>
     </section>
 

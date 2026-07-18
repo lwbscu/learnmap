@@ -1,9 +1,11 @@
 # LearnMap
 
 <p align="center">
-  <a href="https://lwbscu.github.io/learnmap/">
-    <img src="docs/assets/learnmap-cover.png" alt="LearnMap cover" width="960">
+  <a href="https://lwbscu.github.io/learnmap/demos.html?lang=en#walkthrough">
+    <img src="docs/assets/learnmap-poster-en-carousel.webp" alt="Watch the LearnMap product walkthrough" width="900">
   </a>
+  <br>
+  <a href="https://lwbscu.github.io/learnmap/demos.html?lang=en">Open the bilingual LearnMap Demo Center</a>
 </p>
 
 <p align="center">
@@ -25,14 +27,6 @@
 **Map first. Learn faster.**
 
 LearnMap is an Agent Skill that turns a vague learning request into mapped, interactive HTML courseware. It starts with a knowledge map, then builds lessons with navigation, checks, wrong-answer feedback, review jumps, and exportable learning records for AI follow-up.
-
-<p align="center">
-  <a href="https://lwbscu.github.io/learnmap/demos.html?lang=en#walkthrough">
-    <img src="docs/assets/learnmap-poster-en-carousel.webp" alt="Watch the LearnMap product walkthrough" width="900">
-  </a>
-  <br>
-  <a href="https://lwbscu.github.io/learnmap/demos.html?lang=en">Open the bilingual LearnMap Demo Center</a>
-</p>
 
 ## What's NEW!
 

@@ -1,9 +1,11 @@
 # LearnMap
 
 <p align="center">
-  <a href="https://lwbscu.github.io/learnmap/">
-    <img src="docs/assets/learnmap-cover.png" alt="LearnMap cover" width="960">
+  <a href="https://lwbscu.github.io/learnmap/demos.html?lang=zh#walkthrough">
+    <img src="docs/assets/learnmap-poster-cn-carousel.webp" alt="观看 LearnMap 使用流程演示" width="900">
   </a>
+  <br>
+  <a href="https://lwbscu.github.io/learnmap/demos.html?lang=zh">打开双语 LearnMap Demo Center</a>
 </p>
 
 <p align="center">
@@ -25,14 +27,6 @@
 **Map first. Learn faster.**
 
 LearnMap 是一个面向 Agent Skill 的学习工具。它不会直接输出一篇长文，而是先把陌生主题变成知识地图，再生成可交互 HTML 课件、掌握检查、错题复习跳转和可导出的学习记录。
-
-<p align="center">
-  <a href="https://lwbscu.github.io/learnmap/demos.html?lang=zh#walkthrough">
-    <img src="docs/assets/learnmap-poster-cn-carousel.webp" alt="观看 LearnMap 使用流程演示" width="900">
-  </a>
-  <br>
-  <a href="https://lwbscu.github.io/learnmap/demos.html?lang=zh">打开双语 LearnMap Demo Center</a>
-</p>
 
 ## What's NEW!
 

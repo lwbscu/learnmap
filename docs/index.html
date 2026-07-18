@@ -211,11 +211,18 @@
       box-shadow: 0 28px 110px rgba(0,0,0,0.48);
     }
 
-    .hero-card img {
+    .hero-card img,
+    .hero-card video {
       display: block;
       width: 100%;
       max-width: 100%;
       height: auto;
+    }
+
+    .hero-card video {
+      aspect-ratio: 16 / 9;
+      background: #05090e;
+      object-fit: cover;
     }
 
     .terminal {
@@ -446,7 +453,8 @@
       </div>
     </div>
     <div class="hero-card">
-      <img src="./assets/learnmap-cover.png" alt="LearnMap sci-fi knowledge map cover">
+      <video preload="none" playsinline muted poster="./assets/learnmap-poster-en-courseware.png" aria-label="LearnMap poster carousel"
+        data-learnmap-poster-carousel="./assets/learnmap-poster-en-courseware.png,./assets/learnmap-poster-en-atlas.png,./assets/learnmap-poster-en-notes.png,./assets/learnmap-poster-en-agents.png"></video>
     </div>
   </header>
 

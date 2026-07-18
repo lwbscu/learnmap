@@ -7,21 +7,27 @@ const coursePath = "/docs/demos/ai-agent-frameworks.html";
 const promoPath = "/docs/promo-video.html";
 const homePath = "/docs/index.html";
 const posterCarouselSelector = "video[data-learnmap-poster-carousel]";
+const homeHeroCarousel = ".hero-card video[data-learnmap-poster-carousel]";
+const demoHeroCarousel = ".hero-media video[data-learnmap-poster-carousel]";
+const walkthroughCarousel = "video.demo-video[data-learnmap-poster-carousel]";
+const promoCarousel = "video.primary-video[data-learnmap-poster-carousel]";
 
 const posterCarouselPages = [
-  { path: homePath, declaredCount: 4, englishCount: 4, chineseCount: 0 },
-  { path: promoPath, declaredCount: 4, englishCount: 4, chineseCount: 0 },
-  { path: demoCenterPath, declaredCount: 8, englishCount: 4, chineseCount: 4 },
-  { path: `${demoCenterPath}?lang=zh`, declaredCount: 8, englishCount: 4, chineseCount: 4 },
-  { path: `${demoCenterPath}?lang=en`, declaredCount: 8, englishCount: 4, chineseCount: 4 }
+  { path: homePath, selector: homeHeroCarousel, declaredCount: 4, englishCount: 4, chineseCount: 0 },
+  { path: homePath, selector: walkthroughCarousel, declaredCount: 4, englishCount: 4, chineseCount: 0 },
+  { path: promoPath, selector: promoCarousel, declaredCount: 4, englishCount: 4, chineseCount: 0 },
+  { path: demoCenterPath, selector: demoHeroCarousel, declaredCount: 8, englishCount: 4, chineseCount: 4 },
+  { path: demoCenterPath, selector: walkthroughCarousel, declaredCount: 8, englishCount: 4, chineseCount: 4 },
+  { path: `${demoCenterPath}?lang=zh`, selector: demoHeroCarousel, declaredCount: 8, englishCount: 4, chineseCount: 4 },
+  { path: `${demoCenterPath}?lang=en`, selector: demoHeroCarousel, declaredCount: 8, englishCount: 4, chineseCount: 4 }
 ];
 
 const posterRotationPages = [
-  { path: homePath, rotationCount: 4, language: "en" },
-  { path: promoPath, rotationCount: 4, language: "en" },
-  { path: demoCenterPath, rotationCount: 8, language: "both" },
-  { path: `${demoCenterPath}?lang=zh`, rotationCount: 4, language: "cn" },
-  { path: `${demoCenterPath}?lang=en`, rotationCount: 4, language: "en" }
+  { path: homePath, selector: homeHeroCarousel, intervalCount: 2, rotationCount: 4, language: "en" },
+  { path: promoPath, selector: promoCarousel, intervalCount: 1, rotationCount: 4, language: "en" },
+  { path: demoCenterPath, selector: demoHeroCarousel, intervalCount: 2, rotationCount: 8, language: "both" },
+  { path: `${demoCenterPath}?lang=zh`, selector: demoHeroCarousel, intervalCount: 2, rotationCount: 4, language: "cn" },
+  { path: `${demoCenterPath}?lang=en`, selector: demoHeroCarousel, intervalCount: 2, rotationCount: 4, language: "en" }
 ];
 
 async function expectNoHorizontalOverflow(page) {
@@ -93,17 +99,17 @@ async function installManualIntervalClock(page) {
   });
 }
 
-async function declaredPosterUrls(page) {
-  const video = page.locator(posterCarouselSelector);
+async function declaredPosterUrls(page, selector = posterCarouselSelector) {
+  const video = page.locator(selector);
   await expect(video).toHaveCount(1);
   const raw = await video.getAttribute("data-learnmap-poster-carousel");
   expect(raw).not.toBeNull();
   return raw.split(",").map((url) => url.trim()).filter(Boolean);
 }
 
-async function advancePosterCarousel(page) {
+async function advancePosterCarousel(page, selector = posterCarouselSelector) {
   const invoked = await page.evaluate(() => window.__learnmapAdvanceIntervals());
-  const poster = await page.locator(posterCarouselSelector).evaluate((video) => video.poster);
+  const poster = await page.locator(selector).evaluate((video) => video.poster);
   return { invoked, poster };
 }
 
@@ -172,7 +178,10 @@ test.describe("Demo Center HTTP surface", () => {
     for (const variant of variants) {
       const source = await fs.readFile(variant.file, "utf8");
       const assetLanguage = variant.language === "zh" ? "cn" : "en";
-      expect(source).toContain(`docs/assets/learnmap-poster-${assetLanguage}-carousel.webp`);
+      const expectedPoster = `docs/assets/learnmap-poster-${assetLanguage}-carousel.webp`;
+      const declaredPosters = source.match(/docs\/assets\/learnmap-poster-(?:en|cn)-carousel\.webp/g) || [];
+      expect(source, variant.file).not.toContain("learnmap-cover.png");
+      expect(declaredPosters, variant.file).toEqual([expectedPoster]);
       expect(source).toContain(`https://lwbscu.github.io/learnmap/demos.html?lang=${variant.language}`);
       expect(source.match(/\[2026\/07\]/g)).toHaveLength(1);
     }
@@ -186,6 +195,11 @@ test.describe("Demo Center HTTP surface", () => {
       await page.setViewportSize(viewport);
       const response = await page.goto(homePath);
       expect(response?.ok()).toBe(true);
+
+      const homePoster = page.locator(".hero-card video[data-learnmap-poster-carousel]");
+      await expect(homePoster).toBeVisible();
+      await expect(homePoster).not.toHaveAttribute("poster", /learnmap-cover\.png/);
+      await expect(homePoster).toHaveAttribute("data-learnmap-poster-carousel", /learnmap-poster-en-courseware\.png/);
 
       const newLink = page.getByRole("link", { name: "What's New", exact: true });
       await expect(newLink).toBeVisible();
@@ -288,7 +302,7 @@ test.describe("Demo Center HTTP surface", () => {
       const response = await page.goto(carouselPage.path);
       expect(response?.ok(), carouselPage.path).toBe(true);
 
-      const declaredUrls = await declaredPosterUrls(page);
+      const declaredUrls = await declaredPosterUrls(page, carouselPage.selector);
       expect(declaredUrls, carouselPage.path).toHaveLength(carouselPage.declaredCount);
       expect(new Set(declaredUrls).size, carouselPage.path).toBe(carouselPage.declaredCount);
       expect(declaredUrls.filter((url) => url.includes("-en-")), carouselPage.path).toHaveLength(carouselPage.englishCount);
@@ -296,9 +310,11 @@ test.describe("Demo Center HTTP surface", () => {
 
       for (const declaredUrl of declaredUrls) {
         expect(declaredUrl, carouselPage.path).not.toMatch(/^(?:file:|[a-z]:[\\/]|\\\\)/i);
+        expect(declaredUrl, carouselPage.path).not.toContain("learnmap-cover.png");
         const resolvedUrl = new URL(declaredUrl, page.url());
         expect(resolvedUrl.protocol, declaredUrl).toBe("http:");
         expect(resolvedUrl.origin, declaredUrl).toBe(fixtureOrigin);
+        expect(resolvedUrl.pathname, declaredUrl).toMatch(/^\/docs\/assets\/learnmap-poster-(?:en|cn)-.+\.png$/);
         resourceUrls.add(resolvedUrl.href);
       }
     }
@@ -311,19 +327,39 @@ test.describe("Demo Center HTTP surface", () => {
     }
   });
 
+  test("Demo Center hero uses the poster carousel instead of the legacy cover", async ({ page }) => {
+    await gotoDemoCenter(page);
+
+    const heroVideo = page.locator(".hero-media video[data-learnmap-poster-carousel]");
+    await expect(heroVideo).toBeVisible();
+    const heroPoster = await heroVideo.evaluate((video) => {
+      return {
+        poster: video.getAttribute("poster") || "",
+        resolvedPoster: video.poster,
+        carousel: video.getAttribute("data-learnmap-poster-carousel") || ""
+      };
+    });
+
+    expect(heroPoster.poster).not.toContain("learnmap-cover.png");
+    expect(heroPoster.resolvedPoster).not.toContain("learnmap-cover.png");
+    expect(heroPoster.carousel).toMatch(/learnmap-poster-(?:en|cn)-.+\.png/);
+    expect(heroPoster.carousel).not.toContain("learnmap-cover.png");
+    await expect(page.locator(".hero-media")).not.toContainText("learnmap-cover.png");
+  });
+
   test("poster carousels rotate through the configured language set before playback", async ({ page }) => {
     await installManualIntervalClock(page);
 
     for (const carouselPage of posterRotationPages) {
       await page.goto(carouselPage.path);
-      const declaredUrls = (await declaredPosterUrls(page)).map((url) => new URL(url, page.url()).href);
-      await expect.poll(() => page.evaluate(() => window.__learnmapActiveIntervalCount())).toBe(1);
-      const initialPoster = await page.locator(posterCarouselSelector).evaluate((video) => video.poster);
+      const declaredUrls = (await declaredPosterUrls(page, carouselPage.selector)).map((url) => new URL(url, page.url()).href);
+      await expect.poll(() => page.evaluate(() => window.__learnmapActiveIntervalCount())).toBe(carouselPage.intervalCount);
+      const initialPoster = await page.locator(carouselPage.selector).evaluate((video) => video.poster);
 
       const observedPosters = [];
       for (let index = 0; index <= carouselPage.rotationCount; index += 1) {
-        const { invoked, poster } = await advancePosterCarousel(page);
-        expect(invoked, carouselPage.path).toBe(1);
+        const { invoked, poster } = await advancePosterCarousel(page, carouselPage.selector);
+        expect(invoked, carouselPage.path).toBe(carouselPage.intervalCount);
         observedPosters.push(poster);
       }
 
@@ -351,16 +387,16 @@ test.describe("Demo Center HTTP surface", () => {
   test("poster carousel stops on play", async ({ page }) => {
     await installManualIntervalClock(page);
     await page.goto(demoCenterPath);
-    await declaredPosterUrls(page);
+    await declaredPosterUrls(page, walkthroughCarousel);
+    await expect.poll(() => page.evaluate(() => window.__learnmapActiveIntervalCount())).toBe(2);
+
+    const firstAdvance = await advancePosterCarousel(page, walkthroughCarousel);
+    expect(firstAdvance.invoked).toBe(2);
+    await page.locator(walkthroughCarousel).dispatchEvent("play");
     await expect.poll(() => page.evaluate(() => window.__learnmapActiveIntervalCount())).toBe(1);
 
-    const firstAdvance = await advancePosterCarousel(page);
-    expect(firstAdvance.invoked).toBe(1);
-    await page.locator(posterCarouselSelector).dispatchEvent("play");
-    await expect.poll(() => page.evaluate(() => window.__learnmapActiveIntervalCount())).toBe(0);
-
-    const afterPlay = await advancePosterCarousel(page);
-    expect(afterPlay.invoked).toBe(0);
+    const afterPlay = await advancePosterCarousel(page, walkthroughCarousel);
+    expect(afterPlay.invoked).toBe(1);
     expect(afterPlay.poster).toBe(firstAdvance.poster);
   });
 
@@ -368,12 +404,12 @@ test.describe("Demo Center HTTP surface", () => {
     await installManualIntervalClock(page);
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(demoCenterPath);
-    await declaredPosterUrls(page);
+    await declaredPosterUrls(page, demoHeroCarousel);
 
     expect(await page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches)).toBe(true);
     await expect.poll(() => page.evaluate(() => window.__learnmapActiveIntervalCount())).toBe(0);
-    const initialPoster = await page.locator(posterCarouselSelector).evaluate((video) => video.poster);
-    const afterAdvance = await advancePosterCarousel(page);
+    const initialPoster = await page.locator(demoHeroCarousel).evaluate((video) => video.poster);
+    const afterAdvance = await advancePosterCarousel(page, demoHeroCarousel);
     expect(afterAdvance.invoked).toBe(0);
     expect(afterAdvance.poster).toBe(initialPoster);
   });
@@ -382,10 +418,11 @@ test.describe("Demo Center HTTP surface", () => {
     await installManualIntervalClock(page);
     await page.goto(`${demoCenterPath}?lang=en`);
 
-    const video = page.locator(posterCarouselSelector);
-    const previous = page.getByTestId("poster-previous");
-    const pause = page.getByTestId("poster-pause");
-    const next = page.getByTestId("poster-next");
+    const video = page.locator(demoHeroCarousel);
+    const host = video.locator("xpath=..");
+    const previous = host.getByTestId("poster-previous");
+    const pause = host.getByTestId("poster-pause");
+    const next = host.getByTestId("poster-next");
     await expect(previous).toBeVisible();
     await expect(pause).toBeVisible();
     await expect(next).toBeVisible();
@@ -395,7 +432,7 @@ test.describe("Demo Center HTTP surface", () => {
     const secondPoster = await video.evaluate((element) => element.poster);
     expect(secondPoster).not.toBe(firstPoster);
     await expect(pause).toHaveAttribute("aria-label", "Resume poster rotation");
-    await expect.poll(() => page.evaluate(() => window.__learnmapActiveIntervalCount())).toBe(0);
+    await expect.poll(() => page.evaluate(() => window.__learnmapActiveIntervalCount())).toBe(1);
 
     await previous.click();
     await expect.poll(() => video.evaluate((element) => element.poster)).toBe(firstPoster);
