@@ -28,7 +28,7 @@ LearnMap is an Agent Skill that turns a vague learning request into mapped, inte
 
 <p align="center">
   <a href="https://lwbscu.github.io/learnmap/demos.html#walkthrough">
-    <img src="docs/assets/learnmap-demo-poster.png" alt="Watch the LearnMap 60-second usage walkthrough" width="900">
+    <img src="docs/assets/learnmap-demo-poster.png" alt="Watch the LearnMap product walkthrough" width="900">
   </a>
   <br>
   <a href="https://lwbscu.github.io/learnmap/demos.html">Open the bilingual LearnMap Demo Center</a>

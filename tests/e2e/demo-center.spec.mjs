@@ -177,6 +177,33 @@ test.describe("Demo Center HTTP surface", () => {
     }
   });
 
+  test("product walkthrough decodes and advances in the browser", async ({ page }) => {
+    await gotoDemoCenter(page, "#walkthrough");
+    const playback = await page.getByTestId("demo-video").evaluate(async (video) => {
+      video.muted = true;
+      video.currentTime = 0;
+      if (video.readyState < HTMLMediaElement.HAVE_METADATA) {
+        await new Promise((resolve, reject) => {
+          video.addEventListener("loadedmetadata", resolve, { once: true });
+          video.addEventListener("error", () => reject(video.error), { once: true });
+        });
+      }
+      await video.play();
+      await new Promise((resolve) => setTimeout(resolve, 750));
+      video.pause();
+      return {
+        currentTime: video.currentTime,
+        duration: video.duration,
+        readyState: video.readyState
+      };
+    });
+
+    expect(playback.duration).toBeGreaterThan(74.9);
+    expect(playback.duration).toBeLessThan(75.1);
+    expect(playback.readyState).toBeGreaterThanOrEqual(2);
+    expect(playback.currentTime).toBeGreaterThan(0.2);
+  });
+
   test("same-origin iframe exposes runtime v2 and public lesson metadata", async ({ page }) => {
     await gotoDemoCenter(page, "#courseware");
     const iframeAttributes = await page.getByTestId("courseware-frame").evaluate((iframe) => ({
@@ -229,7 +256,7 @@ test.describe("Demo Center HTTP surface", () => {
     await expect(page.locator("[data-lm-annotatable]")).toBeVisible();
 
     await page.goto(promoPath);
-    await expect(page).toHaveTitle(/Usage Walkthrough Video/);
+    await expect(page).toHaveTitle(/Product Walkthrough/);
     await expect(page.locator("video").first()).toBeVisible();
     await expect(page.locator('a[href="./index.html"]').first()).toBeVisible();
   });
