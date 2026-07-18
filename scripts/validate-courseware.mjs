@@ -252,6 +252,7 @@ const runtimeV2Tokens = [
   "lm-image-zoom-trigger",
   "lm-image-lightbox",
   "lm-note-options-toggle",
+  "reeditable-note-selection-lists-v1",
   "customColor",
   "surfaceColor"
 ];

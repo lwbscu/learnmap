@@ -22,6 +22,16 @@ async function selectEditorText(editor, text) {
   }, text);
 }
 
+async function placeEditorCursorInText(editor, text) {
+  await editor.evaluate((element, targetText) => {
+    const start = element.value.indexOf(targetText);
+    if (start < 0) throw new Error(`Cannot place cursor in missing editor text: ${targetText}`);
+    const cursor = start + Math.floor(targetText.length / 2);
+    element.focus();
+    element.setSelectionRange(cursor, cursor);
+  }, text);
+}
+
 async function generatedPng(page, width = 640, height = 360) {
   const bytes = await page.evaluate(({ width: w, height: h }) => new Promise((resolve) => {
     const canvas = document.createElement("canvas");
@@ -191,13 +201,20 @@ test("formatting toolbar transforms selections and renders inline styles and lis
   const editor = page.getByTestId("lm-note-editor");
   await openNoteOptions(page);
   const blockType = page.getByTestId("lm-block-type");
-  const addBlock = page.getByTestId("lm-add-block");
   const inlineCases = [
     ["粗体文本", "lm-note-format-bold"],
     ["斜体文本", "lm-note-format-italic"],
     ["下划线文本", "lm-note-format-underline"]
   ];
-  await editor.fill(inlineCases.map(([text]) => text).join(" "));
+  await editor.fill([
+    inlineCases.map(([text]) => text).join(" "),
+    "",
+    "第一项",
+    "第二项",
+    "",
+    "甲项",
+    "乙项"
+  ].join("\n"));
 
   for (const [text, testId] of inlineCases) {
     const button = page.getByTestId(testId);
@@ -208,9 +225,6 @@ test("formatting toolbar transforms selections and renders inline styles and lis
     expect(await editor.inputValue()).not.toBe(before);
     await expect(editor).toHaveValue(new RegExp(text));
   }
-  await blockType.selectOption("paragraph");
-  await addBlock.click();
-
   const orderedButton = page.getByTestId("lm-note-format-ordered-list");
   const unorderedButton = page.getByTestId("lm-note-format-unordered-list");
   await expect(orderedButton).toHaveClass(/\blm-editor-tool\b/);
@@ -221,19 +235,16 @@ test("formatting toolbar transforms selections and renders inline styles and lis
   await expect(unorderedButton).toHaveAttribute("aria-pressed", "false");
 
   const listCases = [
-    ["第一项\n第二项", orderedButton, unorderedButton, "ordered-list"],
-    ["甲项\n乙项", unorderedButton, orderedButton, "unordered-list"]
+    ["第一项\n第二项", orderedButton, unorderedButton, "ordered-list", "1. 第一项\n2. 第二项"],
+    ["甲项\n乙项", unorderedButton, orderedButton, "unordered-list", "- 甲项\n- 乙项"]
   ];
-  for (const [text, activeButton, inactiveButton, type] of listCases) {
-    await editor.fill(text);
+  for (const [text, activeButton, inactiveButton, type, formatted] of listCases) {
     await selectEditorText(editor, text);
-    const before = await editor.inputValue();
     await activeButton.click();
-    await expect(editor).toHaveValue(before);
+    await expect(editor).toHaveValue(new RegExp(formatted.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
     await expect(blockType).toHaveValue(type);
     await expect(activeButton).toHaveAttribute("aria-pressed", "true");
     await expect(inactiveButton).toHaveAttribute("aria-pressed", "false");
-    await addBlock.click();
   }
 
   await page.getByTestId("lm-note-save").click();
@@ -250,6 +261,76 @@ test("formatting toolbar transforms selections and renders inline styles and lis
   await expectListStyle(unorderedList, "disc");
 });
 
+async function runScopedListToolbarScenario(page) {
+  await selectFixtureText(page, "#selection-text", 0, 12);
+  await page.getByTestId("lm-add-note").click();
+  const editor = page.getByTestId("lm-note-editor");
+  const orderedButton = page.getByTestId("lm-note-format-ordered-list");
+  const unorderedButton = page.getByTestId("lm-note-format-unordered-list");
+  const plainText = [
+    "Intro paragraph",
+    "Beta item",
+    "Gamma item",
+    "Tail paragraph"
+  ].join("\n");
+
+  await editor.fill(plainText);
+  await selectEditorText(editor, "eta item\nGamma it");
+  await orderedButton.click();
+  await expect(editor).toHaveValue([
+    "Intro paragraph",
+    "1. Beta item",
+    "2. Gamma item",
+    "Tail paragraph"
+  ].join("\n"));
+
+  await selectEditorText(editor, "1. Beta item\n2. Gamma item");
+  await unorderedButton.click();
+  await expect(editor).toHaveValue([
+    "Intro paragraph",
+    "- Beta item",
+    "- Gamma item",
+    "Tail paragraph"
+  ].join("\n"));
+
+  await selectEditorText(editor, "- Beta item\n- Gamma item");
+  await unorderedButton.click();
+  await expect(editor).toHaveValue(plainText);
+
+  await placeEditorCursorInText(editor, "Gamma item");
+  await orderedButton.click();
+  await expect(editor).toHaveValue([
+    "Intro paragraph",
+    "Beta item",
+    "1. Gamma item",
+    "Tail paragraph"
+  ].join("\n"));
+
+  await orderedButton.click();
+  await expect(editor).toHaveValue(plainText);
+
+  await placeEditorCursorInText(editor, "Gamma item");
+  await orderedButton.click();
+
+  await placeEditorCursorInText(editor, "Tail paragraph");
+  await unorderedButton.click();
+  await expect(editor).toHaveValue([
+    "Intro paragraph",
+    "Beta item",
+    "1. Gamma item",
+    "- Tail paragraph"
+  ].join("\n"));
+}
+
+test("list toolbar transforms only the selected lines on desktop", async ({ page }) => {
+  await runScopedListToolbarScenario(page);
+});
+
+test("list toolbar transforms only the selected lines at 390px mobile width", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await runScopedListToolbarScenario(page);
+});
+
 test("pending structured blocks preview semantically with localized labels", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await selectFixtureText(page, "#selection-text", 0, 12);
@@ -257,20 +338,17 @@ test("pending structured blocks preview semantically with localized labels", asy
   await openNoteOptions(page);
   const pending = page.getByTestId("lm-note-blocks");
   const blocks = [
-    ["ordered-list", "1. 第一项\n1) 第二项", "有序列表", "ol", "decimal", ["第一项", "第二项"]],
-    ["unordered-list", "- 甲项\n• 乙项", "无序列表", "ul", "disc", ["甲项", "乙项"]]
+    ["ordered-list", "有序列表", "ol", "decimal", ["第一项", "第二项"]],
+    ["unordered-list", "无序列表", "ul", "disc", ["甲项", "乙项"]]
   ];
-
-  for (const [type, text, label] of blocks) {
-    await page.getByTestId("lm-block-type").selectOption(type);
-    await page.getByTestId("lm-note-editor").fill(text);
-    await page.getByTestId("lm-add-block").click();
+  await page.getByTestId("lm-note-editor").fill("1. 第一项\n2. 第二项\n\n- 甲项\n- 乙项");
+  for (const [type, label] of blocks) {
     await expect(pending).toContainText(new RegExp(`${label}|${type === "ordered-list" ? "Ordered list" : "Unordered list"}`, "i"));
   }
 
   await expect(pending).not.toContainText("ordered-list:");
   await expect(pending).not.toContainText("unordered-list:");
-  for (const [, , , tag, marker, items] of blocks) {
+  for (const [, , tag, marker, items] of blocks) {
     const list = pending.locator(`${tag}.lm-rendered-block`).last();
     await expect(list.locator("li")).toHaveText(items);
     await expectListStyle(list, marker);
@@ -310,11 +388,26 @@ test("structured note blocks render safely with explicit metadata and actions", 
     ["quote", "安全引用"],
     ["code", "<img src=x onerror=alert(1)>"],
   ];
-  for (const [type, value] of blocks) {
-    await page.getByTestId("lm-block-type").selectOption(type);
-    await page.getByTestId("lm-note-editor").fill(value);
-    await page.getByTestId("lm-add-block").click();
-  }
+  await page.getByTestId("lm-note-editor").fill([
+    "# 核心结论",
+    "",
+    "**加粗**、*斜体*、`code` 与 [官网](https://example.com)",
+    "",
+    "1. 第一项",
+    "2. 第二项",
+    "",
+    "- 甲",
+    "- 乙",
+    "",
+    "- [x] 已完成",
+    "- [ ] 待处理",
+    "",
+    "> 安全引用",
+    "",
+    "```",
+    "<img src=x onerror=alert(1)>",
+    "```"
+  ].join("\n"));
   await page.getByTestId("lm-note-save").click();
   await ensureNotesManagerOpen(page);
   const card = page.locator(".lm-note-card");

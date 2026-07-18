@@ -470,7 +470,6 @@
     if (!state.ui.editor) return "";
     return JSON.stringify({
       text: state.ui.textarea.value,
-      blockType: state.ui.blockType.value,
       blocks: state.pendingBlocks,
       assets: state.pendingAssets.map((asset) => asset.id),
       question: state.ui.question.checked,
@@ -1156,6 +1155,7 @@
     if (type === "ordered-list" && /^ordered-list:\s*/iu.test(value)) return value.replace(/^ordered-list:\s*/iu, "");
     if (type === "unordered-list" && /^unordered-list:\s*/iu.test(value)) return value.replace(/^unordered-list:\s*/iu, "");
     if (type === "checklist" && /^checklist:\s*/iu.test(value)) return value.replace(/^checklist:\s*/iu, "");
+    if (type === "checklist") return value.replace(/^(?:[-*+•]\s*)?\[[ xX]\]\s*/u, "");
     return value.replace(/^(?:(?:\d+[\.)])|[-*+•]|\[[ xX]\])\s*/u, "");
   }
 
@@ -1165,6 +1165,174 @@
 
   function normalizeBlockText(type, text) {
     return isListBlock(type) ? listItemsFromText(text, type).join("\n") : `${text || ""}`.trim();
+  }
+
+  function validTextBlockType(type) {
+    return BLOCK_TYPES.has(type) && type !== "image" ? type : "paragraph";
+  }
+
+  function stripLineBlockMarker(line, type = lineBlockType(line)) {
+    const value = `${line ?? ""}`;
+    if (type === "heading") return value.replace(/^\s*#{1,6}\s+/u, "");
+    if (type === "quote") return value.replace(/^\s*>\s?/u, "");
+    if (type === "ordered-list" || type === "unordered-list" || type === "checklist") return stripLegacyListPrefix(value, type);
+    return value;
+  }
+
+  function lineBlockType(line) {
+    const value = `${line ?? ""}`.trimStart();
+    if (!value) return null;
+    if (/^#{1,6}\s+/u.test(value)) return "heading";
+    if (/^>\s?/u.test(value)) return "quote";
+    if (/^(?:[-*+•]\s*)?\[[ xX]\]\s+/u.test(value)) return "checklist";
+    if (/^\d+[\.)]\s+/u.test(value) || /^ordered-list:\s*/iu.test(value)) return "ordered-list";
+    if (/^(?:[-*+•])\s+/u.test(value) || /^unordered-list:\s*/iu.test(value)) return "unordered-list";
+    if (/^checklist:\s*/iu.test(value)) return "checklist";
+    return "paragraph";
+  }
+
+  function serializeNoteBlocks(blocks) {
+    return (Array.isArray(blocks) ? blocks : [])
+      .filter((block) => block && block.type !== "image")
+      .map((block) => {
+        const type = validTextBlockType(block.type);
+        const text = `${block.text || ""}`;
+        if (type === "heading") return text.split(/\r?\n/u).map((line) => `# ${stripLineBlockMarker(line, "heading").trim()}`).join("\n");
+        if (type === "ordered-list") return listItemsFromText(text, type).map((line, index) => `${index + 1}. ${line}`).join("\n");
+        if (type === "unordered-list") return listItemsFromText(text, type).map((line) => `- ${line}`).join("\n");
+        if (type === "checklist") return listItemsFromText(text, type).map((line) => `- [ ] ${line}`).join("\n");
+        if (type === "quote") return text.split(/\r?\n/u).map((line) => `> ${stripLineBlockMarker(line, "quote")}`).join("\n");
+        if (type === "code") return `\`\`\`\n${text.replace(/\r\n?/gu, "\n")}\n\`\`\``;
+        return text;
+      })
+      .filter((text) => text.trim())
+      .join("\n\n");
+  }
+
+  function noteToEditorText(note) {
+    if (!note) return "";
+    const blocks = Array.isArray(note.blocks) && note.blocks.length ? note.blocks : [{ type: "paragraph", text: note.text || "" }];
+    return serializeNoteBlocks(blocks);
+  }
+
+  function parseEditorText(text) {
+    const lines = `${text || ""}`.replace(/\r\n?/gu, "\n").split("\n");
+    const blocks = [];
+    let current = null;
+    let inCode = false;
+    let codeLines = [];
+    const flush = () => {
+      if (!current) return;
+      const normalized = normalizeBlockText(current.type, current.lines.join("\n"));
+      if (normalized) blocks.push({ type: current.type, text: normalized });
+      current = null;
+    };
+    lines.forEach((line) => {
+      if (/^\s*```\s*$/u.test(line)) {
+        if (inCode) {
+          const textValue = codeLines.join("\n");
+          if (textValue.trim()) blocks.push({ type: "code", text: textValue });
+          inCode = false;
+          codeLines = [];
+          return;
+        }
+        flush();
+        inCode = true;
+        codeLines = [];
+        return;
+      }
+      if (inCode) {
+        codeLines.push(line);
+        return;
+      }
+      if (!line.trim()) {
+        flush();
+        return;
+      }
+      const type = lineBlockType(line) || "paragraph";
+      const value = stripLineBlockMarker(line, type);
+      if (current && current.type === type) current.lines.push(value);
+      else {
+        flush();
+        current = { type, lines: [value] };
+      }
+    });
+    if (inCode) {
+      const textValue = codeLines.join("\n");
+      if (textValue.trim()) blocks.push({ type: "code", text: textValue });
+    }
+    flush();
+    return blocks;
+  }
+
+  function selectedLineRange(textarea) {
+    const value = textarea.value;
+    const start = textarea.selectionStart ?? value.length;
+    const end = textarea.selectionEnd ?? start;
+    const lineStart = value.lastIndexOf("\n", Math.max(0, start - 1)) + 1;
+    let lineEnd = end;
+    if (end > start && value[end - 1] === "\n") lineEnd = end - 1;
+    const nextBreak = value.indexOf("\n", lineEnd);
+    const fullEnd = nextBreak === -1 ? value.length : nextBreak;
+    return { start: lineStart, end: fullEnd };
+  }
+
+  function selectedLines(textarea) {
+    const range = selectedLineRange(textarea);
+    return textarea.value.slice(range.start, range.end).split("\n");
+  }
+
+  function selectionBlockType(textarea) {
+    if (!textarea) return "paragraph";
+    const types = selectedLines(textarea).map(lineBlockType).filter(Boolean);
+    if (!types.length) return "paragraph";
+    return types.every((type) => type === types[0]) ? types[0] : "paragraph";
+  }
+
+  function formatLineAsType(line, type, orderedIndex = 1) {
+    if (!line.trim()) return line;
+    const text = stripLineBlockMarker(line).trim();
+    if (type === "heading") return `# ${text}`;
+    if (type === "ordered-list") return `${orderedIndex}. ${text}`;
+    if (type === "unordered-list") return `- ${text}`;
+    if (type === "checklist") return `- [ ] ${text}`;
+    if (type === "quote") return `> ${text}`;
+    return text;
+  }
+
+  function syncPendingBlocksFromTextarea() {
+    state.pendingBlocks = parseEditorText(state.ui.textarea?.value || "");
+    renderPendingBlocks();
+    syncEditorSelectionState();
+  }
+
+  function syncEditorSelectionState() {
+    syncEditorBlockTypeButtons();
+  }
+
+  function applyEditorBlockType(type, { toggleLists = false } = {}) {
+    if (!state.ui.textarea || !BLOCK_TYPES.has(type) || type === "image") return;
+    const textarea = state.ui.textarea;
+    const range = selectedLineRange(textarea);
+    const selected = textarea.value.slice(range.start, range.end);
+    if (type === "code") {
+      const next = /^\s*```\n[\s\S]*\n```\s*$/u.test(selected) ? selected.replace(/^\s*```\n/u, "").replace(/\n```\s*$/u, "") : `\`\`\`\n${selected}\n\`\`\``;
+      textarea.setRangeText(next, range.start, range.end, "select");
+      notifyTextareaInput(textarea);
+      return;
+    }
+    const lines = selected.split("\n");
+    const nonEmptyTypes = lines.map(lineBlockType).filter(Boolean);
+    const targetType = toggleLists && (type === "ordered-list" || type === "unordered-list") && nonEmptyTypes.length && nonEmptyTypes.every((item) => item === type)
+      ? "paragraph"
+      : type;
+    let orderedIndex = 0;
+    const next = lines.map((line) => {
+      if (targetType === "ordered-list" && line.trim()) orderedIndex += 1;
+      return formatLineAsType(line, targetType, orderedIndex || 1);
+    }).join("\n");
+    textarea.setRangeText(next, range.start, range.end, "select");
+    notifyTextareaInput(textarea);
   }
 
   function blockTypeLabel(type) {
@@ -1181,16 +1349,18 @@
   }
 
   function syncEditorBlockTypeButtons() {
-    const value = state.ui.blockType?.value;
+    const value = selectionBlockType(state.ui.textarea);
+    if (state.ui.blockType && document.activeElement === state.ui.textarea) state.ui.blockType.value = value;
     state.ui.editor?.querySelectorAll("[data-editor-block-type]").forEach((el) => {
-      el.setAttribute("aria-pressed", `${el.dataset.editorBlockType === value}`);
+      const type = el.dataset.editorBlockType;
+      el.setAttribute("aria-pressed", `${(type === "ordered-list" || type === "unordered-list") && type === value}`);
     });
   }
 
   function setEditorBlockType(type) {
     if (!state.ui.blockType || !BLOCK_TYPES.has(type)) return;
     state.ui.blockType.value = type;
-    syncEditorBlockTypeButtons();
+    applyEditorBlockType(type, { toggleLists: type === "ordered-list" || type === "unordered-list" });
   }
 
   function syncNoteOptionsSurface() {
@@ -1389,7 +1559,7 @@
     manager.addEventListener("keydown", handleManagerKeys);
 
     const editLabel = uiText("Edit note", "编辑笔记");
-    const editor = createElement("section", { class: "lm-ui lm-note-editor-popover", testid: "lm-note-editor-popover", role: "dialog", "aria-hidden": "true", "aria-label": editLabel, "data-lm-ignore": "" });
+    const editor = createElement("section", { class: "lm-ui lm-note-editor-popover", testid: "lm-note-editor-popover", role: "dialog", "aria-hidden": "true", "aria-label": editLabel, "data-document-model": "reeditable-note-selection-lists-v1", "data-lm-ignore": "" });
     const imageInput = createElement("input", { type: "file", accept: "image/png,image/jpeg,image/webp", multiple: true, hidden: true, testid: "lm-image-input", "aria-label": "Choose note images" });
     const textarea = createElement("textarea", { testid: "lm-note-editor", "aria-label": uiText("Note content", "笔记内容"), placeholder: uiText("Write a note, question, checklist, or code snippet.", "记录理解、问题、清单或代码片段") });
     const editorToolbar = createElement("div", { class: "lm-editor-header", role: "toolbar", "aria-label": uiText("Note formatting", "笔记格式") });
@@ -1422,10 +1592,10 @@
       ["quote", uiText("Quote", "引用")],
       ["code", uiText("Code", "代码")]
     ].forEach(([value, label]) => blockType.appendChild(createElement("option", { value }, label)));
-    blockType.addEventListener("change", syncEditorBlockTypeButtons);
+    blockType.addEventListener("change", () => syncEditorBlockTypeButtons());
     const blockList = createElement("div", { class: "lm-note-blocks", testid: "lm-note-blocks" });
     const blockControls = createElement("div", { class: "lm-note-block-controls" });
-    blockControls.append(blockType, button(uiText("Add block", "添加内容块"), "lm-add-block", addBlock));
+    blockControls.append(blockType, button(uiText("Apply style", "应用样式"), "lm-add-block", addBlock));
     const question = createElement("input", { type: "checkbox", testid: "lm-note-question", "aria-label": "Question note" });
     const questionLabel = createElement("label", { class: "lm-check-row" }, uiText("Question note", "疑问笔记"));
     questionLabel.prepend(question);
@@ -1472,6 +1642,10 @@
       imageInput.value = "";
     });
     surface.addEventListener("input", syncNoteOptionsSurface);
+    textarea.addEventListener("input", syncPendingBlocksFromTextarea);
+    textarea.addEventListener("select", syncEditorSelectionState);
+    textarea.addEventListener("click", syncEditorSelectionState);
+    textarea.addEventListener("keyup", syncEditorSelectionState);
     textarea.addEventListener("keydown", (event) => {
       if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
       const marker = { b: "**", i: "*", u: "++" }[event.key.toLowerCase()];
@@ -1697,8 +1871,8 @@
     if (!openOne("editor")) return;
     state.editingNoteId = note?.id || null;
     state.pendingAssets = note ? state.assets.filter((asset) => noteAssetIds(note).includes(asset.id)) : [];
-    state.pendingBlocks = note ? clone(note.blocks?.length ? note.blocks : [{ type: "paragraph", text: note.text || "" }]) : [];
-    state.ui.textarea.value = "";
+    state.ui.textarea.value = noteToEditorText(note);
+    state.pendingBlocks = parseEditorText(state.ui.textarea.value);
     state.ui.question.checked = note?.tag === "question";
     state.ui.surface.value = normalizeHex(note?.surfaceColor, "#FFFFFF");
     state.ui.alt.value = "";
@@ -1725,27 +1899,17 @@
   }
 
   function addBlock() {
-    const text = normalizeBlockText(state.ui.blockType.value, state.ui.textarea.value);
-    if (!text) return;
-    state.pendingBlocks.push({ type: state.ui.blockType.value, text });
-    state.ui.textarea.value = "";
-    renderPendingBlocks();
+    applyEditorBlockType(state.ui.blockType.value);
   }
 
   function renderPendingBlocks() {
     state.ui.blocks.textContent = "";
-    state.pendingBlocks.filter((block) => block.type !== "image").forEach((block, index) => {
+    state.pendingBlocks.filter((block) => block.type !== "image").forEach((block) => {
       const row = createElement("div", { class: "lm-note-block lm-note-block-pending" });
       const label = createElement("span", { class: "lm-note-block-label" }, blockTypeLabel(block.type));
       const preview = createElement("div", { class: "lm-note-block-preview" });
       renderBlocks(preview, [block]);
-      const removeLabel = uiText("Delete block", "删除内容块");
-      const removeButton = button("", null, () => {
-        state.pendingBlocks.splice(index, 1);
-        renderPendingBlocks();
-      }, { class: "lm-remove-button", "aria-label": removeLabel, title: removeLabel });
-      removeButton.appendChild(createElement("span", { "aria-hidden": "true" }, "×"));
-      row.append(label, preview, removeButton);
+      row.append(label, preview);
       state.ui.blocks.appendChild(row);
     });
   }
@@ -1781,7 +1945,7 @@
   }
 
   function saveNote() {
-    addBlock();
+    state.pendingBlocks = parseEditorText(state.ui.textarea.value);
     const assetBlocks = state.pendingAssets.map((asset) => ({ type: "image", assetId: asset.id }));
     const blocks = state.pendingBlocks.filter((block) => block.type !== "image").concat(assetBlocks);
     if (!blocks.length) {

@@ -31,6 +31,45 @@ async function createImageNote(page, text = "Runtime v2 image note") {
   await expect.poll(() => annotationSummary(page)).toMatchObject({ imageCount: 1 });
 }
 
+async function openNoteOptions(page) {
+  const options = page.getByTestId("lm-note-options");
+  if (!(await options.isVisible())) await page.getByTestId("lm-note-options-toggle").click();
+  await expect(options).toBeVisible();
+  return options;
+}
+
+async function createStructuredImageNote(page) {
+  await selectFixtureText(page, "#selection-text", 0, 12);
+  await page.getByTestId("lm-add-note").click();
+  await expect(page.getByTestId("lm-note-editor-popover")).toBeVisible();
+  await openNoteOptions(page);
+
+  const editor = page.getByTestId("lm-note-editor");
+  await editor.fill([
+    "Existing paragraph",
+    "",
+    "1. First ordered",
+    "2. Second ordered",
+    "",
+    "- Alpha bullet",
+    "- Beta bullet"
+  ].join("\n"));
+  await page.getByTestId("lm-image-input").setInputFiles({ name: "structured.png", mimeType: "image/png", buffer: onePixelPng });
+  await page.getByTestId("lm-note-save").click();
+  await expect.poll(() => annotationSummary(page)).toMatchObject({ noteCount: 1, imageCount: 1 });
+}
+
+async function expectStructuredImageNote(container, paragraphText) {
+  await expect(container.locator('p[data-block-type="paragraph"]').filter({ hasText: paragraphText })).toHaveCount(1);
+  const ordered = container.locator('ol[data-block-type="ordered-list"]');
+  const unordered = container.locator('ul[data-block-type="unordered-list"]');
+  await expect(ordered.locator("li")).toHaveText(["First ordered", "Second ordered"]);
+  await expect(unordered.locator("li")).toHaveText(["Alpha bullet", "Beta bullet"]);
+  await expectListStyle(ordered, "decimal");
+  await expectListStyle(unordered, "disc");
+  await expect(container.getByTestId("lm-image-zoom-trigger")).toHaveCount(1);
+}
+
 async function clearPersistentNotes(page) {
   await page.evaluate(() => new Promise((resolve, reject) => {
     localStorage.clear();
@@ -439,6 +478,82 @@ test("legacy prefixed list blocks render clean list content with semantic marker
   await expect(previewUnordered.locator("li")).toHaveText(["Legacy alpha", "Legacy beta", "Legacy gamma"]);
   await expectListStyle(previewOrdered, "decimal");
   await expectListStyle(previewUnordered, "disc");
+});
+
+test("editing a saved structured image note preserves semantic blocks across reload and package round trip", async ({ page }) => {
+  await createStructuredImageNote(page);
+  await ensureNotesManagerOpen(page);
+  const card = page.getByTestId("lm-note-card").first();
+  await expectStructuredImageNote(card, "Existing paragraph");
+
+  await page.getByTestId("lm-note-edit").first().click();
+  const editor = page.getByTestId("lm-note-editor");
+  const hydratedDraft = [
+    "Existing paragraph",
+    "",
+    "1. First ordered",
+    "2. Second ordered",
+    "",
+    "- Alpha bullet",
+    "- Beta bullet"
+  ].join("\n");
+  await expect(editor).toHaveValue(hydratedDraft);
+  await editor.fill(hydratedDraft.replace("Existing paragraph", "Edited paragraph"));
+  await page.getByTestId("lm-note-save").click();
+  await expect.poll(() => annotationSummary(page)).toMatchObject({ noteCount: 1, imageCount: 1 });
+
+  await ensureNotesManagerOpen(page);
+  await expectStructuredImageNote(page.getByTestId("lm-note-card").first(), "Edited paragraph");
+  await page.getByTestId("lm-notes-manager-close").click();
+  await page.getByTestId("lm-note-hit").first().click();
+  const preview = page.getByTestId("lm-note-popover");
+  await expect(preview).toBeVisible();
+  await expectStructuredImageNote(preview, "Edited paragraph");
+
+  await page.reload();
+  await expect.poll(() => page.evaluate(() => !!window.LearnMapAnnotations)).toBe(true);
+  await ensureNotesManagerOpen(page);
+  await expectStructuredImageNote(page.getByTestId("lm-note-card").first(), "Edited paragraph");
+
+  const downloadEvent = page.waitForEvent("download");
+  await page.getByTestId("lm-export-package").click();
+  const packageBytes = await fs.readFile(await (await downloadEvent).path());
+  await clearPersistentNotes(page);
+  await page.reload();
+  await expect.poll(() => page.evaluate(() => !!window.LearnMapAnnotations)).toBe(true);
+  await page.evaluate(async (value) => {
+    await window.LearnMapAnnotations.importPackage(new File([new Uint8Array(value)], "structured-round-trip.learnmap"));
+  }, Array.from(packageBytes));
+  await expect.poll(() => annotationSummary(page)).toMatchObject({ noteCount: 1, imageCount: 1 });
+  await ensureNotesManagerOpen(page);
+  await expectStructuredImageNote(page.getByTestId("lm-note-card").first(), "Edited paragraph");
+  await page.getByTestId("lm-notes-manager-close").click();
+  await page.getByTestId("lm-note-hit").first().click();
+  await expectStructuredImageNote(page.getByTestId("lm-note-popover"), "Edited paragraph");
+});
+
+test("moving the caret in a saved note does not create a false dirty draft", async ({ page }) => {
+  await createStructuredImageNote(page);
+  await ensureNotesManagerOpen(page);
+  await page.getByTestId("lm-note-edit").first().click();
+  const editor = page.getByTestId("lm-note-editor");
+  await editor.evaluate((element) => {
+    const start = element.value.indexOf("First ordered");
+    element.focus();
+    element.setSelectionRange(start, start);
+    element.dispatchEvent(new Event("select", { bubbles: true }));
+    element.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  });
+  await page.evaluate(() => {
+    window.__lmConfirmCalls = 0;
+    window.confirm = () => {
+      window.__lmConfirmCalls += 1;
+      return true;
+    };
+  });
+  await page.getByTestId("lm-note-editor-close").click();
+  await expect(page.getByTestId("lm-note-editor-popover")).toBeHidden();
+  expect(await page.evaluate(() => window.__lmConfirmCalls)).toBe(0);
 });
 
 test("full .learnmap export can be imported back after storage is cleared", async ({ page }) => {

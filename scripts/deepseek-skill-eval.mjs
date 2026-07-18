@@ -94,6 +94,19 @@ const cases = [
     ]
   },
   {
+    id: "saved-note-reedit-and-selection-local-lists",
+    prompt: "I saved a LearnMap note with several paragraphs and an image. Reopen it for editing, then turn only the two lines I select in the middle into an ordered list without changing the surrounding text.",
+    expected: [
+      "restores all saved text blocks into the primary note writing surface in original order",
+      "keeps existing note images attached while text is edited and resaved",
+      "formats only complete selected lines, or only the caret line when no selection exists",
+      "preserves every unselected line and its order",
+      "toggles the active list type off and replaces a different list type only within the target range",
+      "uses a reversible plain-text editor representation and safe semantic preview rather than arbitrary contenteditable HTML",
+      "persists the resulting paragraph and list blocks through reload and v1-compatible .learnmap round-trip"
+    ]
+  },
+  {
     id: "runtime-v2-v1-compat",
     prompt: "Continue an older LearnMap lesson that already has v1 notes and a v1 .learnmap export. Upgrade future generated lessons to the current annotation contract without losing old notes.",
     expected: [

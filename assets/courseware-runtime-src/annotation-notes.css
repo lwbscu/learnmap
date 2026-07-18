@@ -364,6 +364,7 @@
   position: absolute;
   z-index: 1280;
   width: min(380px, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
   max-height: min(78dvh, 620px);
   overflow-x: hidden;
   overflow-y: auto;
@@ -559,16 +560,20 @@
 
 .lm-note-editor-popover textarea {
   width: 100%;
-  min-height: 148px;
-  border: 0;
-  border-radius: 0;
-  padding: 6px 2px;
+  min-height: 168px;
+  max-height: min(36dvh, 260px);
+  border: 1px solid #d7dde4;
+  border-radius: 8px;
+  padding: 11px 12px;
   resize: vertical;
   color: #202124;
-  background: transparent;
+  background: #fbfcfd;
   font-size: 15px;
   line-height: 1.65;
+  overflow: auto;
+  overflow-wrap: anywhere;
   caret-color: #111;
+  box-shadow: inset 0 1px 2px rgb(15 23 42 / 5%);
 }
 
 .lm-note-editor-popover textarea::placeholder {
@@ -576,9 +581,10 @@
 }
 
 .lm-note-editor-popover textarea:focus-visible {
-  border-radius: 4px;
-  outline: 2px solid #a8bdd7;
-  outline-offset: 1px;
+  border-color: #8098b8;
+  outline: 3px solid rgb(51 112 255 / 18%);
+  outline-offset: 0;
+  background: #fff;
 }
 
 .lm-note-editor-popover input[type="file"],
@@ -922,10 +928,27 @@ button.lm-image-zoom-trigger,
 .lm-note-card {
   cursor: pointer;
   color: var(--lm-note-fg, var(--lm-text));
+  overflow-wrap: anywhere;
+}
+
+.lm-note-card:hover,
+.lm-note-card:focus-within {
+  border-color: #b9c4d1;
+  box-shadow: 0 4px 14px rgb(15 23 42 / 8%);
+}
+
+.lm-note-card[aria-selected="true"],
+.lm-note-card[data-selected="true"],
+.lm-note-card.is-selected {
+  border-color: var(--lm-primary);
+  box-shadow:
+    inset 3px 0 0 var(--lm-primary),
+    0 5px 16px rgb(51 112 255 / 14%);
 }
 
 .lm-note-source {
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .lm-note-meta,
@@ -940,9 +963,38 @@ button.lm-image-zoom-trigger,
   opacity: 0.68;
 }
 
+.lm-note-actions {
+  align-items: center;
+  margin-top: 6px;
+}
+
+.lm-note-actions button {
+  flex: 0 0 auto;
+  min-height: 32px;
+  border-color: var(--lm-border);
+  background: rgb(255 255 255 / 68%);
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.lm-note-actions button:hover,
+.lm-note-actions button:focus-visible {
+  border-color: #b9c4d1;
+  background: #eef3ff;
+}
+
+.lm-note-actions button[aria-pressed="true"],
+.lm-note-actions button[aria-current="true"],
+.lm-note-actions button[data-selected="true"] {
+  border-color: var(--lm-primary);
+  color: var(--lm-primary);
+  background: #eaf0ff;
+}
+
 .lm-rendered-block {
   margin: 4px 0;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .lm-rendered-block ol,
@@ -1001,37 +1053,60 @@ ul.lm-rendered-block ol {
 
 .lm-note-block-pending {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 4px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
   align-items: start;
-  padding: 8px 10px;
-  border: 1px dashed #b8c1cc;
+  padding: 7px 9px;
+  border: 1px solid #dfe5ec;
+  border-left: 3px solid #b8c7dd;
   border-radius: 8px;
-  background: #f8fafc;
+  background: #fafbfc;
   white-space: normal;
+  cursor: default;
 }
 
 .lm-note-block-label {
   grid-column: 1;
-  color: var(--lm-muted);
-  font-size: 11px;
+  color: #697382;
+  font-size: 10px;
   font-weight: 700;
-  line-height: 1.25;
+  line-height: 1.2;
   text-transform: uppercase;
 }
 
 .lm-note-block-preview {
   grid-column: 1;
   color: var(--lm-text);
-  font-size: 13px;
-  line-height: 1.55;
+  min-width: 0;
+  max-height: 132px;
+  overflow: auto;
+  font-size: 12.5px;
+  line-height: 1.45;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .lm-note-block-pending > .lm-remove-button {
-  grid-column: 2;
-  grid-row: 1 / span 2;
-  align-self: center;
+  display: none !important;
+}
+
+.lm-note-block-preview .lm-rendered-block {
+  margin: 0;
+}
+
+.lm-note-block-preview .lm-rendered-block ol,
+.lm-note-block-preview .lm-rendered-block ul,
+.lm-note-block-preview ol.lm-rendered-block,
+.lm-note-block-preview ul.lm-rendered-block {
+  margin-top: 3px;
+  margin-bottom: 3px;
+}
+
+.lm-note-block-preview .lm-rendered-block li,
+.lm-note-block-preview ol.lm-rendered-block > li,
+.lm-note-block-preview ul.lm-rendered-block > li {
+  margin: 1px 0;
+  line-height: 1.45;
 }
 
 .lm-block-code {
@@ -1218,6 +1293,8 @@ ul.lm-rendered-block ol {
 
   .lm-note-editor-popover textarea {
     min-height: 140px;
+    max-height: 28dvh;
+    padding-inline: 10px;
   }
 
   .lm-note-editor-popover input[type="text"],
@@ -1288,7 +1365,37 @@ ul.lm-rendered-block ol {
 
   .lm-editor-save,
   .lm-editor-actions [data-testid="lm-note-save"] {
+    flex: 0 0 auto;
     min-height: 44px;
+  }
+
+  .lm-note-list {
+    min-width: 0;
+  }
+
+  .lm-note-card,
+  .lm-note-actions {
+    min-width: 0;
+  }
+
+  .lm-note-actions {
+    gap: 4px;
+  }
+
+  .lm-note-actions button {
+    flex: 1 1 calc(50% - 4px);
+    min-width: 0;
+    min-height: 38px;
+    padding-inline: 8px;
+  }
+
+  .lm-note-block-pending {
+    padding: 6px 8px;
+  }
+
+  .lm-note-block-preview {
+    max-height: 96px;
+    font-size: 12px;
   }
 
   .lm-toolbar .lm-icon-button {
