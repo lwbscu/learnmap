@@ -5,6 +5,7 @@ import { expect, test } from "@playwright/test";
 const demoCenterPath = "/docs/demos.html";
 const coursePath = "/docs/demos/ai-agent-frameworks.html";
 const promoPath = "/docs/promo-video.html";
+const homePath = "/docs/index.html";
 
 async function expectNoHorizontalOverflow(page) {
   const overflow = await page.evaluate(() => {
@@ -103,6 +104,32 @@ async function selectCourseText(page, selector = "#s1 p", start = 0, end = 12) {
 }
 
 test.describe("Demo Center HTTP surface", () => {
+  test("homepage publishes exactly one July update on desktop and mobile", async ({ page }) => {
+    for (const viewport of [
+      { width: 1280, height: 720 },
+      { width: 390, height: 844 }
+    ]) {
+      await page.setViewportSize(viewport);
+      const response = await page.goto(homePath);
+      expect(response?.ok()).toBe(true);
+
+      const newLink = page.getByRole("link", { name: "What's New", exact: true });
+      await expect(newLink).toBeVisible();
+      await newLink.click();
+      await expect(page).toHaveURL(/#new$/);
+
+      const section = page.locator("#new");
+      await expect(section.getByRole("heading", { name: "What's New", level: 2 })).toBeVisible();
+      const julyDates = section.locator(".news-item > time").filter({ hasText: /^\[2026\/07\]$/ });
+      await expect(julyDates).toHaveCount(1);
+      const julyItem = julyDates.locator("xpath=..");
+      await expect(julyItem).toContainText("LearnMap runtime v2");
+      await expect(julyItem).toContainText("Demo Center");
+      await expect(julyItem).toBeInViewport();
+      await expectNoHorizontalOverflow(page);
+    }
+  });
+
   test("desktop navigation anchors resolve and the page has no horizontal overflow", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await gotoDemoCenter(page);
