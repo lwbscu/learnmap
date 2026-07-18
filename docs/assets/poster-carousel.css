@@ -1,0 +1,87 @@
+.lm-poster-carousel-host {
+  position: relative;
+}
+
+.lm-poster-carousel-controls {
+  position: absolute;
+  z-index: 4;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid rgba(238, 245, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(5, 9, 14, 0.84);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(12px);
+}
+
+.lm-poster-carousel-controls[hidden] {
+  display: none;
+}
+
+.lm-poster-carousel-controls button {
+  display: inline-grid;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid rgba(238, 245, 255, 0.14);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #eef5ff;
+  font: 700 17px/1 system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.lm-poster-carousel-controls button:hover,
+.lm-poster-carousel-controls button:focus-visible {
+  border-color: rgba(61, 184, 234, 0.8);
+  background: rgba(61, 184, 234, 0.18);
+  outline: none;
+}
+
+.lm-poster-carousel-controls button:focus-visible {
+  box-shadow: 0 0 0 3px rgba(61, 184, 234, 0.3);
+}
+
+.lm-poster-carousel-controls button:disabled {
+  cursor: default;
+  opacity: 0.48;
+}
+
+.lm-poster-carousel-status {
+  min-width: 42px;
+  color: rgba(238, 245, 255, 0.74);
+  font: 600 12px/1 system-ui, sans-serif;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .lm-poster-carousel-controls {
+    top: 8px;
+    right: 8px;
+  }
+
+  .lm-poster-carousel-controls button {
+    width: 44px;
+    height: 44px;
+  }
+
+  .lm-poster-carousel-status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lm-poster-carousel-controls {
+    backdrop-filter: none;
+  }
+}

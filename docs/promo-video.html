@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="LearnMap product walkthrough: install the skill, ask a real question, generate local HTML courseware, practice, export, and continue from weak spots.">
   <title>LearnMap | Product Walkthrough</title>
+  <link rel="stylesheet" href="./assets/poster-carousel.css">
   <style>
     :root {
       --bg: #05070a;
@@ -288,7 +289,8 @@
     </section>
 
     <section class="player" aria-label="LearnMap 16:9 walkthrough video">
-      <video class="primary-video" controls preload="metadata" playsinline poster="./assets/learnmap-demo-poster.png">
+      <video class="primary-video" controls preload="metadata" playsinline poster="./assets/learnmap-demo-poster.png" aria-label="LearnMap product walkthrough"
+        data-learnmap-poster-carousel="./assets/learnmap-poster-en-courseware.png,./assets/learnmap-poster-en-atlas.png,./assets/learnmap-poster-en-notes.png,./assets/learnmap-poster-en-agents.png">
         <source src="./assets/learnmap-demo-16x9.mp4" type="video/mp4">
       </video>
     </section>
@@ -324,7 +326,7 @@
       <article class="card vertical-card">
         <h2>Vertical Preview</h2>
         <p>Use this version for blog cards, social posts, or mobile-first embeds.</p>
-        <video controls preload="metadata" playsinline poster="./assets/learnmap-demo-vertical-poster.png">
+        <video controls preload="metadata" playsinline poster="./assets/learnmap-demo-vertical-poster.png" aria-label="LearnMap vertical product walkthrough">
           <source src="./assets/learnmap-demo-vertical.mp4" type="video/mp4">
         </video>
       </article>
@@ -335,5 +337,6 @@
     <span>LearnMap</span>
     <span><a href="./index.html">Home</a> · <a href="./demos.html">Demos</a> · <a href="https://github.com/lwbscu/learnmap/blob/main/README.cn.md">中文</a> · <a href="https://github.com/lwbscu/learnmap/blob/main/README.en.md">English</a> · <a href="https://mp.weixin.qq.com/s/mO-GAe4arXsKBZTzipwLuA">WeChat</a> · <a href="https://zhuanlan.zhihu.com/p/2050915019571963028">Zhihu</a> · <a href="https://github.com/lwbscu/learnmap">GitHub</a></span>
   </footer>
+  <script src="./assets/poster-carousel.js"></script>
 </body>
 </html>

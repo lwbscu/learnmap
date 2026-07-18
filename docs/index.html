@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="LearnMap is a map-first Agent Skill for generating interactive learning courseware with fast overview mode, slow deep-course mode, mastery checks, and learning records.">
   <title>LearnMap | Map-first learning skill</title>
+  <link rel="stylesheet" href="./assets/poster-carousel.css">
   <style>
     :root {
       --bg: #05070a;
@@ -469,7 +470,8 @@
     <h2>Product Walkthrough</h2>
     <p class="lead">A recorded product walkthrough showing the full LearnMap flow: install, ask, invoke, generate, open, interact with the HTML lesson, recover from a wrong answer, export, and continue.</p>
     <div class="demo-video-card">
-      <video class="demo-video" controls preload="metadata" playsinline poster="./assets/learnmap-demo-poster.png">
+      <video class="demo-video" controls preload="metadata" playsinline poster="./assets/learnmap-demo-poster.png" aria-label="LearnMap product walkthrough"
+        data-learnmap-poster-carousel="./assets/learnmap-poster-en-courseware.png,./assets/learnmap-poster-en-atlas.png,./assets/learnmap-poster-en-notes.png,./assets/learnmap-poster-en-agents.png">
         <source src="./assets/learnmap-demo-16x9.mp4" type="video/mp4">
       </video>
     </div>
@@ -515,5 +517,6 @@ git clone https://github.com/lwbscu/learnmap.git "$env:USERPROFILE\.codex\skills
     <span>LearnMap</span>
     <span><a href="https://github.com/lwbscu/learnmap/blob/main/README.cn.md">中文</a> · <a href="https://github.com/lwbscu/learnmap/blob/main/README.en.md">English</a> · <a href="https://mp.weixin.qq.com/s/mO-GAe4arXsKBZTzipwLuA">微信公众号</a> · <a href="https://zhuanlan.zhihu.com/p/2050915019571963028">知乎专栏</a> · <a href="https://juejin.cn/post/7652384976291414054">稀土掘金</a> · <a href="https://github.com/lwbscu/learnmap">GitHub</a></span>
   </footer>
+  <script src="./assets/poster-carousel.js"></script>
 </body>
 </html>

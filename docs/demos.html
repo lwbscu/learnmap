@@ -6,6 +6,7 @@
   <meta name="description" content="LearnMap unified bilingual demo center with overview, walkthrough video, and embedded interactive courseware.">
   <meta name="learnmap-demo-center-version" content="1">
   <title>LearnMap | Demo Center</title>
+  <link rel="stylesheet" href="./assets/poster-carousel.css">
   <style>
     :root {
       --bg: #07090d;
@@ -569,7 +570,8 @@
       </p>
       <div class="video-layout">
         <div class="video-panel" role="group" aria-label="LearnMap 16:9 walkthrough video">
-          <video class="demo-video" controls preload="metadata" playsinline poster="./assets/learnmap-demo-poster.png" data-testid="demo-video">
+          <video class="demo-video" controls preload="metadata" playsinline poster="./assets/learnmap-demo-poster.png" data-testid="demo-video" aria-label="LearnMap 使用流程演示 / Product walkthrough"
+            data-learnmap-poster-carousel="./assets/learnmap-poster-en-courseware.png,./assets/learnmap-poster-en-atlas.png,./assets/learnmap-poster-en-notes.png,./assets/learnmap-poster-en-agents.png,./assets/learnmap-poster-cn-courseware.png,./assets/learnmap-poster-cn-atlas.png,./assets/learnmap-poster-cn-notes.png,./assets/learnmap-poster-cn-agents.png">
             <source src="./assets/learnmap-demo-16x9.mp4" type="video/mp4">
           </video>
         </div>
@@ -579,7 +581,8 @@
           <div class="link-list">
             <a href="./assets/learnmap-demo-16x9.mp4">16:9 MP4 <span aria-hidden="true">→</span></a>
             <a href="./assets/learnmap-demo-vertical.mp4">Vertical MP4 <span aria-hidden="true">→</span></a>
-            <a href="./assets/learnmap-demo-poster.png">16:9 Poster <span aria-hidden="true">→</span></a>
+            <a href="./assets/learnmap-poster-en-carousel.webp">English poster set <span aria-hidden="true">→</span></a>
+            <a href="./assets/learnmap-poster-cn-carousel.webp">中文海报组 <span aria-hidden="true">→</span></a>
             <a href="./assets/learnmap-demo-vertical-poster.png">Vertical Poster <span aria-hidden="true">→</span></a>
           </div>
         </aside>
@@ -659,5 +662,6 @@
       });
     }());
   </script>
+  <script src="./assets/poster-carousel.js"></script>
 </body>
 </html>

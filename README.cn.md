@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/lwbscu/learnmap"><img alt="GitHub Repo" src="https://img.shields.io/badge/GitHub-Repo-181717?style=flat&logo=github&logoColor=white"></a>
-  <a href="https://lwbscu.github.io/learnmap/demos.html"><img alt="Demos" src="https://img.shields.io/badge/LearnMap-Demos-00a6d6?style=flat&logo=gitbook&logoColor=white"></a>
+  <a href="https://lwbscu.github.io/learnmap/demos.html?lang=zh"><img alt="Demos" src="https://img.shields.io/badge/LearnMap-Demos-00a6d6?style=flat&logo=gitbook&logoColor=white"></a>
   <a href="https://mp.weixin.qq.com/s/mO-GAe4arXsKBZTzipwLuA"><img alt="WeChat" src="https://img.shields.io/badge/WeChat-07C160?style=flat&logo=wechat&logoColor=white"></a>
   <a href="https://zhuanlan.zhihu.com/p/2050915019571963028"><img alt="Zhihu" src="https://img.shields.io/badge/Zhihu-0084FF?style=flat&logo=zhihu&logoColor=white"></a>
   <a href="https://juejin.cn/post/7652384976291414054"><img alt="Juejin" src="https://img.shields.io/badge/Juejin-1E80FF?style=flat&logo=juejin&logoColor=white"></a>
@@ -27,11 +27,11 @@
 LearnMap 是一个面向 Agent Skill 的学习工具。它不会直接输出一篇长文，而是先把陌生主题变成知识地图，再生成可交互 HTML 课件、掌握检查、错题复习跳转和可导出的学习记录。
 
 <p align="center">
-  <a href="https://lwbscu.github.io/learnmap/demos.html#walkthrough">
-    <img src="docs/assets/learnmap-demo-poster.png" alt="观看 LearnMap 使用流程演示" width="900">
+  <a href="https://lwbscu.github.io/learnmap/demos.html?lang=zh#walkthrough">
+    <img src="docs/assets/learnmap-poster-cn-carousel.webp" alt="观看 LearnMap 使用流程演示" width="900">
   </a>
   <br>
-  <a href="https://lwbscu.github.io/learnmap/demos.html">打开双语 LearnMap Demo Center</a>
+  <a href="https://lwbscu.github.io/learnmap/demos.html?lang=zh">打开双语 LearnMap Demo Center</a>
 </p>
 
 ## What's NEW!

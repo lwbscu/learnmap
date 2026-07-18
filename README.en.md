@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/lwbscu/learnmap"><img alt="GitHub Repo" src="https://img.shields.io/badge/GitHub-Repo-181717?style=flat&logo=github&logoColor=white"></a>
-  <a href="https://lwbscu.github.io/learnmap/demos.html"><img alt="Demos" src="https://img.shields.io/badge/LearnMap-Demos-00a6d6?style=flat&logo=gitbook&logoColor=white"></a>
+  <a href="https://lwbscu.github.io/learnmap/demos.html?lang=en"><img alt="Demos" src="https://img.shields.io/badge/LearnMap-Demos-00a6d6?style=flat&logo=gitbook&logoColor=white"></a>
   <a href="https://mp.weixin.qq.com/s/mO-GAe4arXsKBZTzipwLuA"><img alt="WeChat" src="https://img.shields.io/badge/WeChat-07C160?style=flat&logo=wechat&logoColor=white"></a>
   <a href="https://zhuanlan.zhihu.com/p/2050915019571963028"><img alt="Zhihu" src="https://img.shields.io/badge/Zhihu-0084FF?style=flat&logo=zhihu&logoColor=white"></a>
   <a href="https://juejin.cn/post/7652384976291414054"><img alt="Juejin" src="https://img.shields.io/badge/Juejin-1E80FF?style=flat&logo=juejin&logoColor=white"></a>
@@ -27,11 +27,11 @@
 LearnMap is an Agent Skill that turns a vague learning request into mapped, interactive HTML courseware. It starts with a knowledge map, then builds lessons with navigation, checks, wrong-answer feedback, review jumps, and exportable learning records for AI follow-up.
 
 <p align="center">
-  <a href="https://lwbscu.github.io/learnmap/demos.html#walkthrough">
-    <img src="docs/assets/learnmap-demo-poster.png" alt="Watch the LearnMap product walkthrough" width="900">
+  <a href="https://lwbscu.github.io/learnmap/demos.html?lang=en#walkthrough">
+    <img src="docs/assets/learnmap-poster-en-carousel.webp" alt="Watch the LearnMap product walkthrough" width="900">
   </a>
   <br>
-  <a href="https://lwbscu.github.io/learnmap/demos.html">Open the bilingual LearnMap Demo Center</a>
+  <a href="https://lwbscu.github.io/learnmap/demos.html?lang=en">Open the bilingual LearnMap Demo Center</a>
 </p>
 
 ## What's NEW!
