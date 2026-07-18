@@ -79,6 +79,10 @@ async function expectPinnedPreview(page, pinned) {
   }
 }
 
+async function expectListStyle(list, expectedType) {
+  await expect.poll(() => list.evaluate((element) => getComputedStyle(element).listStyleType)).toBe(expectedType);
+}
+
 function rectsOverlap(a, b) {
   return Math.max(0, Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x))
     * Math.max(0, Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y));
@@ -376,6 +380,65 @@ test("legacy v1 data and package imports normalize into runtime v2 notes", async
   await expect(page.locator(".lm-note-hit")).toHaveCount(1);
   await ensureNotesManagerOpen(page);
   await expect(page.getByTestId("lm-note-list")).toContainText("Legacy v1 note");
+});
+
+test("legacy prefixed list blocks render clean list content with semantic markers", async ({ page }) => {
+  const legacy = {
+    schema: "learnmap-annotations/v1",
+    version: 1,
+    lesson: { courseId: "course-annotation-fixture", lessonId: "lesson-annotation-fixture", contentVersion: "fixture-v1" },
+    annotations: [{
+      id: "ann-legacy-lists",
+      scopeId: "core-concept",
+      anchor: { scopeId: "core-concept", start: 0, end: 6, exact: "学习批注应当" },
+      style: "solid",
+      color: "amber",
+      surface: "#FFFFFF",
+      noteId: "note-legacy-lists",
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z"
+    }],
+    notes: [{
+      id: "note-legacy-lists",
+      annotationId: "ann-legacy-lists",
+      text: "",
+      blocks: [
+        { type: "ordered-list", text: "1. Legacy first\n1) Legacy second" },
+        { type: "unordered-list", text: "- Legacy alpha\n• Legacy beta\nunordered-list: Legacy gamma" }
+      ],
+      assetIds: [],
+      surface: "#FFFFFF",
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z"
+    }],
+    assets: []
+  };
+  await page.evaluate(async (value) => {
+    await window.LearnMapAnnotations.importPackage(new File([JSON.stringify(value)], "legacy-list-prefixes.json", { type: "application/json" }));
+  }, legacy);
+  await expect.poll(() => annotationSummary(page)).toMatchObject({ noteCount: 1, orphanedCount: 0 });
+
+  await ensureNotesManagerOpen(page);
+  const card = page.getByTestId("lm-note-card").first();
+  await expect(card).not.toContainText("unordered-list:");
+  const managerOrdered = card.locator('ol[data-block-type="ordered-list"]');
+  const managerUnordered = card.locator('ul[data-block-type="unordered-list"]');
+  await expect(managerOrdered.locator("li")).toHaveText(["Legacy first", "Legacy second"]);
+  await expect(managerUnordered.locator("li")).toHaveText(["Legacy alpha", "Legacy beta", "Legacy gamma"]);
+  await expectListStyle(managerOrdered, "decimal");
+  await expectListStyle(managerUnordered, "disc");
+
+  await page.getByTestId("lm-notes-manager-close").click();
+  await page.getByTestId("lm-note-hit").first().click();
+  const preview = page.getByTestId("lm-note-popover");
+  await expect(preview).toBeVisible();
+  await expect(preview).not.toContainText("unordered-list:");
+  const previewOrdered = preview.locator('ol[data-block-type="ordered-list"]');
+  const previewUnordered = preview.locator('ul[data-block-type="unordered-list"]');
+  await expect(previewOrdered.locator("li")).toHaveText(["Legacy first", "Legacy second"]);
+  await expect(previewUnordered.locator("li")).toHaveText(["Legacy alpha", "Legacy beta", "Legacy gamma"]);
+  await expectListStyle(previewOrdered, "decimal");
+  await expectListStyle(previewUnordered, "disc");
 });
 
 test("full .learnmap export can be imported back after storage is cleared", async ({ page }) => {

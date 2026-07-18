@@ -3,6 +3,8 @@
 import fs from "node:fs";
 import path from "node:path";
 
+if (process.env.NODE_TLS_REJECT_UNAUTHORIZED === "0") delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+
 const root = process.cwd();
 const apiKey = process.env.DEEPSEEK_API_KEY;
 const baseUrl = (process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com").replace(/\/+$/, "");
@@ -77,6 +79,18 @@ const cases = [
       "uses a floating notes manager for search, import/export, orphan rebind, and bulk review",
       "does not create a right, left, or overlay note side drawer",
       "preserves the lesson TOC"
+    ]
+  },
+  {
+    id: "semantic-note-lists-and-image-lightbox",
+    prompt: "Generate a LearnMap lesson whose notes support ordered and unordered lists plus pasted screenshots. Keep the list controls familiar and let me enlarge every note image.",
+    expected: [
+      "uses stable familiar ordered-list and unordered-list glyphs without rewriting them as raw text labels",
+      "changes the note block type without injecting synthetic 1. or dash prefixes into the note text",
+      "renders saved and legacy list blocks as semantic ordered or unordered lists with visible markers",
+      "keeps pending and saved note images keyboard accessible in the editor, anchored preview, and notes manager",
+      "opens note images in a viewport-contained modal lightbox that closes by its close control, backdrop click, or Escape and restores focus",
+      "keeps runtime v2 API and v1 IndexedDB and portable-package compatibility"
     ]
   },
   {

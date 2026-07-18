@@ -60,6 +60,7 @@
     ui: {},
     previewId: null,
     previewReturnFocus: null,
+    imageLightboxReturnFocus: null,
     editorReturnFocus: null,
     editorSnapshot: null,
     initialized: false
@@ -264,7 +265,14 @@
     normalized.notes = Array.isArray(normalized.notes) ? normalized.notes.map((item) => {
       if (!item || typeof item !== "object") return item;
       const surface = item.surfaceColor ?? item.surface ?? "#FFFFFF";
-      return { ...item, surfaceColor: /^#[0-9a-f]{6}$/i.test(surface) ? surface.toUpperCase() : surface };
+      const blocks = Array.isArray(item.blocks) ? item.blocks.map((block) => (
+        block && isListBlock(block.type) ? { ...block, text: normalizeBlockText(block.type, block.text) } : block
+      )) : item.blocks;
+      const assetIds = Array.from(new Set([
+        ...(Array.isArray(item.assetIds) ? item.assetIds : []),
+        ...(Array.isArray(blocks) ? blocks.filter((block) => block?.type === "image" && block.assetId).map((block) => block.assetId) : [])
+      ]));
+      return { ...item, blocks, assetIds, surfaceColor: /^#[0-9a-f]{6}$/i.test(surface) ? surface.toUpperCase() : surface };
     }) : normalized.notes;
 
     if (normalized.schema !== PACKAGE_SCHEMA) errors.push("Unsupported schema.");
@@ -293,7 +301,8 @@
       if (typeof item.text !== "string" || item.text.length > 200000) errors.push("Invalid note text.");
       if (!annotationIds.has(item.annotationId)) errors.push("Dangling annotation reference.");
       if (item.surfaceColor && !/^#[0-9a-f]{6}$/i.test(item.surfaceColor)) errors.push("Invalid note surface color.");
-      if (item.blocks && item.blocks.some((block) => !block || !BLOCK_TYPES.has(block.type))) errors.push("Unsupported note block.");
+      if (item.blocks != null && !Array.isArray(item.blocks)) errors.push("Note blocks must be an array.");
+      if (Array.isArray(item.blocks) && item.blocks.some((block) => !block || !BLOCK_TYPES.has(block.type))) errors.push("Unsupported note block.");
       (item.assetIds || []).forEach((id) => {
         if (!assetIds.has(id)) errors.push("Dangling asset reference.");
       });
@@ -518,6 +527,7 @@
     if (panel !== "editor" && !closeEditor()) return false;
     if (panel !== "manager") closeManager();
     if (panel !== "preview") closePreview();
+    if (panel !== "lightbox") closeImageLightbox({ restoreFocus: false });
     closeToolbar();
     return true;
   }
@@ -632,7 +642,16 @@
       const merge = (current, stored) => current.filter((item) => !stored.some((other) => other.id === item.id)).concat(stored);
       const hadMemoryState = Boolean(state.annotations.length || state.notes.length || state.assets.length);
       state.annotations = merge(state.annotations, annotations.filter(here)).map(normalizeAnnotation);
-      state.notes = merge(state.notes, notes.filter(here)).map((note) => ({ surfaceColor: "#FFFFFF", ...note, surfaceColor: normalizeHex(note.surfaceColor, "#FFFFFF") }));
+      state.notes = merge(state.notes, notes.filter(here)).map((note) => {
+        const blocks = Array.isArray(note.blocks) && note.blocks.length
+          ? note.blocks.map((block) => block && isListBlock(block.type) ? { ...block, text: normalizeBlockText(block.type, block.text) } : block)
+          : note.text ? [{ type: "paragraph", text: note.text }] : [];
+        const assetIds = Array.from(new Set([
+          ...(Array.isArray(note.assetIds) ? note.assetIds : []),
+          ...blocks.filter((block) => block?.type === "image" && block.assetId).map((block) => block.assetId)
+        ]));
+        return { surfaceColor: "#FFFFFF", ...note, blocks, assetIds, surfaceColor: normalizeHex(note.surfaceColor, "#FFFFFF") };
+      });
       state.assets = merge(state.assets, assets.filter(here));
       const savedSettings = settings.find((item) => item.id === storageKey());
       if (savedSettings) state.settings = { ...state.settings, ...(savedSettings.value || {}) };
@@ -738,10 +757,10 @@
     const active = state.annotations.find((item) => item.id === state.activeId);
     const ids = active?.groupId ? state.annotations.filter((item) => item.groupId === active.groupId).map((item) => item.id) : [state.activeId];
     const deletedNotes = state.notes.filter((note) => ids.includes(note.annotationId) || (active?.groupId && note.groupId === active.groupId));
-    const deletedAssets = new Set(deletedNotes.flatMap((note) => note.assetIds || []));
+    const deletedAssets = new Set(deletedNotes.flatMap(noteAssetIds));
     state.annotations = state.annotations.filter((item) => !ids.includes(item.id));
     state.notes = state.notes.filter((note) => !ids.includes(note.annotationId) && !(active?.groupId && note.groupId === active.groupId));
-    state.assets = state.assets.filter((asset) => !deletedAssets.has(asset.id) || state.notes.some((note) => (note.assetIds || []).includes(asset.id)));
+    state.assets = state.assets.filter((asset) => !deletedAssets.has(asset.id) || state.notes.some((note) => noteAssetIds(note).includes(asset.id)));
     state.activeId = null;
     renderAll();
     queueSave();
@@ -1069,8 +1088,10 @@
 
   function noteText(note) {
     if (!note) return "";
-    if (note.text) return note.text;
-    return (note.blocks || []).filter((block) => block.type !== "image").map((block) => block.text || "").join("\n\n");
+    if (Array.isArray(note.blocks) && note.blocks.length) {
+      return note.blocks.filter((block) => block.type !== "image").map((block) => block.text || "").join("\n\n");
+    }
+    return note.text || "";
   }
 
   function renderBlocks(parent, blocks) {
@@ -1081,9 +1102,9 @@
       const tag = block.type === "heading" ? "h4" : block.type === "quote" ? "blockquote" : block.type === "code" ? "pre" : listType ? (block.type === "ordered-list" ? "ol" : "ul") : "p";
       const el = createElement(tag, { class: `lm-rendered-block lm-block-${block.type}`, "data-block-type": block.type });
       if (listType) {
-        `${block.text || ""}`.split(/\r?\n/u).filter((line) => line.trim()).forEach((line) => {
+        listItemsFromText(block.text, block.type).forEach((line) => {
           const item = createElement("li");
-          renderInline(item, line.replace(/^\s*(?:\d+[.)]|[-*]|\[[ xX]\])\s*/u, ""));
+          renderInline(item, line);
           el.appendChild(item);
         });
       } else if (block.type === "code") {
@@ -1126,21 +1147,50 @@
     notifyTextareaInput(textarea);
   }
 
-  function prefixTextareaLines(textarea, prefix) {
-    const start = textarea.selectionStart ?? textarea.value.length;
-    const end = textarea.selectionEnd ?? start;
-    if (start === end) {
-      textarea.setRangeText(prefix, start, end, "end");
-      notifyTextareaInput(textarea);
-      return;
-    }
-    const lineStart = textarea.value.lastIndexOf("\n", start - 1) + 1;
-    const selectionEnd = textarea.value[end - 1] === "\n" ? end - 1 : end;
-    const nextBreak = textarea.value.indexOf("\n", selectionEnd);
-    const lineEnd = nextBreak === -1 ? textarea.value.length : nextBreak;
-    const replacement = textarea.value.slice(lineStart, lineEnd).split("\n").map((line) => `${prefix}${line}`).join("\n");
-    textarea.setRangeText(replacement, lineStart, lineEnd, "select");
-    notifyTextareaInput(textarea);
+  function isListBlock(type) {
+    return type === "ordered-list" || type === "unordered-list" || type === "checklist";
+  }
+
+  function stripLegacyListPrefix(line, type) {
+    let value = `${line ?? ""}`.trimStart();
+    if (type === "ordered-list" && /^ordered-list:\s*/iu.test(value)) return value.replace(/^ordered-list:\s*/iu, "");
+    if (type === "unordered-list" && /^unordered-list:\s*/iu.test(value)) return value.replace(/^unordered-list:\s*/iu, "");
+    if (type === "checklist" && /^checklist:\s*/iu.test(value)) return value.replace(/^checklist:\s*/iu, "");
+    return value.replace(/^(?:(?:\d+[\.)])|[-*+•]|\[[ xX]\])\s*/u, "");
+  }
+
+  function listItemsFromText(text, type) {
+    return `${text || ""}`.split(/\r?\n/u).map((line) => stripLegacyListPrefix(line, type)).map((line) => line.trim()).filter(Boolean);
+  }
+
+  function normalizeBlockText(type, text) {
+    return isListBlock(type) ? listItemsFromText(text, type).join("\n") : `${text || ""}`.trim();
+  }
+
+  function blockTypeLabel(type) {
+    const labels = {
+      paragraph: uiText("Paragraph", "正文"),
+      heading: uiText("Heading", "标题"),
+      "ordered-list": uiText("Ordered list", "有序列表"),
+      "unordered-list": uiText("Unordered list", "无序列表"),
+      checklist: uiText("Checklist", "检查清单"),
+      quote: uiText("Quote", "引用"),
+      code: uiText("Code", "代码")
+    };
+    return labels[type] || uiText("Text", "文本");
+  }
+
+  function syncEditorBlockTypeButtons() {
+    const value = state.ui.blockType?.value;
+    state.ui.editor?.querySelectorAll("[data-editor-block-type]").forEach((el) => {
+      el.setAttribute("aria-pressed", `${el.dataset.editorBlockType === value}`);
+    });
+  }
+
+  function setEditorBlockType(type) {
+    if (!state.ui.blockType || !BLOCK_TYPES.has(type)) return;
+    state.ui.blockType.value = type;
+    syncEditorBlockTypeButtons();
   }
 
   function syncNoteOptionsSurface() {
@@ -1154,12 +1204,62 @@
     }
   }
 
+  function imageAlt(asset) {
+    return asset.decorative ? "" : asset.alt || asset.name || "note image";
+  }
+
+  function noteAssetIds(note) {
+    const ids = new Set(note?.assetIds || []);
+    (note?.blocks || []).forEach((block) => {
+      if (block?.type === "image" && block.assetId) ids.add(block.assetId);
+    });
+    return Array.from(ids);
+  }
+
+  function closeImageLightbox({ restoreFocus = true } = {}) {
+    const lightbox = state.ui.imageLightbox;
+    if (!lightbox || lightbox.hidden) return;
+    lightbox.hidden = true;
+    lightbox.classList.remove("open");
+    lightbox.setAttribute("aria-hidden", "true");
+    if (state.ui.imageLightboxImage) {
+      state.ui.imageLightboxImage.removeAttribute("src");
+      state.ui.imageLightboxImage.alt = "";
+    }
+    if (state.ui.imageLightboxCaption) state.ui.imageLightboxCaption.textContent = "";
+    const target = state.imageLightboxReturnFocus;
+    state.imageLightboxReturnFocus = null;
+    if (restoreFocus) target?.focus?.({ preventScroll: true });
+  }
+
+  function openImageLightbox(asset, trigger) {
+    if (!asset || !state.ui.imageLightbox || !state.ui.imageLightboxImage) return;
+    closeMenus();
+    state.imageLightboxReturnFocus = trigger || document.activeElement;
+    state.ui.imageLightboxImage.src = asset.dataUrl;
+    state.ui.imageLightboxImage.alt = imageAlt(asset);
+    if (state.ui.imageLightboxCaption) state.ui.imageLightboxCaption.textContent = asset.decorative ? uiText("Note image", "笔记图片") : imageAlt(asset);
+    state.ui.imageLightbox.hidden = false;
+    state.ui.imageLightbox.classList.add("open");
+    state.ui.imageLightbox.setAttribute("aria-hidden", "false");
+    state.ui.imageLightboxClose?.focus?.({ preventScroll: true });
+  }
+
+  function imageZoomTrigger(asset) {
+    const trigger = button("", "lm-image-zoom-trigger", (event) => openImageLightbox(asset, event.currentTarget), {
+      class: "lm-image-zoom-trigger",
+      "aria-label": uiText("Enlarge image", "放大图片")
+    });
+    trigger.appendChild(createElement("img", { src: asset.dataUrl, alt: imageAlt(asset), "data-block-type": "image" }));
+    return trigger;
+  }
+
   function renderImages(parent, assetIds) {
     parent.textContent = "";
     (assetIds || []).forEach((id) => {
       const asset = state.assets.find((item) => item.id === id);
       if (!asset) return;
-      parent.appendChild(createElement("img", { src: asset.dataUrl, alt: asset.decorative ? "" : asset.alt || asset.name || "note image", "data-block-type": "image" }));
+      parent.appendChild(imageZoomTrigger(asset));
     });
   }
 
@@ -1180,10 +1280,11 @@
     popover.style.setProperty("--lm-note-fg", contrastColor(surface));
     popover.appendChild(createElement("div", { class: "lm-popover-title" }, annotation.anchor.exact || "Source"));
     const body = createElement("div", { class: "lm-popover-body" });
-    renderBlocks(body, note.blocks || [{ type: "paragraph", text: noteText(note) }]);
-    if ((note.assetIds || []).length) {
+    renderBlocks(body, note.blocks?.length ? note.blocks : [{ type: "paragraph", text: noteText(note) }]);
+    const assetIds = noteAssetIds(note);
+    if (assetIds.length) {
       const images = createElement("div", { class: "lm-note-images" });
-      renderImages(images, note.assetIds);
+      renderImages(images, assetIds);
       body.appendChild(images);
     }
     popover.appendChild(body);
@@ -1297,19 +1398,17 @@
     closeButton.appendChild(createElement("span", { testid: "lm-note-cancel", "aria-hidden": "true" }, "×"));
     const imageButton = editorTool("", "lm-note-image-add", () => imageInput.click(), uiText("Add images", "添加图片"));
     imageButton.appendChild(createElement("span", { class: "lm-image-glyph", "aria-hidden": "true" }));
+    const orderedListButton = editorTool("", "lm-note-format-ordered-list", () => setEditorBlockType("ordered-list"), uiText("Ordered list", "有序列表"), { "aria-pressed": "false", "data-editor-block-type": "ordered-list" });
+    orderedListButton.appendChild(createElement("span", { class: "lm-list-glyph lm-list-glyph-ordered", "data-list-type": "ordered", "data-block-type": "ordered-list", "aria-hidden": "true" }));
+    const unorderedListButton = editorTool("", "lm-note-format-unordered-list", () => setEditorBlockType("unordered-list"), uiText("Unordered list", "无序列表"), { "aria-pressed": "false", "data-editor-block-type": "unordered-list" });
+    unorderedListButton.appendChild(createElement("span", { class: "lm-list-glyph lm-list-glyph-unordered", "data-list-type": "unordered", "data-block-type": "unordered-list", "aria-hidden": "true" }));
     editorToolbar.append(
       createElement("h2", {}, editLabel),
       editorTool("B", "lm-note-format-bold", () => wrapTextareaSelection(textarea, "**"), uiText("Bold", "加粗"), { "aria-keyshortcuts": "Control+B Meta+B" }),
       editorTool("I", "lm-note-format-italic", () => wrapTextareaSelection(textarea, "*"), uiText("Italic", "斜体"), { "aria-keyshortcuts": "Control+I Meta+I" }),
       editorTool("U", "lm-note-format-underline", () => wrapTextareaSelection(textarea, "++"), uiText("Underline", "下划线"), { "aria-keyshortcuts": "Control+U Meta+U" }),
-      editorTool("1.", "lm-note-format-ordered-list", () => {
-        blockType.value = "ordered-list";
-        prefixTextareaLines(textarea, "1. ");
-      }, uiText("Ordered list", "有序列表")),
-      editorTool("•", "lm-note-format-unordered-list", () => {
-        blockType.value = "unordered-list";
-        prefixTextareaLines(textarea, "- ");
-      }, uiText("Unordered list", "无序列表")),
+      orderedListButton,
+      unorderedListButton,
       imageButton,
       closeButton
     );
@@ -1323,6 +1422,7 @@
       ["quote", uiText("Quote", "引用")],
       ["code", uiText("Code", "代码")]
     ].forEach(([value, label]) => blockType.appendChild(createElement("option", { value }, label)));
+    blockType.addEventListener("change", syncEditorBlockTypeButtons);
     const blockList = createElement("div", { class: "lm-note-blocks", testid: "lm-note-blocks" });
     const blockControls = createElement("div", { class: "lm-note-block-controls" });
     blockControls.append(blockType, button(uiText("Add block", "添加内容块"), "lm-add-block", addBlock));
@@ -1404,9 +1504,37 @@
     });
 
     const toasts = createElement("div", { class: "lm-ui lm-toast-region", "aria-live": "polite", "data-lm-ignore": "" });
-    document.body.append(toolbar, toggle, manager, editor, toasts);
-    state.ui = { toolbar, toggle, manager, search, list, editor, blockType, textarea, blocks: blockList, question, surface, surfacePresets, alt, decorative, images, imageInput, options, optionsToggle, deleteEditorButton, save: saveButton, status: statusEl, importInput, toasts };
+    const imageLightbox = createElement("div", { class: "lm-ui lm-image-lightbox", testid: "lm-image-lightbox", role: "dialog", "aria-modal": "true", "aria-label": uiText("Image preview", "图片预览"), "aria-hidden": "true", hidden: true, tabindex: "-1", "data-lm-ignore": "" });
+    const imageLightboxBackdrop = createElement("div", { class: "lm-image-lightbox-backdrop", "aria-hidden": "true" });
+    const imageLightboxContent = createElement("figure", { class: "lm-image-lightbox-content" });
+    const imageLightboxImage = createElement("img", { class: "lm-image-lightbox-image", testid: "lm-image-lightbox-image", alt: "" });
+    const imageLightboxCaption = createElement("figcaption", { class: "lm-image-lightbox-caption" });
+    const imageLightboxClose = button("", "lm-image-lightbox-close", (event) => {
+      event.stopPropagation();
+      closeImageLightbox();
+    }, { class: "lm-image-lightbox-close", "aria-label": uiText("Close image preview", "关闭图片预览") });
+    imageLightboxClose.appendChild(createElement("span", { "aria-hidden": "true" }, "×"));
+    imageLightboxContent.append(imageLightboxImage, imageLightboxCaption);
+    imageLightbox.append(imageLightboxBackdrop, imageLightboxContent, imageLightboxClose);
+    imageLightboxBackdrop.addEventListener("click", (event) => {
+      event.stopPropagation();
+      closeImageLightbox();
+    });
+    imageLightbox.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        closeImageLightbox();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      event.preventDefault();
+      imageLightboxClose.focus();
+    });
+    document.body.append(toolbar, toggle, manager, editor, imageLightbox, toasts);
+    state.ui = { toolbar, toggle, manager, search, list, editor, blockType, textarea, blocks: blockList, question, surface, surfacePresets, alt, decorative, images, imageInput, options, optionsToggle, deleteEditorButton, save: saveButton, status: statusEl, importInput, imageLightbox, imageLightboxImage, imageLightboxCaption, imageLightboxClose, toasts };
     syncNoteOptionsSurface();
+    syncEditorBlockTypeButtons();
   }
 
   function closeMenus() {
@@ -1507,11 +1635,12 @@
       card.appendChild(createElement("div", { class: "lm-note-source" }, sourceText));
       card.appendChild(createElement("div", { class: "lm-note-meta" }, `${annotationLabel(annotation)}${note.tag === "question" ? " / question" : ""}${annotation.orphaned ? " / orphaned" : ""}`));
       const body = createElement("div", { class: "lm-note-body" });
-      renderBlocks(body, note.blocks || [{ type: "paragraph", text: noteText(note) }]);
+      renderBlocks(body, note.blocks?.length ? note.blocks : [{ type: "paragraph", text: noteText(note) }]);
       card.appendChild(body);
-      if ((note.assetIds || []).length) {
+      const assetIds = noteAssetIds(note);
+      if (assetIds.length) {
         const images = createElement("div", { class: "lm-note-images" });
-        renderImages(images, note.assetIds);
+        renderImages(images, assetIds);
         card.appendChild(images);
       }
       const actions = createElement("div", { class: "lm-note-actions" });
@@ -1567,8 +1696,8 @@
     state.editorReturnFocus = document.activeElement;
     if (!openOne("editor")) return;
     state.editingNoteId = note?.id || null;
-    state.pendingAssets = note ? state.assets.filter((asset) => (note.assetIds || []).includes(asset.id)) : [];
-    state.pendingBlocks = note ? clone(note.blocks || [{ type: "paragraph", text: note.text || "" }]) : [];
+    state.pendingAssets = note ? state.assets.filter((asset) => noteAssetIds(note).includes(asset.id)) : [];
+    state.pendingBlocks = note ? clone(note.blocks?.length ? note.blocks : [{ type: "paragraph", text: note.text || "" }]) : [];
     state.ui.textarea.value = "";
     state.ui.question.checked = note?.tag === "question";
     state.ui.surface.value = normalizeHex(note?.surfaceColor, "#FFFFFF");
@@ -1578,6 +1707,7 @@
     state.ui.options.setAttribute("aria-hidden", "true");
     state.ui.optionsToggle.setAttribute("aria-expanded", "false");
     syncNoteOptionsSurface();
+    syncEditorBlockTypeButtons();
     renderPendingBlocks();
     renderPendingImages();
     const rect = selectionRectFor(annotation) || { left: innerWidth / 2 - 160, top: 96 };
@@ -1595,7 +1725,7 @@
   }
 
   function addBlock() {
-    const text = state.ui.textarea.value.trim();
+    const text = normalizeBlockText(state.ui.blockType.value, state.ui.textarea.value);
     if (!text) return;
     state.pendingBlocks.push({ type: state.ui.blockType.value, text });
     state.ui.textarea.value = "";
@@ -1605,11 +1735,17 @@
   function renderPendingBlocks() {
     state.ui.blocks.textContent = "";
     state.pendingBlocks.filter((block) => block.type !== "image").forEach((block, index) => {
-      const row = createElement("div", { class: "lm-note-block" });
-      row.append(createElement("span", {}, `${block.type}: ${block.text}`), button("Remove block", null, () => {
+      const row = createElement("div", { class: "lm-note-block lm-note-block-pending" });
+      const label = createElement("span", { class: "lm-note-block-label" }, blockTypeLabel(block.type));
+      const preview = createElement("div", { class: "lm-note-block-preview" });
+      renderBlocks(preview, [block]);
+      const removeLabel = uiText("Delete block", "删除内容块");
+      const removeButton = button("", null, () => {
         state.pendingBlocks.splice(index, 1);
         renderPendingBlocks();
-      }, { class: "lm-remove-button" }));
+      }, { class: "lm-remove-button", "aria-label": removeLabel, title: removeLabel });
+      removeButton.appendChild(createElement("span", { "aria-hidden": "true" }, "×"));
+      row.append(label, preview, removeButton);
       state.ui.blocks.appendChild(row);
     });
   }
@@ -1619,10 +1755,10 @@
     state.pendingAssets.forEach((asset) => {
       const card = createElement("div", { class: "lm-image-card" });
       card.append(
-        createElement("img", { src: asset.dataUrl, alt: asset.decorative ? "" : asset.alt || asset.name || "note image" }),
-        button("Remove image", null, () => {
+        imageZoomTrigger(asset),
+        button(uiText("Remove image", "删除图片"), null, () => {
           state.pendingAssets = state.pendingAssets.filter((item) => item.id !== asset.id);
-          state.assets = state.assets.filter((item) => item.id !== asset.id || state.notes.some((note) => (note.assetIds || []).includes(item.id)));
+          state.assets = state.assets.filter((item) => item.id !== asset.id || state.notes.some((note) => noteAssetIds(note).includes(item.id)));
           renderPendingImages();
         }, { class: "lm-remove-button" })
       );
@@ -1660,7 +1796,7 @@
       note = { id: uid("note"), courseId: state.meta.courseId, lessonId: state.meta.lessonId, annotationId: annotation.id, text: "", assetIds: [], tag: "note", surfaceColor: "#FFFFFF", createdAt: now(), updatedAt: now() };
       state.notes.push(note);
     }
-    const oldAssetIds = note.assetIds || [];
+    const oldAssetIds = noteAssetIds(note);
     note.text = blocks.filter((block) => block.type !== "image").map((block) => block.text).join("\n\n");
     note.blocks = blocks;
     note.assetIds = state.pendingAssets.map((asset) => asset.id);
@@ -1671,7 +1807,7 @@
     state.pendingAssets.forEach((asset) => {
       if (!state.assets.some((item) => item.id === asset.id)) state.assets.push(asset);
     });
-    state.assets = state.assets.filter((asset) => !oldAssetIds.includes(asset.id) || note.assetIds.includes(asset.id) || state.notes.some((other) => other !== note && (other.assetIds || []).includes(asset.id)));
+    state.assets = state.assets.filter((asset) => !oldAssetIds.includes(asset.id) || note.assetIds.includes(asset.id) || state.notes.some((other) => other !== note && noteAssetIds(other).includes(asset.id)));
     (annotation.groupId ? state.annotations.filter((item) => item.groupId === annotation.groupId) : [annotation]).forEach((item) => {
       item.noteId = note.id;
       item.updatedAt = now();
@@ -1687,12 +1823,12 @@
     const note = state.notes.find((item) => item.id === id);
     if (!note || !confirm("Delete this note?")) return;
     rememberUndo();
-    const assetIds = new Set(note.assetIds || []);
+    const assetIds = new Set(noteAssetIds(note));
     state.notes = state.notes.filter((item) => item.id !== id);
     state.annotations.forEach((annotation) => {
       if (annotation.noteId === id) annotation.noteId = null;
     });
-    state.assets = state.assets.filter((asset) => !assetIds.has(asset.id) || state.notes.some((item) => (item.assetIds || []).includes(asset.id)));
+    state.assets = state.assets.filter((asset) => !assetIds.has(asset.id) || state.notes.some((item) => noteAssetIds(item).includes(asset.id)));
     renderAll();
     queueSave();
   }
@@ -2023,14 +2159,14 @@
     const lines = ["# LearnMap Learning Notes", "", `- Course: ${state.meta.topic || ""}`, `- Lesson: ${state.meta.lessonId}`, `- Exported: ${now()}`, ""];
     state.notes.forEach((note, index) => {
       const annotation = state.annotations.find((item) => item.id === note.annotationId);
-      lines.push(`## ${index + 1}. ${annotation?.anchor?.exact || "Unbound source"}`, "", noteText(note), "", `- Style: ${annotation ? annotationLabel(annotation) : "-"}`, `- Images: ${(note.assetIds || []).length}`, "");
+      lines.push(`## ${index + 1}. ${annotation?.anchor?.exact || "Unbound source"}`, "", noteText(note), "", `- Style: ${annotation ? annotationLabel(annotation) : "-"}`, `- Images: ${noteAssetIds(note).length}`, "");
     });
     download(new Blob([lines.join("\n")], { type: "text/markdown;charset=utf-8" }), `${`${state.meta.topic || "learnmap"}`.replace(/[\\/:*?"<>|]+/g, "-")}-notes.md`);
   }
 
   async function copyNote(note) {
     const text = noteText(note);
-    const assets = (note.assetIds || []).map((id) => state.assets.find((asset) => asset.id === id)).filter(Boolean);
+    const assets = noteAssetIds(note).map((id) => state.assets.find((asset) => asset.id === id)).filter(Boolean);
     try {
       if (window.isSecureContext && window.ClipboardItem && navigator.clipboard?.write && assets.length) {
         const escapeHtml = (value) => `${value}`.replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" })[character]);
@@ -2086,7 +2222,7 @@
       underlineCount: state.annotations.filter((item) => item.markType !== "highlight").length,
       highlightCount: state.annotations.filter((item) => item.markType === "highlight").length,
       noteCount: state.notes.length,
-      imageCount: state.notes.reduce((sum, note) => sum + (note.assetIds || []).length, 0),
+      imageCount: state.notes.reduce((sum, note) => sum + noteAssetIds(note).length, 0),
       questionNoteCount: state.notes.filter((note) => note.tag === "question").length,
       orphanedCount: state.annotations.filter((item) => item.orphaned).length,
       updatedAt: updatedAt || null
@@ -2120,6 +2256,10 @@
     });
     document.addEventListener("keyup", (event) => {
       if (event.key === "Escape") {
+        if (state.ui.imageLightbox && !state.ui.imageLightbox.hidden) {
+          closeImageLightbox();
+          return;
+        }
         closeToolbar();
         closePreview({ restoreFocus: true });
         if (state.ui.editor?.classList.contains("open")) closeEditor();

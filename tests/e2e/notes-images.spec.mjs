@@ -22,6 +22,55 @@ async function selectEditorText(editor, text) {
   }, text);
 }
 
+async function generatedPng(page, width = 640, height = 360) {
+  const bytes = await page.evaluate(({ width: w, height: h }) => new Promise((resolve) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const context = canvas.getContext("2d");
+    context.fillStyle = "#1d4ed8";
+    context.fillRect(0, 0, w, h);
+    context.fillStyle = "#f8fafc";
+    context.fillRect(Math.round(w * 0.18), Math.round(h * 0.18), Math.round(w * 0.64), Math.round(h * 0.64));
+    canvas.toBlob(async (blob) => resolve(Array.from(new Uint8Array(await blob.arrayBuffer()))), "image/png");
+  }), { width, height });
+  return Buffer.from(bytes);
+}
+
+async function expectListStyle(list, expectedType) {
+  await expect.poll(() => list.evaluate((element) => getComputedStyle(element).listStyleType)).toBe(expectedType);
+}
+
+async function expectConstrainedLightbox(page, closeMode, returnFocus) {
+  const lightbox = page.getByTestId("lm-image-lightbox");
+  await expect(lightbox).toBeVisible();
+  await expect(lightbox).toHaveAttribute("role", "dialog");
+  await expect(lightbox).toHaveAttribute("aria-modal", "true");
+  const image = lightbox.getByTestId("lm-image-lightbox-image");
+  await expect(image).toBeVisible();
+  const box = await image.boundingBox();
+  expect(box).not.toBeNull();
+  const viewport = page.viewportSize();
+  expect(box.width).toBeGreaterThan(0);
+  expect(box.height).toBeGreaterThan(0);
+  expect(box.width).toBeLessThanOrEqual((viewport?.width || 390) - 24);
+  expect(box.height).toBeLessThanOrEqual((viewport?.height || 844) - 96);
+
+  if (closeMode === "escape") await page.keyboard.press("Escape");
+  else if (closeMode === "backdrop") await lightbox.locator(".lm-image-lightbox-backdrop").click({ position: { x: 4, y: 4 } });
+  else await lightbox.getByTestId("lm-image-lightbox-close").click();
+
+  await expect(lightbox).toBeHidden();
+  if (returnFocus) await expect(returnFocus).toBeFocused();
+}
+
+async function openLightboxFrom(page, trigger, closeMode) {
+  await expect(trigger).toBeVisible();
+  await trigger.focus();
+  await trigger.click();
+  await expectConstrainedLightbox(page, closeMode, trigger);
+}
+
 test.beforeEach(async ({ page }, testInfo) => {
   await openFixture(page, testInfo.project.name);
 });
@@ -100,6 +149,7 @@ test("compact note editor exposes primary controls and reveals advanced options"
 });
 
 test("editor paste accepts PNG files without intercepting plain text", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
   await selectFixtureText(page, "#selection-text", 0, 12);
   await page.getByTestId("lm-add-note").click();
   const editor = page.getByTestId("lm-note-editor");
@@ -124,11 +174,15 @@ test("editor paste accepts PNG files without intercepting plain text", async ({ 
     return event.defaultPrevented;
   }, [...onePixelPng]);
   expect(imagePastePrevented).toBe(true);
-  await expect(page.locator(".lm-note-images img")).toHaveCount(1);
+  const editorImage = page.locator(".lm-note-editor-popover .lm-note-images").getByTestId("lm-image-zoom-trigger").first();
+  await expect(editorImage).toBeVisible();
+  await openLightboxFrom(page, editorImage, "escape");
 
   await editor.fill("粘贴图片笔记");
   await page.getByTestId("lm-note-save").click();
   await expect.poll(() => annotationSummary(page)).toMatchObject({ noteCount: 1, imageCount: 1 });
+  await ensureNotesManagerOpen(page);
+  await openLightboxFrom(page, page.getByTestId("lm-note-list").getByTestId("lm-image-zoom-trigger").first(), "close");
 });
 
 test("formatting toolbar transforms selections and renders inline styles and lists", async ({ page }) => {
@@ -157,18 +211,28 @@ test("formatting toolbar transforms selections and renders inline styles and lis
   await blockType.selectOption("paragraph");
   await addBlock.click();
 
+  const orderedButton = page.getByTestId("lm-note-format-ordered-list");
+  const unorderedButton = page.getByTestId("lm-note-format-unordered-list");
+  await expect(orderedButton).toHaveClass(/\blm-editor-tool\b/);
+  await expect(unorderedButton).toHaveClass(/\blm-editor-tool\b/);
+  await expect(orderedButton).toHaveAttribute("aria-label", /ordered list|有序列表/i);
+  await expect(unorderedButton).toHaveAttribute("aria-label", /unordered list|无序列表/i);
+  await expect(orderedButton).toHaveAttribute("aria-pressed", "false");
+  await expect(unorderedButton).toHaveAttribute("aria-pressed", "false");
+
   const listCases = [
-    ["第一项\n第二项", "lm-note-format-ordered-list", "ordered-list"],
-    ["甲项\n乙项", "lm-note-format-unordered-list", "unordered-list"]
+    ["第一项\n第二项", orderedButton, unorderedButton, "ordered-list"],
+    ["甲项\n乙项", unorderedButton, orderedButton, "unordered-list"]
   ];
-  for (const [text, testId, type] of listCases) {
+  for (const [text, activeButton, inactiveButton, type] of listCases) {
     await editor.fill(text);
     await selectEditorText(editor, text);
     const before = await editor.inputValue();
-    await page.getByTestId(testId).click();
-    expect(await editor.inputValue()).not.toBe(before);
-    await expect(editor).toHaveValue(new RegExp(text.replace("\n", "[\\s\\S]*")));
+    await activeButton.click();
+    await expect(editor).toHaveValue(before);
     await expect(blockType).toHaveValue(type);
+    await expect(activeButton).toHaveAttribute("aria-pressed", "true");
+    await expect(inactiveButton).toHaveAttribute("aria-pressed", "false");
     await addBlock.click();
   }
 
@@ -178,8 +242,39 @@ test("formatting toolbar transforms selections and renders inline styles and lis
   await expect(card.locator("strong")).toHaveText("粗体文本");
   await expect(card.locator("em")).toHaveText("斜体文本");
   await expect(card.locator("u")).toHaveText("下划线文本");
-  await expect(card.locator("ol > li")).toHaveText(["第一项", "第二项"]);
-  await expect(card.locator("ul > li")).toHaveText(["甲项", "乙项"]);
+  const orderedList = card.locator('ol[data-block-type="ordered-list"]');
+  const unorderedList = card.locator('ul[data-block-type="unordered-list"]');
+  await expect(orderedList.locator("li")).toHaveText(["第一项", "第二项"]);
+  await expect(unorderedList.locator("li")).toHaveText(["甲项", "乙项"]);
+  await expectListStyle(orderedList, "decimal");
+  await expectListStyle(unorderedList, "disc");
+});
+
+test("pending structured blocks preview semantically with localized labels", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await selectFixtureText(page, "#selection-text", 0, 12);
+  await page.getByTestId("lm-add-note").click();
+  await openNoteOptions(page);
+  const pending = page.getByTestId("lm-note-blocks");
+  const blocks = [
+    ["ordered-list", "1. 第一项\n1) 第二项", "有序列表", "ol", "decimal", ["第一项", "第二项"]],
+    ["unordered-list", "- 甲项\n• 乙项", "无序列表", "ul", "disc", ["甲项", "乙项"]]
+  ];
+
+  for (const [type, text, label] of blocks) {
+    await page.getByTestId("lm-block-type").selectOption(type);
+    await page.getByTestId("lm-note-editor").fill(text);
+    await page.getByTestId("lm-add-block").click();
+    await expect(pending).toContainText(new RegExp(`${label}|${type === "ordered-list" ? "Ordered list" : "Unordered list"}`, "i"));
+  }
+
+  await expect(pending).not.toContainText("ordered-list:");
+  await expect(pending).not.toContainText("unordered-list:");
+  for (const [, , , tag, marker, items] of blocks) {
+    const list = pending.locator(`${tag}.lm-rendered-block`).last();
+    await expect(list.locator("li")).toHaveText(items);
+    await expectListStyle(list, marker);
+  }
 });
 
 test("canceling an unsaved image removes the pending asset from memory and IndexedDB", async ({ page }) => {
@@ -255,6 +350,28 @@ test("JPEG and WebP signatures are accepted and image alt text is controlled", a
   await ensureNotesManagerOpen(page);
   await expect(page.getByTestId("lm-note-list").locator("img")).toHaveCount(2);
   await expect(page.getByTestId("lm-note-list").locator("img").first()).toHaveAttribute("alt", "结构示意图");
+});
+
+test("uploaded images open a constrained lightbox from editor, manager, and popover", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const png = await generatedPng(page, 960, 540);
+  await selectFixtureText(page, "#selection-text", 0, 12);
+  await page.getByTestId("lm-add-note").click();
+  await page.getByTestId("lm-note-editor").fill("上传图片 lightbox");
+  await page.getByTestId("lm-image-input").setInputFiles({ name: "lightbox-upload.png", mimeType: "image/png", buffer: png });
+
+  await openLightboxFrom(page, page.locator(".lm-note-editor-popover .lm-note-images").getByTestId("lm-image-zoom-trigger").first(), "escape");
+
+  await page.getByTestId("lm-note-save").click();
+  await expect.poll(() => annotationSummary(page)).toMatchObject({ noteCount: 1, imageCount: 1 });
+  await ensureNotesManagerOpen(page);
+  await openLightboxFrom(page, page.getByTestId("lm-note-list").getByTestId("lm-image-zoom-trigger").first(), "backdrop");
+
+  await page.getByTestId("lm-notes-manager-close").click();
+  const hit = page.getByTestId("lm-note-hit").first();
+  await hit.click();
+  await openLightboxFrom(page, page.getByTestId("lm-note-popover").getByTestId("lm-image-zoom-trigger").first(), "close");
+  await expect(hit).toHaveAttribute("aria-expanded", "true");
 });
 
 test("decorative images retain an empty alt attribute", async ({ page }) => {

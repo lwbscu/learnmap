@@ -246,7 +246,11 @@ const runtimeV2Tokens = [
   "lm-note-format-underline",
   "lm-note-format-ordered-list",
   "lm-note-format-unordered-list",
+  "lm-list-glyph-ordered",
+  "lm-list-glyph-unordered",
   "lm-note-image-add",
+  "lm-image-zoom-trigger",
+  "lm-image-lightbox",
   "lm-note-options-toggle",
   "customColor",
   "surfaceColor"

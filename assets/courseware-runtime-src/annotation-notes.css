@@ -464,6 +464,56 @@
   text-underline-offset: 3px;
 }
 
+.lm-list-glyph {
+  position: relative;
+  display: block;
+  width: 19px;
+  height: 16px;
+  color: currentColor;
+}
+
+.lm-list-glyph::before,
+.lm-list-glyph::after {
+  content: "";
+  position: absolute;
+  display: block;
+}
+
+.lm-list-glyph::after {
+  top: 2px;
+  right: 1px;
+  width: 11px;
+  height: 12px;
+  background:
+    linear-gradient(currentColor 0 0) 0 0 / 11px 1.5px no-repeat,
+    linear-gradient(currentColor 0 0) 0 5px / 11px 1.5px no-repeat,
+    linear-gradient(currentColor 0 0) 0 10px / 11px 1.5px no-repeat;
+}
+
+.lm-list-glyph-ordered::before {
+  content: "1\A 2\A 3";
+  top: -1px;
+  left: 0;
+  width: 6px;
+  color: currentColor;
+  font-size: 6.5px;
+  font-weight: 700;
+  line-height: 5px;
+  text-align: right;
+  white-space: pre;
+}
+
+.lm-list-glyph-unordered::before {
+  top: 1px;
+  left: 1px;
+  width: 4px;
+  height: 14px;
+  background:
+    radial-gradient(circle, currentColor 0 2px, transparent 2.1px) 0 0 / 4px 4px no-repeat,
+    radial-gradient(circle, currentColor 0 2px, transparent 2.1px) 0 5px / 4px 4px no-repeat,
+    radial-gradient(circle, currentColor 0 2px, transparent 2.1px) 0 10px / 4px 4px no-repeat;
+}
+
 .lm-image-glyph {
   position: relative;
   display: block;
@@ -665,7 +715,7 @@
 
 .lm-note-editor-popover .lm-note-images {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
   gap: 8px;
 }
 
@@ -690,7 +740,7 @@
   background: #f5f6f7;
 }
 
-.lm-note-editor-popover .lm-image-card button {
+.lm-note-editor-popover .lm-image-card > .lm-remove-button {
   position: absolute;
   top: 4px;
   right: 4px;
@@ -705,10 +755,51 @@
   font-size: 0;
 }
 
-.lm-note-editor-popover .lm-image-card button::before {
+.lm-note-editor-popover .lm-image-card > .lm-remove-button::before {
   content: "\00d7";
   font-size: 18px;
   line-height: 1;
+}
+
+.lm-image-zoom-trigger {
+  display: inline-grid;
+  place-items: center;
+  max-width: 100%;
+  padding: 0 !important;
+  overflow: hidden;
+  border: 0 !important;
+  color: inherit !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  cursor: zoom-in;
+}
+
+button.lm-image-zoom-trigger,
+.lm-image-zoom-trigger[role="button"] {
+  border-radius: 6px;
+}
+
+.lm-image-zoom-trigger:hover {
+  filter: brightness(0.96);
+}
+
+.lm-image-zoom-trigger:focus-visible {
+  outline: 3px solid var(--lm-primary);
+  outline-offset: 3px;
+}
+
+.lm-note-editor-popover .lm-image-card > .lm-image-zoom-trigger {
+  position: static;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  border-radius: inherit;
+}
+
+.lm-note-editor-popover .lm-image-card > .lm-image-zoom-trigger::before,
+.lm-note-editor-popover .lm-image-card > .lm-image-zoom-trigger::after {
+  content: none;
 }
 
 .lm-editor-actions {
@@ -854,12 +945,183 @@
   white-space: pre-wrap;
 }
 
+.lm-rendered-block ol,
+.lm-rendered-block ul,
+ol.lm-rendered-block,
+ul.lm-rendered-block {
+  margin: 8px 0 8px 1.35em;
+  padding-inline-start: 1.25em;
+  white-space: normal;
+}
+
+.lm-rendered-block ol,
+ol.lm-rendered-block {
+  list-style: decimal outside !important;
+}
+
+.lm-rendered-block ul,
+ul.lm-rendered-block {
+  list-style: disc outside !important;
+}
+
+.lm-rendered-block li,
+ol.lm-rendered-block > li,
+ul.lm-rendered-block > li {
+  display: list-item !important;
+  margin: 3px 0;
+  padding-inline-start: 0.18em;
+  line-height: 1.6;
+  white-space: normal;
+}
+
+.lm-rendered-block li::marker,
+ol.lm-rendered-block > li::marker,
+ul.lm-rendered-block > li::marker {
+  color: var(--lm-muted);
+  font-weight: 650;
+}
+
+.lm-rendered-block ol ol,
+ol.lm-rendered-block ol {
+  list-style-type: lower-alpha !important;
+}
+
+.lm-rendered-block ul ul,
+ul.lm-rendered-block ul {
+  list-style-type: circle !important;
+}
+
+.lm-rendered-block ol ul,
+ol.lm-rendered-block ul,
+.lm-rendered-block ul ol,
+ul.lm-rendered-block ol {
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.lm-note-block-pending {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px;
+  align-items: start;
+  padding: 8px 10px;
+  border: 1px dashed #b8c1cc;
+  border-radius: 8px;
+  background: #f8fafc;
+  white-space: normal;
+}
+
+.lm-note-block-label {
+  grid-column: 1;
+  color: var(--lm-muted);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.lm-note-block-preview {
+  grid-column: 1;
+  color: var(--lm-text);
+  font-size: 13px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.lm-note-block-pending > .lm-remove-button {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+}
+
 .lm-block-code {
   padding: 8px;
   border-radius: 6px;
   overflow: auto;
   background: #111827;
   color: #f9fafb;
+}
+
+.lm-image-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 72px 32px 40px;
+  color: #fff;
+  background: transparent;
+}
+
+.lm-image-lightbox[hidden],
+.lm-image-lightbox[aria-hidden="true"] {
+  display: none !important;
+}
+
+.lm-image-lightbox-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 88%);
+  cursor: zoom-out;
+}
+
+.lm-image-lightbox-image {
+  display: block;
+  width: auto !important;
+  height: auto !important;
+  max-width: min(calc(100vw - 64px), 1440px) !important;
+  max-height: calc(100dvh - 136px) !important;
+  object-fit: contain !important;
+  background: transparent;
+  box-shadow: 0 16px 48px rgb(0 0 0 / 45%);
+}
+
+.lm-image-lightbox-content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  max-width: calc(100vw - 64px);
+  max-height: 100%;
+  margin: 0;
+}
+
+.lm-image-lightbox-close {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 1401;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  border: 1px solid rgb(255 255 255 / 42%) !important;
+  border-radius: 50%;
+  color: #fff !important;
+  background: rgb(0 0 0 / 48%) !important;
+  cursor: pointer;
+}
+
+.lm-image-lightbox-close:hover {
+  background: rgb(255 255 255 / 16%) !important;
+}
+
+.lm-image-lightbox-close:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
+.lm-image-lightbox-caption,
+.lm-image-lightbox figcaption {
+  max-width: min(760px, calc(100vw - 48px));
+  color: rgb(255 255 255 / 84%);
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: center;
 }
 
 .lm-flash {
@@ -988,7 +1250,7 @@
     inset: 8px;
   }
 
-  .lm-note-editor-popover .lm-image-card button {
+  .lm-note-editor-popover .lm-image-card > .lm-remove-button {
     width: 44px;
     min-width: 44px;
     min-height: 44px;
@@ -1069,14 +1331,45 @@
   .lm-note-hit[data-side="right-rail"]::after {
     left: 31px;
   }
+
+  .lm-image-lightbox {
+    padding: calc(64px + env(safe-area-inset-top)) 14px calc(24px + env(safe-area-inset-bottom));
+  }
+
+  .lm-image-lightbox-image {
+    max-width: calc(100vw - 28px) !important;
+    max-height: calc(100dvh - 120px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+  }
+
+  .lm-image-lightbox-content {
+    max-width: calc(100vw - 28px);
+  }
+
+  .lm-image-lightbox-close {
+    top: calc(10px + env(safe-area-inset-top));
+    right: 10px;
+  }
+
+  .lm-image-lightbox-caption,
+  .lm-image-lightbox figcaption {
+    max-width: calc(100vw - 28px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .lm-note-editor-popover,
   .lm-editor-header,
   .lm-editor-toolbar,
-  .lm-note-options {
+  .lm-note-options,
+  .lm-image-lightbox {
     scroll-behavior: auto;
+  }
+
+  .lm-image-zoom-trigger,
+  .lm-image-lightbox,
+  .lm-image-lightbox * {
+    transition: none !important;
+    animation: none !important;
   }
 
   .lm-flash {
@@ -1097,7 +1390,8 @@
   .lm-editor-header,
   .lm-editor-toolbar,
   .lm-editor-actions,
-  .lm-note-options {
+  .lm-note-options,
+  .lm-note-block-pending {
     color: CanvasText;
     background: Canvas;
     box-shadow: none;
@@ -1118,7 +1412,7 @@
 
   .lm-editor-save,
   .lm-editor-actions [data-testid="lm-note-save"],
-  .lm-note-editor-popover .lm-image-card button {
+  .lm-note-editor-popover .lm-image-card > .lm-remove-button {
     border-color: ButtonText !important;
     color: ButtonText !important;
     background: ButtonFace !important;
@@ -1137,6 +1431,47 @@
 
   .lm-overlay-segment {
     border-color: Highlight;
+  }
+
+  .lm-list-glyph::after {
+    background:
+      linear-gradient(ButtonText 0 0) 0 0 / 11px 1.5px no-repeat,
+      linear-gradient(ButtonText 0 0) 0 5px / 11px 1.5px no-repeat,
+      linear-gradient(ButtonText 0 0) 0 10px / 11px 1.5px no-repeat;
+  }
+
+  .lm-list-glyph-unordered::before {
+    background:
+      radial-gradient(circle, ButtonText 0 2px, transparent 2.1px) 0 0 / 4px 4px no-repeat,
+      radial-gradient(circle, ButtonText 0 2px, transparent 2.1px) 0 5px / 4px 4px no-repeat,
+      radial-gradient(circle, ButtonText 0 2px, transparent 2.1px) 0 10px / 4px 4px no-repeat;
+  }
+
+  .lm-image-lightbox {
+    color: CanvasText;
+    border: 2px solid CanvasText;
+  }
+
+  .lm-image-lightbox-backdrop {
+    background: Canvas;
+  }
+
+  .lm-image-lightbox-image {
+    forced-color-adjust: none;
+    box-shadow: none;
+  }
+
+  .lm-image-lightbox-close {
+    border-color: ButtonText !important;
+    color: ButtonText !important;
+    background: ButtonFace !important;
+  }
+
+  .lm-image-lightbox-caption,
+  .lm-image-lightbox figcaption,
+  .lm-note-block-label,
+  .lm-note-block-preview {
+    color: CanvasText;
   }
 }
 
