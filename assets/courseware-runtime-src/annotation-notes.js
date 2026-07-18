@@ -475,6 +475,11 @@
     if (state.ui.editor?.classList.contains("open") && !force && state.editorSnapshot !== editorDraft() && !confirm("Discard the unsaved note draft?")) return false;
     state.ui.editor?.classList.remove("open");
     state.ui.editor?.setAttribute("aria-hidden", "true");
+    if (state.ui.options) {
+      state.ui.options.hidden = true;
+      state.ui.options.setAttribute("aria-hidden", "true");
+    }
+    state.ui.optionsToggle?.setAttribute("aria-expanded", "false");
     state.editingNoteId = null;
     state.pendingBlocks = [];
     state.pendingAssets = [];
@@ -1091,17 +1096,62 @@
   }
 
   function renderInline(parent, text) {
-    const pattern = /\*\*([^*]+)\*\*|\*([^*]+)\*|`([^`]+)`|\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/giu;
+    const source = `${text || ""}`;
+    const pattern = /\*\*([^*]+)\*\*|\*([^*]+)\*|\+\+([^+]+)\+\+|`([^`]+)`|\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/giu;
     let offset = 0;
-    for (const match of `${text || ""}`.matchAll(pattern)) {
-      parent.append(document.createTextNode(text.slice(offset, match.index)));
+    for (const match of source.matchAll(pattern)) {
+      parent.append(document.createTextNode(source.slice(offset, match.index)));
       if (match[1]) parent.appendChild(createElement("strong", {}, match[1]));
       else if (match[2]) parent.appendChild(createElement("em", {}, match[2]));
-      else if (match[3]) parent.appendChild(createElement("code", {}, match[3]));
-      else parent.appendChild(createElement("a", { href: match[5], target: "_blank", rel: "noopener noreferrer" }, match[4]));
+      else if (match[3]) parent.appendChild(createElement("u", {}, match[3]));
+      else if (match[4]) parent.appendChild(createElement("code", {}, match[4]));
+      else parent.appendChild(createElement("a", { href: match[6], target: "_blank", rel: "noopener noreferrer" }, match[5]));
       offset = match.index + match[0].length;
     }
-    parent.append(document.createTextNode(text.slice(offset)));
+    parent.append(document.createTextNode(source.slice(offset)));
+  }
+
+  function notifyTextareaInput(textarea) {
+    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+    textarea.focus();
+  }
+
+  function wrapTextareaSelection(textarea, marker) {
+    const start = textarea.selectionStart ?? textarea.value.length;
+    const end = textarea.selectionEnd ?? start;
+    const selected = textarea.value.slice(start, end);
+    textarea.setRangeText(`${marker}${selected}${marker}`, start, end, "end");
+    if (selected) textarea.setSelectionRange(start + marker.length, end + marker.length);
+    else textarea.setSelectionRange(start + marker.length, start + marker.length);
+    notifyTextareaInput(textarea);
+  }
+
+  function prefixTextareaLines(textarea, prefix) {
+    const start = textarea.selectionStart ?? textarea.value.length;
+    const end = textarea.selectionEnd ?? start;
+    if (start === end) {
+      textarea.setRangeText(prefix, start, end, "end");
+      notifyTextareaInput(textarea);
+      return;
+    }
+    const lineStart = textarea.value.lastIndexOf("\n", start - 1) + 1;
+    const selectionEnd = textarea.value[end - 1] === "\n" ? end - 1 : end;
+    const nextBreak = textarea.value.indexOf("\n", selectionEnd);
+    const lineEnd = nextBreak === -1 ? textarea.value.length : nextBreak;
+    const replacement = textarea.value.slice(lineStart, lineEnd).split("\n").map((line) => `${prefix}${line}`).join("\n");
+    textarea.setRangeText(replacement, lineStart, lineEnd, "select");
+    notifyTextareaInput(textarea);
+  }
+
+  function syncNoteOptionsSurface() {
+    const value = normalizeHex(state.ui.surface?.value, "#FFFFFF");
+    state.ui.surfacePresets?.querySelectorAll("[data-surface]").forEach((preset) => {
+      preset.setAttribute("aria-pressed", `${normalizeHex(preset.dataset.surface, "") === value}`);
+    });
+    if (state.ui.optionsToggle) {
+      state.ui.optionsToggle.dataset.surface = value;
+      state.ui.optionsToggle.style.setProperty("--lm-swatch", value);
+    }
   }
 
   function renderImages(parent, assetIds) {
@@ -1239,8 +1289,30 @@
 
     const editLabel = uiText("Edit note", "编辑笔记");
     const editor = createElement("section", { class: "lm-ui lm-note-editor-popover", testid: "lm-note-editor-popover", role: "dialog", "aria-hidden": "true", "aria-label": editLabel, "data-lm-ignore": "" });
-    const editorHeader = createElement("div", { class: "lm-editor-header" });
-    editorHeader.append(createElement("h2", {}, editLabel), button("×", "lm-note-editor-close", () => closeEditor(), { "aria-label": uiText("Close note editor", "关闭笔记编辑器"), title: uiText("Close", "关闭") }));
+    const imageInput = createElement("input", { type: "file", accept: "image/png,image/jpeg,image/webp", multiple: true, hidden: true, testid: "lm-image-input", "aria-label": "Choose note images" });
+    const textarea = createElement("textarea", { testid: "lm-note-editor", "aria-label": uiText("Note content", "笔记内容"), placeholder: uiText("Write a note, question, checklist, or code snippet.", "记录理解、问题、清单或代码片段") });
+    const editorToolbar = createElement("div", { class: "lm-editor-header", role: "toolbar", "aria-label": uiText("Note formatting", "笔记格式") });
+    const editorTool = (label, testid, handler, ariaLabel, attrs = {}) => button(label, testid, handler, { class: "lm-editor-tool", title: ariaLabel, "aria-label": ariaLabel, ...attrs });
+    const closeButton = editorTool("", "lm-note-editor-close", () => closeEditor(), uiText("Close note editor", "关闭笔记编辑器"), { class: "lm-note-editor-close" });
+    closeButton.appendChild(createElement("span", { testid: "lm-note-cancel", "aria-hidden": "true" }, "×"));
+    const imageButton = editorTool("", "lm-note-image-add", () => imageInput.click(), uiText("Add images", "添加图片"));
+    imageButton.appendChild(createElement("span", { class: "lm-image-glyph", "aria-hidden": "true" }));
+    editorToolbar.append(
+      createElement("h2", {}, editLabel),
+      editorTool("B", "lm-note-format-bold", () => wrapTextareaSelection(textarea, "**"), uiText("Bold", "加粗"), { "aria-keyshortcuts": "Control+B Meta+B" }),
+      editorTool("I", "lm-note-format-italic", () => wrapTextareaSelection(textarea, "*"), uiText("Italic", "斜体"), { "aria-keyshortcuts": "Control+I Meta+I" }),
+      editorTool("U", "lm-note-format-underline", () => wrapTextareaSelection(textarea, "++"), uiText("Underline", "下划线"), { "aria-keyshortcuts": "Control+U Meta+U" }),
+      editorTool("1.", "lm-note-format-ordered-list", () => {
+        blockType.value = "ordered-list";
+        prefixTextareaLines(textarea, "1. ");
+      }, uiText("Ordered list", "有序列表")),
+      editorTool("•", "lm-note-format-unordered-list", () => {
+        blockType.value = "unordered-list";
+        prefixTextareaLines(textarea, "- ");
+      }, uiText("Unordered list", "无序列表")),
+      imageButton,
+      closeButton
+    );
     const blockType = createElement("select", { testid: "lm-block-type", "aria-label": "Block type" });
     [
       ["paragraph", uiText("Paragraph", "正文")],
@@ -1251,8 +1323,9 @@
       ["quote", uiText("Quote", "引用")],
       ["code", uiText("Code", "代码")]
     ].forEach(([value, label]) => blockType.appendChild(createElement("option", { value }, label)));
-    const textarea = createElement("textarea", { testid: "lm-note-editor", "aria-label": uiText("Note content", "笔记内容"), placeholder: uiText("Write a note, question, checklist, or code snippet.", "记录理解、问题、清单或代码片段") });
     const blockList = createElement("div", { class: "lm-note-blocks", testid: "lm-note-blocks" });
+    const blockControls = createElement("div", { class: "lm-note-block-controls" });
+    blockControls.append(blockType, button(uiText("Add block", "添加内容块"), "lm-add-block", addBlock));
     const question = createElement("input", { type: "checkbox", testid: "lm-note-question", "aria-label": "Question note" });
     const questionLabel = createElement("label", { class: "lm-check-row" }, uiText("Question note", "疑问笔记"));
     questionLabel.prepend(question);
@@ -1260,13 +1333,19 @@
     const surfacePresets = createElement("div", { class: "lm-surface-presets" });
     const surface = createElement("input", { type: "color", value: SURFACE_COLORS.white, testid: "lm-note-surface-custom", "aria-label": "Custom note surface color" });
     Object.entries(SURFACE_COLORS).forEach(([name, hex]) => {
-      const preset = button(`${name} note surface`, `lm-note-surface-preset-${name}`, () => { surface.value = hex; }, { class: "lm-surface-preset", title: `${name} note surface`, "data-surface": hex });
+      const preset = button(`${name} note surface`, `lm-note-surface-preset-${name}`, () => {
+        surface.value = hex;
+        syncNoteOptionsSurface();
+      }, { class: "lm-surface-preset", title: `${name} note surface`, "data-surface": hex });
       preset.textContent = "";
       preset.style.setProperty("--lm-swatch", hex);
       surfacePresets.appendChild(preset);
     });
     const surfaceCustom = createElement("div", { class: "lm-surface-custom" });
-    surfaceCustom.append(surface, button(uiText("Apply custom color", "应用自定义颜色"), "lm-note-surface-custom-apply", () => { surface.value = normalizeHex(surface.value, "#FFFFFF"); }, { class: "lm-surface-apply" }));
+    surfaceCustom.append(surface, button(uiText("Apply custom color", "应用自定义颜色"), "lm-note-surface-custom-apply", () => {
+      surface.value = normalizeHex(surface.value, "#FFFFFF");
+      syncNoteOptionsSurface();
+    }, { class: "lm-surface-apply" }));
     surfaceWrap.append(surfacePresets, surfaceCustom);
     const alt = createElement("input", { type: "text", testid: "lm-image-alt", "aria-label": uiText("Image alt text", "图片说明"), placeholder: uiText("Image alt text", "图片说明") });
     const decorative = createElement("input", { type: "checkbox", testid: "lm-image-decorative", "aria-label": "Decorative image" });
@@ -1274,13 +1353,37 @@
     decorativeLabel.prepend(decorative);
     const images = createElement("div", { class: "lm-note-images" });
     const dropzone = createElement("div", { class: "lm-image-dropzone", tabindex: "0" }, uiText("Paste, drop, or choose PNG, JPEG, WebP", "粘贴、拖放或选择 PNG、JPEG、WebP"));
-    const imageInput = createElement("input", { type: "file", accept: "image/png,image/jpeg,image/webp", multiple: true, testid: "lm-image-input", "aria-label": "Choose note images" });
+    const options = createElement("div", { id: "lm-note-options", class: "lm-note-options", testid: "lm-note-options", hidden: true, "aria-hidden": "true" });
+    options.append(blockControls, questionLabel, createElement("label", {}, uiText("Note color", "笔记颜色")), surfaceWrap, alt, decorativeLabel, dropzone);
     const actions = createElement("div", { class: "lm-editor-actions" });
-    actions.append(imageInput, button(uiText("Cancel", "取消"), "lm-note-cancel", () => closeEditor()), button(uiText("Save", "保存"), "lm-note-save", saveNote));
-    editor.append(editorHeader, blockType, textarea, button(uiText("Add block", "添加内容块"), "lm-add-block", addBlock), blockList, questionLabel, createElement("label", {}, uiText("Note color", "笔记颜色")), surfaceWrap, alt, decorativeLabel, images, dropzone, actions);
+    const deleteEditorButton = button("", "lm-note-delete-editor", deleteEditorNote, { class: "lm-editor-delete", "aria-label": uiText("Delete note", "删除笔记"), title: uiText("Delete note", "删除笔记") });
+    deleteEditorButton.appendChild(createElement("span", { class: "lm-trash-glyph", "aria-hidden": "true" }));
+    const optionsToggle = button("", "lm-note-options-toggle", () => {
+      const expanded = options.hidden;
+      options.hidden = !expanded;
+      options.setAttribute("aria-hidden", `${!expanded}`);
+      optionsToggle.setAttribute("aria-expanded", `${expanded}`);
+    }, { class: "lm-note-options-toggle lm-surface-preset", "aria-label": uiText("Note options", "笔记选项"), title: uiText("Note options", "笔记选项"), "aria-controls": "lm-note-options", "aria-expanded": "false" });
+    const saveButton = button(uiText("Save", "保存"), "lm-note-save", saveNote, { class: "lm-editor-save" });
+    actions.append(deleteEditorButton, optionsToggle, saveButton);
+    editor.append(editorToolbar, imageInput, textarea, blockList, images, options, actions);
     imageInput.addEventListener("change", () => {
       acceptImages(imageInput.files);
       imageInput.value = "";
+    });
+    surface.addEventListener("input", syncNoteOptionsSurface);
+    textarea.addEventListener("keydown", (event) => {
+      if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
+      const marker = { b: "**", i: "*", u: "++" }[event.key.toLowerCase()];
+      if (!marker) return;
+      event.preventDefault();
+      wrapTextareaSelection(textarea, marker);
+    });
+    dropzone.addEventListener("click", () => imageInput.click());
+    dropzone.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      imageInput.click();
     });
     [dropzone, textarea].forEach((target) => {
       target.addEventListener("dragover", (event) => event.preventDefault());
@@ -1289,7 +1392,10 @@
         acceptImages(event.dataTransfer.files);
       });
       target.addEventListener("paste", (event) => {
-        const files = Array.from(event.clipboardData?.files || []);
+        const clipboardFiles = Array.from(event.clipboardData?.files || []).filter((file) => /^image\//iu.test(file.type || ""));
+        const files = clipboardFiles.length ? clipboardFiles : Array.from(event.clipboardData?.items || [])
+          .filter((item) => item.kind === "file" && /^image\//iu.test(item.type || ""))
+          .map((item) => item.getAsFile()).filter(Boolean);
         if (files.length) {
           event.preventDefault();
           acceptImages(files);
@@ -1299,7 +1405,8 @@
 
     const toasts = createElement("div", { class: "lm-ui lm-toast-region", "aria-live": "polite", "data-lm-ignore": "" });
     document.body.append(toolbar, toggle, manager, editor, toasts);
-    state.ui = { toolbar, toggle, manager, search, list, editor, blockType, textarea, blocks: blockList, question, surface, alt, decorative, images, save: actions.lastElementChild, status: statusEl, importInput, toasts };
+    state.ui = { toolbar, toggle, manager, search, list, editor, blockType, textarea, blocks: blockList, question, surface, surfacePresets, alt, decorative, images, imageInput, options, optionsToggle, deleteEditorButton, save: saveButton, status: statusEl, importInput, toasts };
+    syncNoteOptionsSurface();
   }
 
   function closeMenus() {
@@ -1467,6 +1574,10 @@
     state.ui.surface.value = normalizeHex(note?.surfaceColor, "#FFFFFF");
     state.ui.alt.value = "";
     state.ui.decorative.checked = false;
+    state.ui.options.hidden = true;
+    state.ui.options.setAttribute("aria-hidden", "true");
+    state.ui.optionsToggle.setAttribute("aria-expanded", "false");
+    syncNoteOptionsSurface();
     renderPendingBlocks();
     renderPendingImages();
     const rect = selectionRectFor(annotation) || { left: innerWidth / 2 - 160, top: 96 };
@@ -1517,6 +1628,20 @@
       );
       state.ui.images.appendChild(card);
     });
+  }
+
+  function deleteEditorNote() {
+    const noteId = state.editingNoteId;
+    if (noteId) {
+      deleteNote(noteId);
+      if (!state.notes.some((note) => note.id === noteId)) closeEditor({ force: true });
+      return;
+    }
+    state.ui.textarea.value = "";
+    state.ui.imageInput.value = "";
+    closeEditor({ force: true });
+    renderPendingBlocks();
+    renderPendingImages();
   }
 
   function saveNote() {

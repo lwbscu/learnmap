@@ -293,6 +293,8 @@ test("note surface defaults to #FFFFFF and persists preset and custom #RRGGBB va
   await expect(editor).toBeVisible();
   const surface = page.getByTestId("lm-note-surface-custom");
   await expect(surface).toHaveValue("#ffffff");
+  await page.getByTestId("lm-note-options-toggle").click();
+  await expect(page.getByTestId("lm-note-options")).toBeVisible();
   await page.getByTestId("lm-note-surface-preset-yellow").click();
   await expect(surface).toHaveValue(/^#[0-9a-f]{6}$/i);
   await surface.fill("#12AB34");
@@ -338,7 +340,7 @@ test("legacy v1 data and package imports normalize into runtime v2 notes", async
     annotations: [{
       id: "ann-legacy",
       scopeId: "core-concept",
-      anchor: { scopeId: "core-concept", start: 0, end: 6, exact: "瀛︿範鎵规" },
+      anchor: { scopeId: "core-concept", start: 0, end: 6, exact: "学习批注应当" },
       style: "dashed",
       color: "#3366FF",
       surface: "#FFFFFF",
@@ -370,7 +372,8 @@ test("legacy v1 data and package imports normalize into runtime v2 notes", async
   await page.evaluate(async (value) => {
     await window.LearnMapAnnotations.importPackage(new File([new Uint8Array(value)], "legacy.learnmap"));
   }, Array.from(bytes));
-  await expect.poll(() => annotationSummary(page)).toMatchObject({ noteCount: 1 });
+  await expect.poll(() => annotationSummary(page)).toMatchObject({ noteCount: 1, orphanedCount: 0 });
+  await expect(page.locator(".lm-note-hit")).toHaveCount(1);
   await ensureNotesManagerOpen(page);
   await expect(page.getByTestId("lm-note-list")).toContainText("Legacy v1 note");
 });

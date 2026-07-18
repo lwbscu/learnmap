@@ -108,7 +108,7 @@ Completely forbid note side drawers. Do not create a right drawer, left drawer, 
 
 When a mark has a note, the marked source text receives a subtle note icon. Hovering the marked text or icon shows a compact anchored popover near the source. Clicking the note icon toggles expand/collapse for the anchored popover; clicking blank page space collapses it. The expanded popover shows the source quote, note preview, image count or thumbnails, note surface color, and edit/jump/delete controls.
 
-The anchored floating editor is required and complete. It opens from selected text or an existing note icon, stays positioned near the anchor when possible, and supports writing text, pasting text, copying text, pasting images, copying images, adding captions/alt text, choosing default white/pastel note surfaces, choosing custom `#RRGGBB` note surfaces, saving, canceling, deleting, and export-first clear flows.
+The anchored floating editor is required and complete. Its primary desktop surface is a compact white note card, approximately 360-380 px wide, with a restrained shadow, dark readable text, and no nested form-card treatment. The top toolbar exposes bold, italic, underline, ordered list, unordered list, an image icon, and close. The body is a quiet borderless writing surface; the footer exposes delete, the note-surface color/options dot, and a high-contrast save action. It opens from selected text or an existing note icon, stays positioned near the anchor when possible, and supports writing text, pasting text, copying text, uploading images from the image icon, pasting clipboard images directly into the writing surface, copying images, adding captions/alt text, choosing default white/pastel note surfaces, choosing custom `#RRGGBB` note surfaces, saving, canceling, deleting, and export-first clear flows. Keep block type, question tagging, image alt/decorative controls, and color presets in a compact secondary options popover instead of displaying the old full form by default.
 
 The floating notes manager is required. It is a movable or popover-style manager, never a side drawer. It supports search, import/export, orphan rebind, bulk review, jump to source, edit, delete, and copy text/images from notes. Keep it terse by default; show the editor only when creating or editing a note.
 
@@ -123,9 +123,9 @@ Store controlled blocks only:
 - code
 - image with caption and alt text
 
-Allow bold, italic, inline code, and `http`/`https` links. Normalize pasted rich text to the allowlist. Never persist or render arbitrary HTML.
+Allow bold, italic, underline, ordered lists, unordered lists, inline code, and `http`/`https` links. Toolbar formatting must update the actual note text and render through the safe allowlist parser; it must not depend on `contenteditable` HTML. Normalize pasted rich text to the allowlist. Never persist or render arbitrary HTML.
 
-Accept images from paste, drag/drop, or file input. Allow PNG, JPEG, and WebP only. Reject SVG, GIF, HTML, remote URLs, files above 5 MiB, and decoded images above 12 MP. Re-encode through canvas, strip metadata, and scale the longest edge to at most 1920 px. Require alt text or an explicit decorative flag. Copying an image back to the clipboard should use the sanitized stored blob when the browser permits it; otherwise provide a clear save/export fallback.
+Accept images from paste, drag/drop, or file input. The image toolbar icon must open the native file picker, and a clipboard image pasted while the note writing surface is focused must enter the same sanitized preview/save pipeline without disturbing ordinary text paste. Allow PNG, JPEG, and WebP only. Reject SVG, GIF, HTML, remote URLs, files above 5 MiB, and decoded images above 12 MP. Re-encode through canvas, strip metadata, and scale the longest edge to at most 1920 px. Require alt text or an explicit decorative flag. Copying an image back to the clipboard should use the sanitized stored blob when the browser permits it; otherwise provide a clear save/export fallback.
 
 ## 5. Anchors And Recovery
 
@@ -207,7 +207,7 @@ A current-contract page must have:
 
 - canonical runtime markers, version, and matching hash
 - `courseId`, annotation metadata, annotatable root, and stable scopes
-- runtime v2 metadata/API, v1 data/package migration, three underline styles, default plus custom `#RRGGBB` mark colors, toolbar, anchored floating editor, floating notes manager, status, import/export, and orphan UI
+- runtime v2 metadata/API, v1 data/package migration, three underline styles, default plus custom `#RRGGBB` mark colors, mark toolbar, compact white B/I/U/list/image note card, file-picker and clipboard image flows, floating notes manager, status, import/export, and orphan UI
 - separate learning reset and annotation clear behavior
 - `annotationSummary` without full notes/images in the learning record
 - no note side drawer, remote dependency, arbitrary editable course root, or unsafe user-data HTML rendering

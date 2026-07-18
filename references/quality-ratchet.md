@@ -93,7 +93,7 @@ Run this checklist in order:
    - Do not use HTML line count as a completion or quality signal.
    - Do not equate fast with compact, deep-series with high-quality, or a large byte count with high quality.
    - Do not remove navigation, lesson TOC, expanders, anchored note icons/popovers, review jumps, record export, or weak-spot continuation in compact mode.
-   - Do not remove underlines, highlights, anchored floating text/image notes, note-icon expand/collapse, anchored source jumps, honest storage status, custom `#RRGGBB` color controls, or portable exports in compact mode.
+   - Do not remove underlines, highlights, the compact white B/I/U/list/image note card, one-click image upload, direct clipboard image paste, anchored floating text/image notes, note-icon expand/collapse, anchored source jumps, honest storage status, custom `#RRGGBB` color controls, or portable exports in compact mode.
    - Do not handwrite a different annotation engine per lesson, wrap selected source text in mutation-prone spans, or treat `.annotate` term hints as learner annotations.
    - Do not create a note side drawer. The lesson table-of-contents is still allowed and required.
    - Do not claim persistent storage under `file://` unless the runtime capability check succeeds.
@@ -128,7 +128,7 @@ Expected: set `fast + single-overview + high-quality + batch`; do not ask a redu
 用 1 个 compact HTML 教我 MDP，保留全部课件交互和笔记能力。
 ```
 
-Expected: keep the complete canonical annotation runtime v2, including highlights, all three underline styles, default and custom `#RRGGBB` colors through a compact dropdown, anchored floating text/image notes, note-icon expand/collapse, source jumps, autosave status, `.learnmap` import/export with v1 compatibility, and Markdown export. Compact changes teaching density, not the interaction floor; report content, runtime, and total bytes, but do not fail solely because lesson content exceeds a default target.
+Expected: keep the complete canonical annotation runtime v2, including highlights, all three underline styles, default and custom `#RRGGBB` colors through a compact dropdown, the compact white B/I/U/list/image note card, image upload and direct clipboard image paste, anchored floating text/image notes, note-icon expand/collapse, source jumps, autosave status, `.learnmap` import/export with v1 compatibility, and Markdown export. Compact changes teaching density, not the interaction floor; report content, runtime, and total bytes, but do not fail solely because lesson content exceeds a default target.
 
 ```text
 我写了三条带图片的笔记。现在重置本课学习进度，然后继续从薄弱点学习。

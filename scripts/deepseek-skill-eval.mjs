@@ -56,7 +56,7 @@ const cases = [
     prompt: "用 1 个 compact HTML 教我 MDP，保留全部课件交互和笔记能力。",
     expected: [
       "keeps underline and highlight marks, all three underline styles, default colors, and custom #RRGGBB mark colors through a compact dropdown",
-      "keeps structured text and safe image notes, anchored popovers with note-icon click expand/collapse, floating editor, floating notes manager, source jumps, autosave status, portable package import/export, and Markdown export",
+      "keeps structured text and safe image notes, a compact white B/I/U/list/image note card, one-click image upload, direct clipboard image paste, anchored popovers with note-icon click expand/collapse, floating notes manager, source jumps, autosave status, portable package import/export, and Markdown export",
       "uses the canonical injected runtime instead of asking the model to rewrite it",
       "uses annotation runtime v2 while preserving v1 data/package compatibility",
       "reports content, runtime, and total bytes separately without imposing default size ceilings",
@@ -73,7 +73,7 @@ const cases = [
       "uses a compact Feishu-style toolbar instead of a long always-expanded toolbar",
       "selects default or custom #RRGGBB colors through a dropdown or popover instead of a permanent color row",
       "shows note content near the marked source and expands/collapses it through the note icon",
-      "uses a complete anchored floating editor for writing, pasting, and copying text and images",
+      "uses a compact white anchored note card with B/I/U/list/image controls, a native image picker, and direct clipboard image paste while preserving ordinary text paste",
       "uses a floating notes manager for search, import/export, orphan rebind, and bulk review",
       "does not create a right, left, or overlay note side drawer",
       "preserves the lesson TOC"

@@ -1,7 +1,7 @@
 interface:
   display_name: "LearnMap"
   short_description: "Resumable HTML learning with floating anchored notes"
-  default_prompt: "Use $learnmap-skill to teach me a new domain with native popup choices for HTML count, compact/standard/high-quality tier, and delivery cadence, then create resumable interactive lessons with quizzes, review links, runtime v2 anchored underlines/highlights, floating text/image notes, portable exports, records, and weak-spot continuation."
+  default_prompt: "Use $learnmap-skill to teach me a new domain with native popup choices for HTML count, compact/standard/high-quality tier, and delivery cadence, then create resumable interactive lessons with quizzes, review links, runtime v2 anchored underlines/highlights, compact white B/I/U/list/image note cards with upload and clipboard paste, floating note management, portable exports, records, and weak-spot continuation."
 
 policy:
   allow_implicit_invocation: true

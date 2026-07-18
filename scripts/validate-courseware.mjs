@@ -236,7 +236,21 @@ const runtimeApis = ["window.LearnMapAnnotations", "getSummary", "clearLessonAnn
 if (canonicalRuntime) runtimeApis.forEach((token) => {
   if (!canonicalRuntime.js.includes(token)) contractProblem(`Canonical runtime is missing API token: ${token}`);
 });
-const runtimeV2Tokens = ["lm-note-editor-popover", "lm-notes-manager", "lm-note-hit", "lm-note-copy", "customColor", "surfaceColor"];
+const runtimeV2Tokens = [
+  "lm-note-editor-popover",
+  "lm-notes-manager",
+  "lm-note-hit",
+  "lm-note-copy",
+  "lm-note-format-bold",
+  "lm-note-format-italic",
+  "lm-note-format-underline",
+  "lm-note-format-ordered-list",
+  "lm-note-format-unordered-list",
+  "lm-note-image-add",
+  "lm-note-options-toggle",
+  "customColor",
+  "surfaceColor"
+];
 if (canonicalRuntime) runtimeV2Tokens.forEach((token) => {
   if (!canonicalRuntime.js.includes(token) && !canonicalRuntime.block.includes(token)) contractProblem(`Canonical runtime v2 is missing contract token: ${token}`);
 });

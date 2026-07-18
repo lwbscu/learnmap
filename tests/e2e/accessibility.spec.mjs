@@ -90,6 +90,37 @@ test("mobile layout uses a bottom sheet without overflowing the viewport", async
   await expect(toggle).toBeFocused();
 });
 
+test("mobile note editor keeps every primary action inside the viewport", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await selectFixtureText(page);
+  await page.getByTestId("lm-add-note").click();
+  const editor = page.getByTestId("lm-note-editor-popover");
+  await expect(editor).toBeVisible();
+  await expect(editor).toHaveAttribute("data-layout", "bottom-sheet");
+  const controls = [
+    "lm-note-format-bold",
+    "lm-note-format-italic",
+    "lm-note-format-underline",
+    "lm-note-format-ordered-list",
+    "lm-note-format-unordered-list",
+    "lm-note-image-add",
+    "lm-note-editor-close",
+    "lm-note-delete-editor",
+    "lm-note-options-toggle",
+    "lm-note-save"
+  ];
+  for (const testId of controls) {
+    const control = page.getByTestId(testId);
+    await expect(control).toBeVisible();
+    const box = await control.boundingBox();
+    expect(box, testId).not.toBeNull();
+    expect(box.x, testId).toBeGreaterThanOrEqual(0);
+    expect(box.y, testId).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width, testId).toBeLessThanOrEqual(390);
+    expect(box.y + box.height, testId).toBeLessThanOrEqual(844);
+  }
+});
+
 test("desktop layout has no horizontal or vertical UI overflow", async ({ page }) => {
   await selectFixtureText(page);
   await expect(page.getByTestId("lm-toolbar")).toBeVisible();
